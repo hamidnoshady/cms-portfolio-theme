@@ -56,7 +56,7 @@ jobs:
           ARCH2_INCLUDE_QA=1 npm run prepare:standalone
       - name: Check the browser binary
         run: /usr/bin/google-chrome --version
-      - name: Serve the two audit pairs and run both audits
+      - name: Serve the audit pairs and run every browser audit
         env:
           ARCH2_CHROME_PATH: /usr/bin/google-chrome
         run: |
@@ -102,14 +102,11 @@ jobs:
             --base http://127.0.0.1:3200 \
             --slow-base http://127.0.0.1:3300 \
             --out docs/screenshots/live-cms
-      - name: Home canvas behaviour and motion
-        env:
-          ARCH2_CHROME_PATH: /usr/bin/google-chrome
-        run: |
-          # The infinite canvas is a *behaviour*, so it is audited the way the other
-          # surfaces are — against the production standalone build, in a real browser —
-          # and with sequences, not only stills (a screenshot cannot show that the field
-          # never ends, never blanks and comes to rest).
+          # The home canvas is a *behaviour*, so it is audited the same way — against the
+          # production standalone build, in a real browser — and with sequences, not only
+          # stills (a screenshot cannot show that the field never ends, never blanks and
+          # comes to rest). It runs inside *this* step on purpose: the mock/theme pairs are
+          # started here, and a step boundary is not a place to assume they survived.
           node scripts/home-canvas-audit.mjs --base http://127.0.0.1:3200
           node scripts/home-canvas-motion.mjs --base http://127.0.0.1:3200
       - name: Upload audit reports
@@ -120,6 +117,8 @@ jobs:
           path: |
             docs/screenshots/live-cms/*.json
             docs/screenshots/bang-home/**/*.json
+            docs/screenshots/bang-home/**/*.jpg
+            docs/screenshots/bang-home/**/*.gif
           if-no-files-found: ignore
 
   image:

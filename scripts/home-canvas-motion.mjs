@@ -125,6 +125,24 @@ const actionableTiles = (page) =>
     return points.slice(0, 3)
   })
 
+/**
+ * The same lines that go to stdout also go to the run's summary when the runner offers one:
+ * a browser audit whose output cannot be read is not evidence (see `home-canvas-audit.mjs`).
+ */
+const summarise = async (results) => {
+  const path = process.env.GITHUB_STEP_SUMMARY
+  if (!path) return
+  const failed = results.filter((entry) => !entry.ok)
+  const body = [
+    `### Home canvas motion — ${results.length - failed.length}/${results.length} checks passed`,
+    '',
+    ...results.map((entry) => `- ${entry.ok ? '✅' : '❌'} ${entry.name}${entry.detail ? ` — ${entry.detail}` : ''}`),
+    '',
+  ].join('\n')
+  const { appendFile } = await import('node:fs/promises')
+  await appendFile(path, `${body}\n`, 'utf8').catch(() => null)
+}
+
 const results = []
 const record = (name, ok, detail) => {
   results.push({ detail, name, ok })
@@ -158,7 +176,11 @@ const main = async () => {
 
   await page.goto(`${BASE}/`, { timeout: 90000, waitUntil: 'networkidle2' })
   await page.waitForSelector('.bang-canvas__tile', { timeout: 30000 })
-  await sleep(1200)
+  // The gestures below are meaningless until the field has taken over (see the audit).
+  await page
+    .waitForFunction(() => document.documentElement.dataset.bangCanvas === 'pan', { timeout: 30000 })
+    .catch(() => null)
+  await sleep(400)
 
   const frames = { close: [], cursor: [], drag: [], open: [], wheel: [] }
   const capture = async (sequence) => {
@@ -237,14 +259,30 @@ const main = async () => {
     for (let attempt = 0; attempt < 5 && found.length < 2; attempt += 1) {
       await page.mouse.move(720, 500)
       await page.mouse.wheel({ deltaY: 320 })
-      await sleep(700)
+      await page
+        .waitForFunction(
+          (from) => Math.abs(Number(/(-?[\d.]+)px/u.exec(document.querySelector('.bang-canvas__world')?.style.transform ?? '')?.[1] ?? 0) - from) < 4,
+          { timeout: 4000 },
+          await page.evaluate(() => Number(/(-?[\d.]+)px/u.exec(document.querySelector('.bang-canvas__world')?.style.transform ?? '')?.[1] ?? 0)),
+        )
+        .catch(() => null)
       found = distinct(await actionableTiles(page))
     }
     return found
   })
   for (const point of points) {
     await page.mouse.move(point.x, point.y)
-    await sleep(500)
+    await page
+      .waitForFunction(
+        ({ px, py }) => {
+          const rect = document.querySelector('.bang-cursor__mark')?.getBoundingClientRect()
+          if (!rect) return false
+          return Math.hypot(rect.left + rect.width / 2 - px, rect.top + rect.height / 2 - py) < 1
+        },
+        { timeout: 4000 },
+        { px: point.x, py: point.y },
+      )
+      .catch(() => null)
     await capture('cursor')
   }
   const labels = frames.cursor.map((frame) => frame.cursor.label)
@@ -303,6 +341,7 @@ const main = async () => {
   )
   const failed = results.filter((entry) => !entry.ok)
   console.log(`\n${results.length - failed.length}/${results.length} checks passed — evidence in ${OUT}`)
+  await summarise(results)
   if (failed.length > 0) process.exitCode = 1
 }
 

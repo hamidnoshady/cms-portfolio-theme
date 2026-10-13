@@ -143,6 +143,40 @@ const snapshot = (page) =>
     }
   })
 
+/**
+ * The same tile, but waiting for the field to settle first: after a drag the plane eases
+ * for a few frames, and "no tile was reachable" would then be a statement about the
+ * audit's timing rather than about the composition.
+ */
+const reachableTile = async (page) => {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const tile = await actionableTile(page)
+    if (tile) return tile
+    await sleep(250)
+  }
+  return null
+}
+
+/**
+ * A browser audit that cannot be read is not evidence. GitHub's log view for a job can be
+ * unavailable (large logs, forks), so the same lines that go to stdout are appended to the
+ * run's summary when the runner offers one.
+ */
+const summarise = async (results, out) => {
+  const path = process.env.GITHUB_STEP_SUMMARY
+  const failed = results.filter((entry) => !entry.ok)
+  const body = [
+    `### Home canvas behaviour — ${results.length - failed.length}/${results.length} checks passed`,
+    '',
+    ...results.map((entry) => `- ${entry.ok ? '✅' : '❌'} ${entry.name}${entry.detail ? ` — ${entry.detail}` : ''}`),
+    '',
+  ].join('\n')
+  if (!path) return
+  const { appendFile } = await import('node:fs/promises')
+  await appendFile(path, `${body}\n`, 'utf8').catch(() => null)
+  void out
+}
+
 const results = []
 const record = (name, ok, detail) => {
   results.push({ detail, name, ok })
@@ -179,10 +213,19 @@ const main = async () => {
 
   await page.goto(`${BASE}/`, { timeout: 90000, waitUntil: 'networkidle2' })
   await page.waitForSelector('.bang-canvas__tile', { timeout: 30000 })
-  await sleep(1200)
 
-  const hydrated = await page.evaluate(() => document.documentElement.dataset.bangCanvas)
-  record('canvas mode engages on a fine pointer', hydrated === 'pan', `data-bang-canvas=${hydrated}`)
+  /**
+   * Wait for the canvas to *take over*, rather than assuming a delay. The assertion is
+   * "the field becomes interactive", not "the field is interactive 1.2 seconds after the
+   * document loads" — a cold runner hydrating React takes as long as it takes.
+   */
+  const started = Date.now()
+  const hydrated = await page
+    .waitForFunction(() => document.documentElement.dataset.bangCanvas === 'pan', { timeout: 30000 })
+    .then(() => 'pan')
+    .catch(async () => (await page.evaluate(() => document.documentElement.dataset.bangCanvas)) ?? null)
+  record('canvas mode engages on a fine pointer', hydrated === 'pan', `data-bang-canvas=${hydrated} after ${Date.now() - started}ms`)
+  if (hydrated !== 'pan') throw new Error('the canvas never became interactive — the rest of this audit would be measuring the static presentation')
 
   const start = await snapshot(page)
   record('field is bounded and populated', start.count > 0 && start.count <= 20 && start.visible >= 2, `${start.count} tiles, ${start.visible} on screen`)
@@ -210,6 +253,10 @@ const main = async () => {
   let visibleWrap = null
   let identityStable = true
   let fastest = 0
+  let reversed = false
+  /** Total plane travel, and the total wheel input that asked for it. */
+  let travelled = 0
+  const wheelInput = 260 * 30
   const shift = (transform) => {
     const match = /translate3d\((-?[\d.]+)px,\s*(-?[\d.]+)px/u.exec(transform ?? '')
     return match ? { x: Number(match[1]), y: Number(match[2]) } : { x: 0, y: 0 }
@@ -219,7 +266,12 @@ const main = async () => {
     const current = samples[index]
     const before = shift(previous.world)
     const now = shift(current.world)
-    fastest = Math.max(fastest, Math.hypot(now.x - before.x, now.y - before.y))
+    const step = { x: now.x - before.x, y: now.y - before.y }
+    fastest = Math.max(fastest, Math.hypot(step.x, step.y))
+    travelled += Math.abs(step.y)
+    // Wheel down must move the plane down, always: a sign change would be a reset or a
+    // wrap applied to the whole plane instead of to a single tile.
+    if (step.y > 0.5) reversed = true
     for (let tile = 0; tile < current.tiles.length; tile += 1) {
       const was = previous.tiles[tile]
       const is = current.tiles[tile]
@@ -234,7 +286,16 @@ const main = async () => {
   }
   record('a tile keeps its destination across wrapping', identityStable)
   record('no tile teleports while it is on screen', visibleWrap === null, visibleWrap ?? `checked ${samples.length} samples`)
-  record('the plane follows the wheel instead of jumping', fastest < 900, `largest plane step ${fastest.toFixed(1)}px per sample`)
+  // The plane may never travel further than the wheel asked for (plus a little slack for
+  // sampling), and never backwards: that is what distinguishes a smooth pan from a reset,
+  // and it holds on a slow machine as well as a fast one. `fastest` is reported for the
+  // record — it depends on how many frames the sampler got between wheel events, so it is
+  // a fact about the machine, not a pass/fail.
+  record(
+    'the plane follows the wheel, never runs ahead of it and never reverses',
+    !reversed && travelled <= wheelInput * 1.05 + 120,
+    `travelled ${travelled.toFixed(0)}px for ${wheelInput}px of wheel (largest step ${fastest.toFixed(1)}px)`,
+  )
   // The wrap is only invisible while the period holds a whole viewport plus two of the
   // largest tile; that is the invariant behind every check above.
   const budget = await page.evaluate(() => {
@@ -259,7 +320,23 @@ const main = async () => {
   const cursorPoint = await actionableTile(page)
   if (cursorPoint) {
     await page.mouse.move(cursorPoint.x, cursorPoint.y)
-    await sleep(700)
+    // The mark trails the pointer through a short eased follow, so the check is
+    // *convergence*: wait for it to arrive rather than assuming a delay (a slower
+    // machine, or a busy first frame, is not a defect).
+    const settle = async (x, y, budget = 4000) => {
+      await page
+        .waitForFunction(
+          ({ px, py }) => {
+            const rect = document.querySelector('.bang-cursor__mark')?.getBoundingClientRect()
+            if (!rect) return false
+            return Math.hypot(rect.left + rect.width / 2 - px, rect.top + rect.height / 2 - py) < 1
+          },
+          { timeout: budget },
+          { px: x, py: y },
+        )
+        .catch(() => null)
+    }
+    await settle(cursorPoint.x, cursorPoint.y)
     const cursor = await page.evaluate(() => {
       const node = document.querySelector('.bang-cursor')
       const rect = node?.querySelector('.bang-cursor__mark')?.getBoundingClientRect()
@@ -286,7 +363,7 @@ const main = async () => {
     // The mark trails the pointer by design (a short eased follow), so it is measured
     // after it has had time to catch up — and it has to keep closing, not hang behind.
     await page.mouse.move(cursorPoint.x + 60, cursorPoint.y + 60)
-    await sleep(400)
+    await settle(cursorPoint.x + 60, cursorPoint.y + 60)
     const catching = await page.evaluate(() => {
       const rect = document.querySelector('.bang-cursor__mark')?.getBoundingClientRect()
       return rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null
@@ -297,7 +374,11 @@ const main = async () => {
       cursor.centre !== null && offset < 1.5 && cursor.size > 0,
       `centre ${cursor.centre ? `${cursor.centre.x.toFixed(0)},${cursor.centre.y.toFixed(0)}` : 'none'} vs pointer ${cursorPoint.x.toFixed(0)},${cursorPoint.y.toFixed(0)} (${offset.toFixed(1)}px), size ${cursor.size}px`,
     )
-    record('the cursor follows the pointer instead of stopping', lagging < 2, `400ms after an 85px move it is ${lagging.toFixed(1)}px behind`)
+    record(
+      'the cursor follows the pointer instead of stopping',
+      lagging < 1.5,
+      `after an 85px move it settles ${lagging.toFixed(1)}px from the pointer`,
+    )
     await page.mouse.move(cursorPoint.x, cursorPoint.y)
     await sleep(200)
 
@@ -321,9 +402,10 @@ const main = async () => {
     record('a drag pans without opening a work', !afterDrag.dialog && afterDrag.path === '/', `${afterDrag.path}`)
     record('a drag moves the field one-to-one with the pointer', afterDrag.world !== before.world, `${before.world} → ${afterDrag.world}`)
 
-    const target = await actionableTile(page)
+    const target = await reachableTile(page)
+    if (!target) throw new Error('no tile of the field became reachable to click')
     await page.mouse.click(target.x, target.y)
-    await page.waitForSelector('.bang-overlay', { timeout: 15000 })
+    await page.waitForSelector('.bang-overlay', { timeout: 30000 })
     await sleep(700)
     const opened = await page.evaluate(() => {
       const dialog = document.querySelector('.bang-overlay')
@@ -351,7 +433,7 @@ const main = async () => {
     )
 
     await page.keyboard.press('Escape')
-    await page.waitForFunction(() => !document.querySelector('.bang-overlay'), { timeout: 15000 })
+    await page.waitForFunction(() => !document.querySelector('.bang-overlay'), { timeout: 30000 })
     await sleep(400)
     const after = await snapshot(page)
     record('closing restores the canvas position exactly', after.world === frozen.world && after.visible === frozen.visible, `${frozen.world} → ${after.world}`)
@@ -463,6 +545,7 @@ const main = async () => {
   writeFileSync(join(OUT, 'home-canvas-report.json'), `${JSON.stringify({ base: BASE, results }, null, 2)}\n`)
   const failed = results.filter((entry) => !entry.ok)
   console.log(`\n${results.length - failed.length}/${results.length} checks passed — screenshots in ${OUT}`)
+  await summarise(results, OUT)
   if (failed.length > 0) process.exitCode = 1
 }
 
