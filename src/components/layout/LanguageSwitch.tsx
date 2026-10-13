@@ -3,23 +3,25 @@ import Link from 'next/link'
 import type { SwitchTarget } from '@/lib/seo/translations'
 
 /**
- * Language switch: names only the **other** language.
+ * Language switch: every language the site serves, with the one you are reading marked.
  *
- * A Persian page offers «English», an English page offers «فارسی» — the current
- * language is never listed as a second visible option, because a switch that shows
- * both reads as a status line, not a control. The rule is the same wherever the
- * switch appears (desktop header, mobile drawer, home entrance), because all three
- * render this one component.
+ * The reference's chrome is a compact pair of codes (`ENG ESP`) sitting on the edge
+ * opposite the logo: the *set* of languages is part of the identity, and the current
+ * one is present but inert. This component keeps that shape — one entry per available
+ * locale, in the order the CMS declares them, the current one rendered as marked text
+ * (`aria-current`, non-interactive) and the others as links.
  *
- * `href` is computed by the caller from the *translated equivalent* document — when
- * a document has no translation in the other locale the caller passes `null` and
- * the switch renders the label as quiet, non-interactive text rather than
- * fabricating a URL that would 404 or redirecting to the other home page.
+ * A language the document has no translation in is quiet text, never a link: `href` is
+ * computed by the caller from the *translated equivalent* document, and when it is
+ * `null` rendering the label as non-interactive text is honest, while fabricating a URL
+ * would 404 or silently redirect to the other home page.
+ *
+ * `href` is a locale-neutral path; the locale prefix is applied once by the caller — a
+ * caller that pre-prefixed its path produced `/en/en/services`.
  */
 
-/** The targets a switch shows: every available locale except the one being read. */
-export const oppositeTargets = (targets: SwitchTarget[], current: string): SwitchTarget[] =>
-  targets.filter((entry) => entry.locale !== current)
+/** The targets a switch shows: every available locale, in declaration order. */
+export const switchEntries = (targets: SwitchTarget[]): SwitchTarget[] => targets
 
 export const LanguageSwitch = ({
   className,
@@ -32,31 +34,51 @@ export const LanguageSwitch = ({
   hrefs: SwitchTarget[]
   label: string
 }) => {
-  const targets = oppositeTargets(hrefs, current)
-  if (targets.length === 0) return null
+  // One language is not a choice: a lone label would read as a status line.
+  if (hrefs.length < 2) return null
 
   return (
     <nav aria-label={label} className={className} data-language-switch={current}>
       <ul className="flex items-center gap-3">
-        {targets.map((entry) => (
-          <li key={entry.locale}>
-            {entry.href ? (
-              <Link className="type-ui nav-link" href={entry.href} hrefLang={entry.locale} lang={entry.locale}>
-                {entry.label}
-              </Link>
-            ) : (
-              <span
-                aria-disabled="true"
-                className="type-ui lang-switch__unavailable"
-                data-translation="missing"
-                lang={entry.locale}
-                role="link"
-              >
-                {entry.label}
-              </span>
-            )}
-          </li>
-        ))}
+        {switchEntries(hrefs).map((entry) => {
+          const isCurrent = entry.locale === current
+          return (
+            <li key={entry.locale}>
+              {isCurrent ? (
+                <span
+                  aria-current="true"
+                  className="type-ui lang-switch__current"
+                  data-current="true"
+                  lang={entry.locale}
+                  title={entry.name}
+                >
+                  {entry.label}
+                </span>
+              ) : entry.href ? (
+                <Link
+                  aria-label={entry.name}
+                  className="type-ui nav-link"
+                  href={entry.href}
+                  hrefLang={entry.locale}
+                  lang={entry.locale}
+                  title={entry.name}
+                >
+                  {entry.label}
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="type-ui lang-switch__unavailable"
+                  data-translation="missing"
+                  lang={entry.locale}
+                  role="link"
+                >
+                  {entry.label}
+                </span>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </nav>
   )

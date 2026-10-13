@@ -3,16 +3,21 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
+  ZONE_MAX_HEIGHT,
   MAX_SLOTS,
   MAX_WIDTH,
+  MIN_SLOTS,
   MIN_WIDTH,
   MOBILE_TILE_SCALE,
   PLANE,
-  gridFor,
+  ZONE_COLUMNS,
+  ZONE_ROWS,
+  isZoneFrame,
   planCanvas,
   slotsFor,
   tileRatio,
   unitHash,
+  zoneFor,
   type CanvasWork,
 } from '@/components/home/canvasPlan'
 import {
@@ -71,15 +76,21 @@ const VIEWPORTS = [
 const boxesFor = (workCount: number, viewport: { height: number; scale?: number; width: number }) => {
   const scale = viewport.scale ?? 1
   const plane = vec(viewport.width * PLANE, viewport.height * PLANE)
-  const tiles = planCanvas(works(workCount)).tiles.map((tile) => {
+  const plan = planCanvas(works(workCount))
+  const tiles = plan.tiles.map((tile, slot) => {
     const width = Math.min(tile.width * plane.x * scale, 0.46 * viewport.width)
-    const height = Math.min(width / tile.ratio, (viewport.width < 768 ? 0.38 : 0.46) * viewport.height)
+    // The stylesheet's caps: a zone frame is capped at 21% of the viewport, everything
+    // else at 46% (38% on phones) — see `.bang-canvas__tile[data-zone]`.
+    const cap = tile.zone ? 0.105 * plane.y : (viewport.width < 768 ? 0.38 : 0.46) * viewport.height
+    const height = Math.min(width / tile.ratio, cap)
     return {
       box: { position: vec(tile.x * plane.x, tile.y * plane.y), size: vec(width, height) },
       key: tile.key,
       ratio: tile.ratio,
+      slot,
       width: tile.width,
       work: tile.work,
+      zone: tile.zone,
     }
   })
   return { largest: vec(Math.max(...tiles.map((tile) => tile.box.size.x)), Math.max(...tiles.map((tile) => tile.box.size.y))), plane, tiles }
@@ -95,41 +106,96 @@ describe('home canvas composition', () => {
     expect(unitHash('work-1', 'angle-3')).not.toBe(unitHash('work-1', 'angle-4'))
   })
 
-  it('keeps every tile inside the canvas box, so the served percentages need no correction', () => {
+  it('places every tile by its cell and wraps it into the plane, with a bounded overhang', () => {
     for (const tile of planCanvas(works(6)).tiles) {
+      // The anchor is inside the plane. A frame may overhang the plane's edge — the
+      // canvas is a torus and its copy is on the other side of the seam — but only by
+      // its own size, which is what keeps the served percentages meaningful in the
+      // static presentation as well.
       expect(tile.x).toBeGreaterThanOrEqual(0)
-      expect(tile.x + tile.width).toBeLessThanOrEqual(1)
+      expect(tile.x).toBeLessThan(1)
       expect(tile.y).toBeGreaterThanOrEqual(0)
-      expect(tile.y).toBeLessThanOrEqual(1)
-      expect(tile.width).toBeGreaterThan(0.1)
-      expect(tile.width).toBeLessThanOrEqual(0.3)
+      expect(tile.y).toBeLessThan(1)
+      expect(tile.x + tile.width).toBeLessThanOrEqual(1 + MAX_WIDTH)
+      expect(tile.y + tile.width / tile.ratio).toBeLessThanOrEqual(1 + ZONE_MAX_HEIGHT + 1e-9)
+      expect(tile.width).toBeGreaterThanOrEqual(MIN_WIDTH)
+      expect(tile.width).toBeLessThanOrEqual(MAX_WIDTH)
       expect(tile.ratio).toBeGreaterThan(0.5)
       expect(tile.ratio).toBeLessThan(3)
+      expect(Math.abs(tile.rotate)).toBeLessThanOrEqual(4)
       expect(Number.isInteger(tile.z)).toBe(true)
     }
   })
 
   it('bounds the field and gives every work at least one destination', () => {
-    expect(slotsFor(1)).toBe(8)
+    expect(slotsFor(1)).toBeGreaterThanOrEqual(MIN_SLOTS)
     expect(slotsFor(50)).toBe(MAX_SLOTS)
     const plan = planCanvas(works(7))
     expect(plan.tiles.length).toBeLessThanOrEqual(MAX_SLOTS)
     expect(plan.tiles.length).toBeGreaterThanOrEqual(7)
     const covered = new Set(plan.tiles.map((tile) => tile.work))
     for (let index = 0; index < 7; index += 1) expect(covered.has(index)).toBe(true)
-    // The lattice is filled: an empty cell would be a hole the viewport could settle in.
-    const { cols, rows } = gridFor(plan.tiles.length)
-    expect(cols * rows).toBe(plan.tiles.length)
+    // One frame per zone, and the zone layer is complete before any group frame is
+    // added — a missing zone is a hole a window could settle in.
+    for (const tile of plan.tiles) expect(tile.z).toBeGreaterThan(0)
+    const zones = plan.tiles.filter((tile, slot) => isZoneFrame(slot))
+    expect(zones.length).toBe(ZONE_COLUMNS * ZONE_ROWS)
+    expect(new Set(zones.map((tile) => tile.key)).size).toBe(zones.length)
   })
 
-  it('scatters rather than stacks: sizes, crops, depths and positions all differ', () => {
+  it('scatters rather than stacks: sizes, crops, depths, angles and positions all differ', () => {
     const tiles = planCanvas(works(6)).tiles
     expect(new Set(tiles.map((tile) => tile.width)).size).toBeGreaterThan(3)
     expect(new Set(tiles.map((tile) => tile.ratio)).size).toBeGreaterThan(2)
     expect(new Set(tiles.map((tile) => tile.z)).size).toBeGreaterThan(3)
+    expect(new Set(tiles.map((tile) => tile.rotate)).size).toBeGreaterThan(3)
+    // Angles are small enough to read as a hand-moved print, not a tilted grid.
+    for (const tile of tiles) expect(Math.abs(tile.rotate)).toBeLessThanOrEqual(4)
     expect(new Set(tiles.map((tile) => `${tile.x.toFixed(3)}:${tile.y.toFixed(3)}`)).size).toBe(tiles.length)
     // A ring, not a grid: nothing sits on a shared row edge.
     expect(new Set(tiles.map((tile) => tile.y.toFixed(3))).size).toBeGreaterThan(tiles.length / 2)
+  })
+
+  it('keeps every zone frame inside its own zone, so a window always contains a whole frame', () => {
+    const tiles = planCanvas(works(8)).tiles
+    const zoneTiles = tiles.filter((tile, slot) => isZoneFrame(slot))
+    expect(zoneTiles.length).toBe(ZONE_COLUMNS * ZONE_ROWS)
+    tiles.forEach((tile, slot) => {
+      if (!isZoneFrame(slot)) return
+      const zone = zoneFor(slot)
+      const zoneWidth = 1 / ZONE_COLUMNS
+      const zoneHeight = 1 / ZONE_ROWS
+      // The frame's centre is inside the band around its zone anchor — the anchor
+      // wrapped into the plane, because a zone frame is placed by its cell and then
+      // folded in. That band is what makes the covering argument (and the offset sweep
+      // below) true.
+      const anchorX = ((zone.x % 1) + 1) % 1
+      const anchorY = ((zone.y % 1) + 1) % 1
+      // Circular distance: the anchor may be represented at 1.0 where the frame is
+      // folded to 0.0, and that is the same place on the torus.
+      const around = (value: number, anchor: number) => {
+        const gap = Math.abs(value - anchor) % 1
+        return Math.min(gap, 1 - gap)
+      }
+      expect(around(tile.x + tile.width / 2, anchorX)).toBeLessThanOrEqual(zoneWidth / 2)
+      expect(around(tile.y + tile.width / tile.ratio / 2, anchorY)).toBeLessThanOrEqual(zoneHeight)
+    })
+    // Zone frames are the top of the z order: the guaranteed frame is never buried.
+    const groupDepth = Math.max(...tiles.filter((tile, slot) => !isZoneFrame(slot)).map((tile) => tile.z))
+    expect(Math.min(...zoneTiles.map((tile) => tile.z))).toBeGreaterThan(groupDepth)
+  })
+
+  it('layers the big group frames behind the smaller ones, as the reference stacks them', () => {
+    const tiles = planCanvas(works(8)).tiles
+    const zoneTiles = tiles.filter((tile, slot) => isZoneFrame(slot))
+    const groupTiles = tiles.filter((tile, slot) => !isZoneFrame(slot))
+    expect(groupTiles.length).toBeGreaterThan(1)
+    expect(groupTiles.length).toBe(slotsFor(8) - ZONE_COLUMNS * ZONE_ROWS)
+    // A group frame is bigger than a zone frame, so "the small one rides on top" is a
+    // statement about the composition and not about one lucky pair.
+    expect(Math.min(...groupTiles.map((tile) => tile.width))).toBeGreaterThan(Math.max(...zoneTiles.map((tile) => tile.width)))
+    // Groups are spread over the plane, not piled on one anchor.
+    expect(new Set(groupTiles.map((tile) => `${tile.x.toFixed(1)}:${tile.y.toFixed(1)}`)).size).toBe(groupTiles.length)
   })
 
   it('ties identity to the slot, so a recycled tile can never open another work', () => {
@@ -205,6 +271,48 @@ describe('home canvas wrapping', () => {
     }
   })
 
+  /**
+   * The clickability guarantee: at every offset a visitor can rest at, at least one
+   * work is *entirely* on screen, clear of the fixed chrome — so "clicking a project
+   * image opens that project" is always true, and not only for the load frame.
+   * `scripts/home-canvas-audit.mjs` asserts the same thing in a real browser after
+   * wheel input; this is the arithmetic behind it.
+   */
+  it('keeps a whole work on screen at every offset, clear of the chrome', () => {
+    // The margins the browser audit requires: 16px at the sides, 64px at the chrome.
+    const MARGIN_X = 16
+    const MARGIN_Y = 64
+    // A window that lands between two groups must still offer a photograph to click —
+    // at every offset, on every viewport, including a phone (where the composition was
+    // measured to hold the same promise, not assumed to).
+    for (const viewport of VIEWPORTS) {
+      for (const count of [1, 5, 6, 8]) {
+        const { plane, tiles } = boxesFor(count, viewport)
+        const period = periodFor(plane, vec(0, 0), 0)
+        const size = vec(viewport.width, viewport.height)
+        let reachable = Number.POSITIVE_INFINITY
+        const samples = 48
+        for (let sx = 0; sx < samples; sx += 1) {
+          for (let sy = 0; sy < samples; sy += 1) {
+            const offset = vec((sx / samples) * plane.x, (sy / samples) * plane.y)
+            const whole = tiles.filter((tile) => {
+              if (!tile.zone) return false
+              const at = place(tile.box.position, tile.box.size, offset, size, period)
+              return (
+                at.x > MARGIN_X &&
+                at.y > MARGIN_Y &&
+                at.x + tile.box.size.x < viewport.width - MARGIN_X &&
+                at.y + tile.box.size.y < viewport.height - MARGIN_Y
+              )
+            }).length
+            reachable = Math.min(reachable, whole)
+          }
+        }
+        expect(reachable, `${viewport.name}, ${count} works`).toBeGreaterThan(0)
+      }
+    }
+  })
+
   it('never jumps a tile that is on screen, so a wrap cannot be seen', () => {
     const viewport = VIEWPORTS[0]!
     for (const count of [1, 4, 6]) {
@@ -250,9 +358,13 @@ describe('home canvas wrapping', () => {
     expect(PLANE).toBeGreaterThanOrEqual(1 + 2 * MAX_WIDTH * MOBILE_TILE_SCALE)
     expect(planeMatch).not.toBeNull()
     // Tiles are a fraction of the plane, and the field never holds more than MAX_SLOTS.
-    expect(MIN_WIDTH).toBeGreaterThan(0.1)
+    expect(MIN_WIDTH).toBeGreaterThan(0.03)
     expect(MAX_WIDTH).toBeLessThan(0.3)
-    expect(gridFor(MAX_SLOTS)).toEqual({ cols: 5, rows: 4 })
+    expect(MAX_SLOTS).toBeLessThanOrEqual(20)
+    expect(MIN_SLOTS).toBeGreaterThanOrEqual(8)
+    // The tile's own angle is applied as the independent `rotate` property, which is
+    // what keeps it out of the pan engine's `transform`.
+    expect(css).toMatch(/rotate: calc\(var\(--tile-rotate[^)]*\) \* 1deg\)/)
   })
 })
 

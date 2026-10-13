@@ -246,15 +246,21 @@
     text-overflow: ellipsis;
   }
 
-  /* The language switch names only the *other* locale. When that translation does not
-     exist the label stays as quiet text (secondary ink keeps 6.4:1), never a link to a
-     page that would 404. */
+  /* The language switch prints every served language, as the reference's compact code
+     pair does: the current one is inert and marked (`aria-current`), the others are
+     links. When a translation does not exist the label stays as quiet text (secondary
+     ink keeps 6.4:1), never a link to a page that would 404. */
+  .lang-switch__current,
   .lang-switch__unavailable {
     display: inline-flex;
     align-items: center;
     min-block-size: 1.5rem;
     color: var(--ink-secondary);
     cursor: default;
+  }
+
+  .lang-switch__current {
+    letter-spacing: 0.06em;
   }
 
   .nav-link {
@@ -1960,7 +1966,21 @@
     aspect-ratio: var(--tile-ratio, 1.5);
     display: block;
     overflow: hidden;
+    /* The frame's own angle, from the composition. The independent `rotate` property is
+       deliberate: `transform` is reserved for the whole period of wrapping correction
+       the pan engine writes, and the two must not fight over one property. */
+    rotate: calc(var(--tile-rotate, 0) * 1deg);
     will-change: transform;
+  }
+
+  /* A zone frame is height-capped here rather than in the composition, because a
+     frame's height follows its `aspect-ratio` and only the stylesheet can bound it. The
+     covering guarantee in `canvasPlan.ts` budgets that height in viewport fractions —
+     21% of the viewport, i.e. 10.5% of the plane — so the cap is stated against the
+     plane, like every other tile rule, and therefore holds at any width. Sized tiles
+     without it are free. */
+  .bang-canvas__tile[data-zone] {
+    max-block-size: calc(21% / var(--bang-plane, 2));
   }
 
   .bang-canvas__image {
