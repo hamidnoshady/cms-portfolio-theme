@@ -1,0 +1,12 @@
+Vendored webfonts — fetched from the Fontsource npm distribution (SIL Open Font License 1.1).
+
+Vazirmatn 33.x — rastikerdar/vazirmatn — variable, weight axis 100..900
+  vazirmatn-arabic.woff2   46,308 B   unicode-range: U+0600-06FF,U+0750-077F,…,U+1EEF0-1EEF1
+  vazirmatn-latin.woff2    34,524 B   unicode-range: U+0000-00FF,U+0131,…,U+FFFD
+
+Inter 4.x — rsms/inter — variable, weight axis 100..900
+  inter-latin.woff2        48,256 B   unicode-range: U+0000-00FF,U+0131,…,U+FFFD
+
+Both families are used as the *fallback* Persian family and the English family. The licensed
+Shazde weights (100–900) are the Persian product font and are supplied by the deployment —
+see `public/fonts/shazde/README.md` and `docs/TYPOGRAPHY.md`.

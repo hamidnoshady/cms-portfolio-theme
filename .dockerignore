@@ -1,0 +1,23 @@
+# Context hygiene: the image builds from source, never from local build output or
+# secrets. The vendored runtime's `dist/` is regenerated inside the image by
+# `npm run vendor:build`, so a stale local emit can never leak in either.
+node_modules
+.next
+.git
+.github
+coverage
+tests
+docs
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+vendor/site-runtime/dist
+
+# QA placeholder media must never reach a production image. `prepare:standalone`
+# filters it as well; keeping it out of the build context makes the guarantee twice.
+public/qa
+
+Dockerfile
+docker-compose*.yml

@@ -1,0 +1,239 @@
+/* ============================================================================
+   Semantic typography roles. Components consume roles (`type-title`), never raw
+   sizes or weights — one place decides hierarchy for both languages.
+   ========================================================================== */
+/* Layer note: inside the components layer: a utility such as `text-[0.9rem]` must still win. */
+@layer components {
+
+  html[lang='fa'] {
+    --font-ui: var(--font-fa);
+    --leading-body: 1.85;
+    --leading-body-lg: 1.9;
+    --leading-heading: 1.5;
+    --tracking-label: 0;
+    --tracking-ui: 0;
+  }
+
+  html[lang='en'] {
+    --font-ui: var(--font-en);
+    --leading-body: 1.7;
+    --leading-body-lg: 1.75;
+    --leading-heading: 1.35;
+    --tracking-label: 0.06em;
+    --tracking-ui: 0.01em;
+  }
+
+  .type-display,
+  .type-title,
+  .type-heading,
+  .type-subheading,
+  .type-body,
+  .type-body-lg,
+  .type-lede,
+  .type-summary,
+  .type-ui,
+  .type-nav,
+  .type-button,
+  .type-label,
+  .type-meta,
+  .type-caption,
+  .type-error {
+    font-family: var(--font-ui);
+  }
+
+  .type-display {
+    font-size: var(--text-display);
+    font-weight: var(--weight-display);
+    line-height: var(--leading-display);
+  }
+
+  .type-title {
+    font-size: var(--text-title);
+    font-weight: var(--weight-title);
+    line-height: var(--leading-title);
+  }
+
+  .type-heading {
+    font-size: var(--text-heading);
+    font-weight: var(--weight-heading);
+    line-height: var(--leading-heading);
+  }
+
+  .type-subheading {
+    font-size: var(--text-subheading);
+    font-weight: var(--weight-heading);
+    line-height: var(--leading-heading);
+  }
+
+  .type-body {
+    font-size: var(--text-body);
+    font-weight: var(--weight-body);
+    line-height: var(--leading-body);
+  }
+
+  .type-body-lg,
+  .type-lede {
+    font-size: var(--text-body-lg);
+    font-weight: var(--weight-body);
+    line-height: var(--leading-body-lg);
+  }
+
+  .type-lede {
+    color: var(--ink-secondary);
+    max-inline-size: var(--measure-lede);
+  }
+
+  /* The short description of an article or project: a supporting voice, so smaller
+     than body copy, in the light weight, in the secondary ink, with generous leading
+     and balanced line ends. It never competes with the title or the facts above it. */
+  .type-summary {
+    font-size: var(--text-summary);
+    font-weight: var(--weight-light);
+    line-height: var(--leading-summary);
+    color: var(--ink-secondary);
+    max-inline-size: var(--measure-lede);
+    text-wrap: pretty;
+  }
+
+  .type-ui {
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: var(--leading-ui);
+    letter-spacing: var(--tracking-ui);
+  }
+
+  .type-nav {
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: var(--leading-ui);
+    letter-spacing: var(--tracking-ui);
+  }
+
+  .type-button {
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: 1;
+    letter-spacing: var(--tracking-ui);
+  }
+
+  .type-label {
+    font-size: var(--text-label);
+    font-weight: var(--weight-label);
+    line-height: var(--leading-ui);
+    letter-spacing: var(--tracking-label);
+  }
+
+  .type-meta {
+    font-size: var(--text-meta);
+    font-weight: var(--weight-meta);
+    line-height: var(--leading-meta);
+    color: var(--ink-secondary);
+  }
+
+  .type-caption {
+    font-size: var(--text-caption);
+    font-weight: var(--weight-meta);
+    line-height: var(--leading-meta);
+    color: var(--ink-secondary);
+  }
+
+  .type-error {
+    font-size: var(--text-label);
+    font-weight: var(--weight-strong);
+    line-height: var(--leading-ui);
+    color: var(--ink);
+  }
+
+  /* Article prose: a narrower readable measure inside the 1440px container. */
+  /* Text keeps a readable measure; figures and media grids use the full width of
+     the column the prose sits in, so a set of renders is never squeezed into the
+     width of a paragraph. */
+  .prose > :where(p, h2, h3, h4, h5, h6, ul, ol, blockquote, hr, pre) {
+    max-inline-size: var(--measure-prose);
+  }
+
+  .prose > * + * {
+    margin-block-start: var(--space-5);
+  }
+
+  .prose h2 {
+    font-size: var(--text-heading);
+    font-weight: var(--weight-heading);
+    line-height: var(--leading-heading);
+    margin-block-start: var(--space-12);
+  }
+
+  .prose h3 {
+    font-size: var(--text-subheading);
+    font-weight: var(--weight-heading);
+    line-height: var(--leading-heading);
+    margin-block-start: var(--space-8);
+  }
+
+  .prose h4 {
+    font-size: var(--text-body-lg);
+    font-weight: var(--weight-strong);
+    line-height: var(--leading-heading);
+    margin-block-start: var(--space-6);
+  }
+
+  .prose a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: var(--line-w);
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-inline-start: var(--space-6);
+  }
+
+  .prose ul {
+    list-style: square;
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose li + li {
+    margin-block-start: var(--space-2);
+  }
+
+  /* A media grid is a `ul` too, but it is layout, not a list: no markers, no list
+     indent, and no list spacing that would push every cell after the first down. */
+  .prose .grid-media {
+    padding: 0;
+    list-style: none;
+  }
+
+  .prose .grid-media > li + li {
+    margin-block-start: 0;
+  }
+
+  .prose blockquote {
+    border-inline-start: var(--line-w) solid var(--line-structural-color);
+    padding-inline-start: var(--space-5);
+    color: var(--ink-secondary);
+  }
+
+  .prose hr {
+    border: 0;
+    block-size: var(--line-w);
+    background: var(--line-structural-color);
+    margin-block: var(--space-10);
+  }
+
+  .prose code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--line-skeleton-color);
+    padding-inline: 0.25em;
+  }
+
+  .prose figure {
+    margin-block: var(--space-10);
+  }
+
+}

@@ -1,0 +1,67 @@
+/* ============================================================================
+   Single stylesheet entry point. Order matters:
+     1. Tailwind (its preflight is the only reset, and it declares the layer order
+        `theme, base, components, utilities`)
+     2. theme tokens (unlayered custom properties — later tenant `themeCss` wins)
+     3. base document defaults        → @layer base
+     4. semantic typography roles     → @layer components
+     5. the two line systems          → @layer components
+     6. layout primitives             → @layer components
+     7. component styles              → @layer components
+
+   Files 3–7 declare their own `@layer` deliberately: an unlayered component rule would
+   beat every Tailwind utility, so `md:hidden` (or `md:grid-cols-3`) on a styled element
+   would silently do nothing.
+   Per-site design tokens (primary/accent/background/foreground/radius/line-height)
+   are injected after all of this by the root layouts, from `themeCss(site.theme)`.
+   ========================================================================== */
+
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+@import '../styles/tokens.css';
+@import '../styles/base.css';
+@import '../styles/typography.css';
+@import '../styles/lines.css';
+@import '../styles/structure.css';
+@import '../styles/components.css';
+
+@theme inline {
+  /* Colour utilities read the tokens, so `text-ink-secondary` and
+     `.type-meta` cannot drift apart. */
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-faint: var(--ink-faint);
+  --color-line-structural: var(--line-structural-color);
+  --color-line-decor: var(--line-decor-color);
+  --color-line-emphasis: var(--line-emphasis-color);
+  --color-skeleton: var(--line-skeleton-color);
+
+  /* Radius is zero at every level — even a stray `rounded-lg` stays square. */
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
+
+  --font-ui: var(--font-ui);
+  --font-brand: var(--font-brand);
+  --font-fa: var(--font-fa);
+  --font-en: var(--font-en);
+
+  --text-display: var(--text-display);
+  --text-title: var(--text-title);
+  --text-heading: var(--text-heading);
+  --text-subheading: var(--text-subheading);
+  --text-body: var(--text-body);
+  --text-ui: var(--text-ui);
+  --text-meta: var(--text-meta);
+
+  --spacing: 0.25rem;
+
+  /* No shadow scale exists in this design system. */
+  --shadow-none: 0 0 #0000;
+}

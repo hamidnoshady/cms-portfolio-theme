@@ -1,0 +1,2274 @@
+/* ============================================================================
+   Semantic component styles — buttons, fields, navigation, cards, skeletons,
+   breadcrumbs, pagination, notices. Restyled shadcn/ui primitives consume these
+   classes, so a Radix component and a plain element look identical.
+   No shadows, no rounding, no coloured panels.
+   ========================================================================== */
+/* Layer note: inside the components layer — this is what makes `md:hidden`, `md:grid-cols-*` and
+   friends able to override component defaults such as `.btn { display: inline-flex }`. */
+@layer components {
+
+  /* --- buttons ------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-block-size: 44px;              /* touch target floor */
+    padding-inline: var(--space-5);
+    border: 1px solid var(--line-emphasis-color);
+    background-color: var(--ink);
+    color: var(--surface);
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
+  }
+
+  .btn:hover {
+    background-color: var(--surface);
+    color: var(--ink);
+  }
+
+  .btn[data-state='open'] {
+    background-color: var(--surface);
+    color: var(--ink);
+  }
+
+  .btn--quiet {
+    background-color: var(--surface);
+    color: var(--ink);
+    border-color: var(--line-structural-color);
+  }
+
+  .btn--quiet:hover {
+    border-color: var(--line-emphasis-color);
+  }
+
+  .btn--bare {
+    background-color: transparent;
+    color: var(--ink);
+    border-color: transparent;
+    padding-inline: var(--space-2);
+  }
+
+  .btn--bare:hover {
+    background-color: transparent;
+    border-color: var(--line-emphasis-color);
+  }
+
+  .btn--square {
+    inline-size: 44px;
+    min-inline-size: 44px;
+    padding: 0;
+  }
+
+  .btn:disabled,
+  .btn[aria-disabled='true'] {
+    color: var(--ink-disabled);
+    border-color: var(--line-structural-color);
+    background-color: var(--surface);
+    cursor: not-allowed;
+  }
+
+  /* --- fields -------------------------------------------------------------- */
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .field__label {
+    font-size: var(--text-label);
+    font-weight: var(--weight-label);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink);
+  }
+
+  /* A checkbox with an associated label is one target, and the label is the larger
+     half of it — but its own box can sit under 24px. Give it the floor and a pointer
+     affordance. */
+  .field__check-label {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .field__control {
+    inline-size: 100%;
+    min-block-size: 44px;
+    padding: var(--space-3) 0;
+    border: 0;
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+    background-color: transparent;
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    line-height: var(--leading-ui);
+    transition: border-color var(--motion-fast) var(--ease-out);
+  }
+
+  .field__control::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .field__control:hover {
+    border-block-end-color: rgba(0, 0, 0, 0.45);
+  }
+
+  .field__control:focus {
+    outline: none;
+    border-block-end: 1px solid var(--line-emphasis-color);
+  }
+
+  .field__control:focus-visible {
+    outline: var(--focus-width) solid var(--ink);
+    outline-offset: 6px;
+  }
+
+  .field__control[aria-invalid='true'] {
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .field__control:disabled {
+    color: var(--ink-disabled);
+    border-block-end-color: var(--line-structural-color);
+  }
+
+  .field__error {
+    font-size: var(--text-label);
+    font-weight: var(--weight-strong);
+    color: var(--ink);
+  }
+
+  .field__hint {
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+  }
+
+  textarea.field__control {
+    min-block-size: 8rem;
+    resize: vertical;
+  }
+
+  /* Native select styled as an underline control (filters use the Radix Select). */
+  select.field__control {
+    appearance: none;
+    padding-inline-end: var(--space-6);
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+      linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+    background-position:
+      calc(100% - 14px) 55%,
+      calc(100% - 9px) 55%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  [dir='rtl'] select.field__control {
+    background-position:
+      14px 55%,
+      9px 55%;
+  }
+
+  /* --- navigation ---------------------------------------------------------- */
+
+  .navbar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 40;
+    inline-size: 100%;
+    background-color: var(--surface);
+  }
+
+  /* Height and logo scale come from the chrome tokens (82 → 88 → 94px, see
+     tokens.css), so the bar and the mark grow together per breakpoint. */
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-block-size: var(--navbar-block);
+    padding-block: var(--space-2);
+  }
+
+  /* Long CMS labels must never widen the page: the nav column shrinks and the list
+     wraps instead. Identity and controls keep their intrinsic width, so no label can
+     push the language switch or the menu button off-screen. */
+  .navbar__nav {
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-inline-size: 0;
+  }
+
+  .navbar__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: var(--space-6);
+    row-gap: var(--space-1);
+  }
+
+  .navbar__identity {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+
+  /* The uploaded mark: sized by height from the token, width follows the artwork's
+     own ratio, and a wide asset is capped rather than allowed to push the navigation.
+     `object-fit: contain` keeps the ratio when the cap applies. Artwork that carries
+     internal transparent padding reads smaller than the box — that is an asset
+     concern; the theme never guesses from file dimensions. */
+  .navbar__logo {
+    display: block;
+    block-size: var(--logo-block);
+    inline-size: auto;
+    max-inline-size: var(--logo-max-inline);
+    object-fit: contain;
+  }
+
+  .navbar__wordmark {
+    font-family: var(--font-brand);
+    font-size: var(--text-body-lg);
+    font-weight: var(--weight-strong);
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The language switch names only the *other* locale. When that translation does not
+     exist the label stays as quiet text (secondary ink keeps 6.4:1), never a link to a
+     page that would 404. */
+  .lang-switch__unavailable {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    color: var(--ink-secondary);
+    cursor: default;
+  }
+
+  .nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding-inline: var(--space-1);
+    /* Only breaks a word that cannot fit its line — never clips, never overflows. */
+    overflow-wrap: break-word;
+    color: var(--ink);
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.4em;
+    text-decoration-thickness: var(--line-w);
+  }
+
+  .nav-link[aria-current='page'] {
+    font-weight: var(--weight-strong);
+  }
+
+  /* --- standalone media (FramedMedia) ------------------------------------- */
+
+  .media-figure {
+    margin-inline: auto;
+    margin-block: 0;
+  }
+
+  .prose .media-figure,
+  .prose figure.frame {
+    margin-block: var(--space-10);
+  }
+
+  .media-figure--narrow {
+    max-inline-size: 36rem;
+  }
+
+  .media-figure--content {
+    max-inline-size: 60rem;
+  }
+
+  .media-figure--wide {
+    max-inline-size: none;
+  }
+
+  /* Bleeds to the viewport edges from inside any container; `overflow-x: clip` on
+     the body keeps a scrollbar's width from adding a horizontal scroll. */
+  .media-figure--full {
+    inline-size: 100vw;
+    max-inline-size: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .media-figure--full .frame--capped {
+    max-inline-size: 100%;
+  }
+
+  .media-figure__caption {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
+    color: var(--ink-secondary);
+  }
+
+  .media-figure__caption::before {
+    content: '';
+    flex: 0 0 1rem;
+    block-size: var(--line-w);
+    translate: 0 -0.3em;
+    background: var(--line-structural-color);
+  }
+
+  .media-figure--full .media-figure__caption {
+    padding-inline: var(--gutter);
+  }
+
+  /* An inline media grid inside rich text is a figure around the shared `.grid-media`
+     (structure.css) — the same 2/2/3 grid and the same lightbox as a gallery block. */
+  .media-grid {
+    margin: 0;
+  }
+
+  /* The block's name from the CMS, set as a drafting label: title, a hairline that
+     runs to the far edge, and the count as a two-digit index. Quiet by design — it
+     names the set, it does not decorate it. */
+  .media-grid__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    margin-block-end: var(--space-4);
+  }
+
+  .media-grid__title {
+    flex: 0 1 auto;
+    font-size: var(--text-body-lg);
+    font-weight: var(--weight-heading);
+    line-height: var(--leading-heading);
+  }
+
+  .media-grid__rule {
+    flex: 1 1 2rem;
+    block-size: var(--line-w);
+    background-color: var(--line-structural-color);
+    translate: 0 -0.35em;
+  }
+
+  .media-grid__count {
+    flex: 0 0 auto;
+    font-family: var(--font-numeral);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-secondary);
+  }
+
+  /* A single named image: the label row is as wide as the frame may be, and the
+     frame sits directly under it, on the same edge as a set of images. */
+  .media-titled--narrow > .media-grid__head {
+    max-inline-size: 36rem;
+  }
+
+  .media-titled--content > .media-grid__head {
+    max-inline-size: 60rem;
+  }
+
+  .media-titled > .media-figure {
+    margin-block: 0;
+  }
+
+  .project-narrative .prose > .media-titled {
+    margin-block-start: var(--space-12);
+  }
+
+  .media-grid > .media-figure__caption {
+    margin-block-start: var(--space-3);
+  }
+
+  /* --- project detail composition -------------------------------------------
+     Header: the title and the facts on one side, the hero on the other (stacked on
+     phones and tablets). Narrative: text in a readable column, each set of renders at
+     the full width of the container under its own label. */
+  .project-head {
+    display: grid;
+    gap: var(--space-8);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-head .facts {
+    margin-block-start: var(--space-8);
+  }
+
+  .project-head .facts__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The short description under the facts (`.type-summary` sets the voice): a short
+     drafting dash opens it, the same mark that opens each fact, then space — no box. */
+  .project-lede {
+    margin-block-start: var(--space-8);
+  }
+
+  .project-lede::before {
+    content: '';
+    display: block;
+    inline-size: 1.5rem;
+    block-size: var(--line-w-decor);
+    margin-block-end: var(--space-4);
+    background-color: var(--line-decor-color);
+  }
+
+  .project-head .media-figure {
+    margin-inline: 0;
+  }
+
+  .project-head .frame--capped {
+    margin-inline: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .project-head {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-16);
+      align-items: start;
+    }
+  }
+
+  .project-narrative {
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+    padding-block: var(--space-10) var(--space-16);
+  }
+
+  .project-narrative .prose > .media-grid,
+  .project-narrative .prose > .media-figure {
+    margin-block-start: var(--space-12);
+  }
+
+  /* --- long-article structure -------------------------------------------------
+     A main section (an `h2` in the narrative) opens with a solid rule and a running
+     number, so the page reads as numbered parts; a named set inside it keeps the
+     quieter hairline label. Anchors clear the sticky navbar. */
+  .project-narrative .prose {
+    counter-reset: section;
+  }
+
+  .project-narrative .prose > h2 {
+    counter-increment: section;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    max-inline-size: none;
+    margin-block-start: var(--space-20);
+    padding-block-start: var(--space-4);
+    border-block-start: var(--line-w) solid var(--line-emphasis-color);
+  }
+
+  .project-narrative .prose > h2::before {
+    content: counter(section, decimal-leading-zero);
+    flex: 0 0 auto;
+    font-family: var(--font-numeral);
+    font-size: var(--text-label);
+    font-weight: var(--weight-meta);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-secondary);
+  }
+
+  .project-narrative .prose[dir='rtl'] > h2::before {
+    content: counter(section, persian);
+  }
+
+  /* Images follow the text edge instead of floating in the middle of the column. */
+  .project-narrative .prose .media-figure,
+  .project-narrative .prose .frame--capped {
+    margin-inline: 0;
+  }
+
+  .project-narrative .prose > h2 + .media-grid {
+    margin-block-start: var(--space-8);
+  }
+
+  .project-narrative .prose > h2 + .media-titled {
+    margin-block-start: var(--space-8);
+  }
+
+  .project-narrative .prose > .media-grid + .media-grid {
+    margin-block-start: var(--space-16);
+  }
+
+  .project-narrative .prose > [id^='section-'] {
+    scroll-margin-block-start: calc(var(--navbar-block) + var(--space-4));
+  }
+
+  /* --- in-page navigation (SectionNav) ----------------------------------------
+     Default presentation: a button + panel at the bottom right, shown once the page
+     has been scrolled. On pointer devices at desktop width it becomes a slim rail on
+     the right edge that opens on hover/focus. Square, white, hairlines, no shadow. */
+  .secnav {
+    position: fixed;
+    z-index: 30;
+    right: var(--gutter);
+    bottom: var(--space-4);
+    max-inline-size: calc(100vw - 2 * var(--gutter));
+    opacity: 0;
+    pointer-events: none;
+    translate: 0 0.5rem;
+    transition:
+      opacity var(--motion-base) var(--ease-out),
+      translate var(--motion-base) var(--ease-out);
+  }
+
+  .secnav[data-scrolled='true'],
+  .secnav[data-open='true'] {
+    opacity: 1;
+    pointer-events: auto;
+    translate: 0 0;
+  }
+
+  .secnav__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-block-size: 44px;
+    max-inline-size: 100%;
+    padding-inline: var(--space-4);
+    background-color: var(--surface);
+    border: var(--line-w) solid var(--line-emphasis-color);
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: var(--leading-ui);
+    cursor: pointer;
+  }
+
+  .secnav__toggle-icon {
+    flex: 0 0 auto;
+    inline-size: 0.875rem;
+    block-size: 0.625rem;
+    background-image:
+      linear-gradient(var(--ink), var(--ink)), linear-gradient(var(--ink), var(--ink)), linear-gradient(var(--ink), var(--ink));
+    background-repeat: no-repeat;
+    background-size: 100% 1px, 60% 1px, 100% 1px;
+    background-position: 0 0, 0 50%, 0 100%;
+  }
+
+  .secnav__toggle-label {
+    min-inline-size: 0;
+    max-inline-size: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .secnav__toggle-count {
+    flex: 0 0 auto;
+    font-family: var(--font-numeral);
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+  }
+
+  .secnav__list {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--space-2));
+    inline-size: min(22rem, calc(100vw - 2 * var(--gutter)));
+    max-block-size: 60svh;
+    margin: 0;
+    padding: var(--space-2) 0;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: var(--surface);
+    border: var(--line-w) solid var(--line-structural-color);
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 0.5rem;
+    transition:
+      opacity var(--motion-fast) var(--ease-out),
+      translate var(--motion-fast) var(--ease-out),
+      visibility 0s linear var(--motion-fast);
+  }
+
+  .secnav[data-open='true'] .secnav__list {
+    visibility: visible;
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0s;
+  }
+
+  .secnav__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-ui);
+    line-height: var(--leading-ui);
+    color: var(--ink-secondary);
+  }
+
+  .secnav__item[data-level='2'] .secnav__link {
+    padding-inline-start: var(--space-8);
+    font-size: var(--text-label);
+  }
+
+  .secnav__tick {
+    flex: 0 0 auto;
+    inline-size: 0.625rem;
+    block-size: var(--line-w);
+    background-color: var(--ink-faint);
+    translate: 0 -0.3em;
+  }
+
+  .secnav__link[aria-current='location'] {
+    color: var(--ink);
+    font-weight: var(--weight-strong);
+  }
+
+  .secnav__link[aria-current='location'] .secnav__tick {
+    inline-size: 1.25rem;
+    background-color: var(--ink);
+  }
+
+  .secnav__link:hover {
+    color: var(--ink);
+  }
+
+  @media (min-width: 64rem) and (hover: hover) {
+    .secnav {
+      right: 0;
+      bottom: auto;
+      top: 50%;
+      inline-size: 2rem;
+      max-inline-size: none;
+      max-block-size: 80svh;
+      overflow: hidden auto;
+      opacity: 1;
+      pointer-events: auto;
+      translate: 0 -50%;
+      background-color: transparent;
+      border-inline-start: var(--line-w) solid transparent;
+      transition:
+        inline-size var(--motion-base) var(--ease-out),
+        background-color var(--motion-base) var(--ease-out),
+        border-color var(--motion-base) var(--ease-out);
+    }
+
+    .secnav:hover,
+    .secnav:has(:focus-visible) {
+      inline-size: min(19rem, 80vw);
+      background-color: var(--surface);
+      border-inline-start-color: var(--line-structural-color);
+    }
+
+    .secnav__toggle {
+      display: none;
+    }
+
+    .secnav__list {
+      position: static;
+      inline-size: auto;
+      max-block-size: none;
+      padding: var(--space-2) 0;
+      overflow: visible;
+      border: 0;
+      background: transparent;
+      visibility: visible;
+      opacity: 1;
+      translate: none;
+      transition: none;
+    }
+
+    .secnav__link {
+      position: relative;
+      padding: var(--space-1) 2rem var(--space-1) var(--space-4);
+      min-block-size: 1.75rem;
+      align-items: center;
+      text-align: right;
+    }
+
+    .secnav__item[data-level='2'] .secnav__link {
+      padding-inline-start: var(--space-8);
+    }
+
+    /* The tick sits on the right edge; the label appears beside it on open. */
+    .secnav__tick {
+      position: absolute;
+      right: var(--space-3);
+      top: 50%;
+      translate: 0 -50%;
+      inline-size: 0.875rem;
+      block-size: 2px;
+    }
+
+    .secnav__item[data-level='2'] .secnav__tick {
+      inline-size: 0.5rem;
+    }
+
+    .secnav__link[aria-current='location'] .secnav__tick {
+      inline-size: 1.25rem;
+    }
+
+    .secnav__label {
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity var(--motion-fast) var(--ease-out);
+    }
+
+    .secnav:hover .secnav__label,
+    .secnav:has(:focus-visible) .secnav__label {
+      opacity: 1;
+      transition-delay: 80ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .secnav,
+    .secnav__list {
+      transition-duration: 0.01ms;
+    }
+  }
+
+  .project-related {
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+    padding-block: var(--space-10) var(--space-16);
+  }
+
+  /* --- home ---------------------------------------------------------------
+     The menu is drawn like a sheet of dimensions: every row sits on a hairline
+     with end ticks (an architectural dimension line), numbered in drafting
+     style. Hover is three coordinated, compositor-only moves: the label steps
+     forward, a leader line extends from it to an arrow, and the other rows
+     recede. There is no underline under the label — the row's own linework,
+     the label's movement and the arrow carry the affordance, and keyboard focus
+     drives the same states as hover. The current page is marked by weight and a
+     solid index, plus `aria-current`.
+  ------------------------------------------------------------------------- */
+
+  .home {
+    --dir-sign: 1;
+  }
+
+  [dir='rtl'] .home,
+  .home[dir='rtl'] {
+    --dir-sign: -1;
+  }
+
+  /* The home bar follows the same chrome tokens as the interior navbar, so the mark
+     that settles here after the entrance is the same size the visitor meets on every
+     interior page. */
+  .home-bar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-block-size: var(--navbar-block);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .home-bar__mark {
+    display: flex;
+    align-items: center;
+    block-size: var(--logo-block);
+  }
+
+  .home-bar__mark img {
+    block-size: var(--logo-block);
+    inline-size: auto;
+    max-inline-size: var(--logo-max-inline);
+    object-fit: contain;
+  }
+
+  .home-intro {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: var(--space-12);
+    min-block-size: calc(100svh - var(--navbar-block));
+    padding-block: var(--space-8) var(--space-16);
+  }
+
+  .home-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-8);
+    will-change: transform, opacity;
+  }
+
+  .home-logo__inner {
+    position: relative;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .home-logo__frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .home-logo__corner {
+    position: absolute;
+    inline-size: 18px;
+    block-size: 18px;
+    overflow: visible;
+    stroke: var(--line-structural-color);
+    stroke-width: var(--line-w);
+  }
+
+  /* Physical corners on purpose: the frame is symmetric, so it reads the same in
+     both directions and a logical mapping would only add RTL mirroring rules. */
+  .home-logo__corner--tl {
+    top: 0;
+    left: 0;
+  }
+
+  .home-logo__corner--tr {
+    top: 0;
+    right: 0;
+    rotate: 90deg;
+  }
+
+  .home-logo__corner--br {
+    right: 0;
+    bottom: 0;
+    rotate: 180deg;
+  }
+
+  .home-logo__corner--bl {
+    bottom: 0;
+    left: 0;
+    rotate: 270deg;
+  }
+
+  .home-logo__mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+
+  /* Explicit size: an SVG with only a viewBox has no intrinsic width and would
+     collapse to 0px as a flex item. */
+  .home-logo__img {
+    display: block;
+    inline-size: min(26rem, 68vw);
+    block-size: auto;
+    max-block-size: 42svh;
+    object-fit: contain;
+  }
+
+  .home-logo__wordmark {
+    font-family: var(--font-brand);
+    font-size: var(--text-display);
+    font-weight: var(--weight-light);
+    line-height: var(--leading-display);
+    text-align: center;
+  }
+
+  .home-logo__datum {
+    position: relative;
+    display: block;
+    inline-size: min(18rem, 60vw);
+    block-size: 9px;
+  }
+
+  .home-logo__datum::before,
+  .home-logo__datum::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inline-size: var(--line-w);
+    background: var(--line-structural-color);
+  }
+
+  .home-logo__datum::before {
+    inset-inline-start: 0;
+  }
+
+  .home-logo__datum::after {
+    inset-inline-end: 0;
+  }
+
+  .home-logo__datum-line {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 4px;
+    display: block;
+    block-size: var(--line-w);
+    background: var(--line-structural-color);
+  }
+
+  .home-cue {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .home-cue__line {
+    position: relative;
+    display: block;
+    inline-size: var(--line-w);
+    block-size: 3rem;
+    overflow: hidden;
+    background: var(--line-decor-color);
+  }
+
+  .home-cue__line::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -40%;
+    block-size: 40%;
+    background: var(--ink);
+    animation: home-cue-travel 2.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes home-cue-travel {
+    to {
+      transform: translateY(350%);
+    }
+  }
+
+  .home-menu {
+    position: relative;
+    min-block-size: calc(100svh - var(--navbar-block));
+    padding-block: var(--space-16) var(--space-24);
+    scroll-margin-block-start: var(--navbar-block);
+  }
+
+  .home-menu__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+  }
+
+  .home-menu__count {
+    color: var(--ink-faint);
+    font-family: var(--font-numeral);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .home-menu__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home-row {
+    position: relative;
+  }
+
+  /* Dimension line: a hairline with a short tick at each end. It draws in from
+     the reading start (scaleX driven by Motion). */
+  .home-row__rule {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    display: block;
+    block-size: var(--line-w);
+    background: var(--line-structural-color);
+    transform-origin: var(--rule-origin, left center);
+  }
+
+  [dir='rtl'] .home-row__rule {
+    --rule-origin: right center;
+  }
+
+  .home-row__rule::before,
+  .home-row__rule::after {
+    content: '';
+    position: absolute;
+    inset-block-start: -4px;
+    inline-size: var(--line-w);
+    block-size: 9px;
+    background: var(--line-structural-color);
+  }
+
+  .home-row__rule::before {
+    inset-inline-start: 0;
+  }
+
+  .home-row__rule::after {
+    inset-inline-end: 0;
+  }
+
+  .home-row__rule--closing {
+    position: relative;
+  }
+
+  .home-row__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3rem minmax(0, auto) minmax(2rem, 1fr) 1.5rem;
+    align-items: center;
+    gap: var(--space-4);
+    min-block-size: 44px;
+    padding-block: clamp(1rem, 2.4vw, 1.75rem);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .home-row__index {
+    color: var(--ink-faint);
+    font-family: var(--font-numeral);
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-ui);
+    transition: color var(--motion-base) var(--ease-out);
+  }
+
+  [lang='fa'] .home-row__index {
+    font-family: var(--font-ui);
+    letter-spacing: 0;
+  }
+
+  /* No `text-decoration` here, on purpose: a line under every menu label made the
+     dimension-sheet composition busier than it needs to be. The label moves, the
+     leader extends and the arrow arrives instead. */
+  .home-row__label {
+    font-family: var(--font-brand);
+    font-size: clamp(1.5rem, 3.4vw, 2.75rem);
+    font-weight: var(--weight-light);
+    line-height: var(--leading-title);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    transition:
+      translate var(--motion-slow) var(--ease-out),
+      opacity var(--motion-slow) var(--ease-out),
+      font-weight var(--motion-base) var(--ease-out);
+  }
+
+  .home-row__leader {
+    display: block;
+    block-size: var(--line-w);
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: var(--rule-origin, left center);
+    transition: transform var(--motion-reveal) var(--ease-out);
+  }
+
+  [dir='rtl'] .home-row__leader {
+    --rule-origin: right center;
+  }
+
+  .home-row__arrow {
+    inline-size: 1.5rem;
+    block-size: 0.75rem;
+    stroke: var(--ink);
+    stroke-width: var(--line-w);
+    opacity: 0.25;
+    translate: calc(var(--dir-sign) * -0.5rem) 0;
+    transition:
+      opacity var(--motion-base) var(--ease-out),
+      translate var(--motion-slow) var(--ease-out);
+  }
+
+  [dir='rtl'] .home-row__arrow {
+    scale: -1 1;
+  }
+
+  /* Others recede while one row is pointed at (hover or keyboard focus). */
+  .home-menu__list:hover .home-row:not(:hover) .home-row__label,
+  .home-menu__list:focus-within .home-row:not(:focus-within) .home-row__label {
+    opacity: 0.32;
+  }
+
+  .home-row__link:hover .home-row__label,
+  .home-row__link:focus-visible .home-row__label {
+    translate: calc(var(--dir-sign) * 0.75rem) 0;
+  }
+
+  .home-row__link:hover .home-row__index,
+  .home-row__link:focus-visible .home-row__index,
+  .home-row__link[aria-current='page'] .home-row__index {
+    color: var(--ink);
+  }
+
+  /* Current page: a heavier cut of the label and a solid index — never an underline
+     alone, and `aria-current` carries the meaning for assistive technology. */
+  .home-row__link[aria-current='page'] .home-row__label {
+    font-weight: var(--weight-regular);
+  }
+
+  .home-row__link:hover .home-row__leader,
+  .home-row__link:focus-visible .home-row__leader {
+    transform: scaleX(1);
+  }
+
+  .home-row__link:hover .home-row__arrow,
+  .home-row__link:focus-visible .home-row__arrow {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @media (max-width: 47.99rem) {
+    .home-row__link {
+      grid-template-columns: 2rem minmax(0, 1fr) 1.25rem;
+    }
+
+    .home-row__leader {
+      display: none;
+    }
+  }
+
+  @media (hover: none) {
+    .home-row__arrow {
+      opacity: 0.6;
+      translate: 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-cue__line::after {
+      animation: none;
+      inset-block-start: 30%;
+    }
+
+    .home-logo {
+      will-change: auto;
+    }
+  }
+
+  /* --- mobile drawer ------------------------------------------------------- */
+
+  .drawer__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
+  .drawer__overlay[data-state='open'] {
+    animation: drawer-fade-in var(--motion-base) var(--ease-out);
+  }
+
+  .drawer__overlay[data-state='closed'] {
+    animation: drawer-fade-out var(--motion-base) var(--ease-out);
+  }
+
+  /* The panel anchors to the *inline-start* edge of its own direction: right in RTL,
+     left in LTR, hairline on the exposed inner (inline-end) edge. Logical insets, so
+     both locales are correct with one rule and the panel's own `dir` decides. */
+  .drawer__panel {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(24rem, 88vw);
+    padding: var(--space-5) var(--gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+    background-color: var(--surface);
+    border-inline-end: var(--line-w) solid var(--line-structural-color);
+    overflow-y: auto;
+  }
+
+  /* 250–350ms travel. Radix waits on the `closed` animation before unmounting, so the
+     exit is a real slide too — not an instant disappearance. */
+  .drawer__panel[data-state='open'] {
+    animation: drawer-in-ltr var(--motion-drawer) var(--ease-out);
+  }
+
+  .drawer__panel[data-state='closed'] {
+    animation: drawer-out-ltr var(--motion-drawer) var(--ease-out);
+  }
+
+  [dir='rtl'] .drawer__panel[data-state='open'] {
+    animation-name: drawer-in-rtl;
+  }
+
+  [dir='rtl'] .drawer__panel[data-state='closed'] {
+    animation-name: drawer-out-rtl;
+  }
+
+  /* Rows settle in a short stagger; `both` holds the delayed rows invisible until they
+     start, so nothing flashes in before its turn. */
+  .drawer__panel[data-state='open'] .drawer__row {
+    animation: drawer-row-in var(--motion-fast) var(--ease-out) both;
+    animation-delay: min(calc(var(--drawer-row, 0) * 40ms), 200ms);
+  }
+
+  @keyframes drawer-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes drawer-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes drawer-in-ltr {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes drawer-out-ltr {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes drawer-in-rtl {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes drawer-out-rtl {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes drawer-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Reduced motion: no travel, no stagger, no leftover delay — every state immediate.
+     Each reset selector repeats the animated rule's specificity, including the
+     `[dir='rtl']` overrides: a plain `.drawer__panel[data-state='open']` (0,2,0) would
+     lose the `animation-name` to `[dir='rtl'] …[data-state='open']` (0,3,0) and leave
+     the panel translating on a machine that asked for stillness. */
+  @media (prefers-reduced-motion: reduce) {
+    .drawer__overlay[data-state='open'],
+    .drawer__overlay[data-state='closed'],
+    .drawer__panel[data-state='open'],
+    .drawer__panel[data-state='closed'],
+    [dir='rtl'] .drawer__panel[data-state='open'],
+    [dir='rtl'] .drawer__panel[data-state='closed'],
+    .drawer__panel[data-state='open'] .drawer__row {
+      animation: none;
+    }
+  }
+
+  .drawer__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+    font-size: var(--text-subheading);
+    font-weight: var(--weight-medium);
+  }
+
+  .drawer__row:hover {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .drawer__row[aria-current='page'] {
+    font-weight: var(--weight-strong);
+  }
+
+  /* --- menu icon: two rules that become a sharp X --------------------------- */
+
+  .menu-icon {
+    position: relative;
+    inline-size: 26px;
+    block-size: 16px;
+  }
+
+  .menu-icon span {
+    position: absolute;
+    inset-inline: 0;
+    block-size: 1px;
+    background-color: var(--ink);
+    transition: transform var(--motion-base) var(--ease-out),
+      opacity var(--motion-fast) var(--ease-out);
+  }
+
+  .menu-icon span:first-child {
+    inset-block-start: 3px;
+  }
+
+  .menu-icon span:last-child {
+    inset-block-end: 3px;
+  }
+
+  .menu-icon[data-open='true'] span:first-child {
+    transform: translateY(4.5px) rotate(45deg);
+  }
+
+  .menu-icon[data-open='true'] span:last-child {
+    transform: translateY(-4.5px) rotate(-45deg);
+  }
+
+  /* --- cards --------------------------------------------------------------- */
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-inline-size: 0;
+  }
+
+  .card__caption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    min-inline-size: 0;
+  }
+
+  /* Both fields may shrink and wrap. On a 130–175px mobile card the metadata drops to
+     its own line instead of squeezing the title into a single-character column; on a
+     wide card the baseline row stays. No `nowrap`: long real locations must wrap. */
+  .card__title {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .card__meta {
+    flex: 0 1 auto;
+    min-inline-size: 0;
+    font-size: var(--text-meta);
+    color: var(--ink-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  .card__link {
+    display: block;
+    color: inherit;
+  }
+
+  .card__link:hover {
+    text-decoration: none;
+  }
+
+  .card__link:hover .card__title {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: var(--line-w);
+  }
+
+  /* --- project card ---------------------------------------------------------
+     One frame for every project (4:5, cropped to it), then a title block under a
+     hairline: title and year on one line, the location beneath. A solid line draws
+     across the hairline on hover and keyboard focus. */
+  .pcard {
+    min-inline-size: 0;
+  }
+
+  .pcard__link {
+    display: block;
+    color: inherit;
+  }
+
+  .pcard__link:hover {
+    text-decoration: none;
+  }
+
+  .pcard__frame {
+    aspect-ratio: 4 / 5;
+  }
+
+  .pcard__caption {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    align-items: baseline;
+    margin-block-start: var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .pcard__caption::before {
+    content: '';
+    position: absolute;
+    inset-block-start: calc(-1 * var(--line-w));
+    inset-inline-start: 0;
+    inline-size: 0;
+    block-size: var(--line-w);
+    background-color: var(--line-emphasis-color);
+    transition: inline-size var(--motion-slow) var(--ease-out);
+  }
+
+  .pcard__link:hover .pcard__caption::before,
+  .pcard__link:focus-visible .pcard__caption::before {
+    inline-size: 100%;
+  }
+
+  .pcard__title {
+    min-inline-size: 0;
+    font-size: var(--text-ui);
+    font-weight: var(--weight-ui);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .pcard__year {
+    font-family: var(--font-numeral);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-secondary);
+  }
+
+  .pcard__place {
+    grid-column: 1 / -1;
+    font-size: var(--text-meta);
+    line-height: var(--leading-meta);
+    color: var(--ink-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  /* --- editorial rows (blog / education) ----------------------------------- */
+
+  .entry-row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    padding-block: var(--space-5);
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+  }
+
+  @media (min-width: 48rem) {
+    .entry-row {
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  .entry-row__thumb {
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Education rows read as horizontal entries on mobile too, with a small thumb. */
+  .entry-row--compact {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  /* Search results are text-only rows: without this, the single child would land in
+     the 88px thumbnail track. */
+  .entry-row--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* --- education list ---------------------------------------------------------
+     One hairline above the list, one under each row except the last: the earlier
+     featured border + rule + row borders stacked three lines in a few pixels. A row is
+     one target (the title link stretches over it); on hover or focus a solid line draws
+     across its hairline from the start, the thumbnail settles and the arrow appears. */
+  .edu-list__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-block: var(--space-4);
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .edu-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .edu-row {
+    position: relative;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
+    align-items: center;
+    padding-block: var(--space-4);
+    border-block-end: 0;
+    border-block-start: var(--line-w) solid var(--line-decor-color);
+  }
+
+  .edu-row::before {
+    content: '';
+    position: absolute;
+    inset-block-start: calc(-1 * var(--line-w));
+    inset-inline-start: 0;
+    inline-size: 0;
+    block-size: var(--line-w);
+    background: var(--line-emphasis-color);
+    transition: inline-size var(--motion-slow) var(--ease-out);
+  }
+
+  .edu-row:first-child {
+    border-block-start: 0;
+  }
+
+  .edu-row:hover::before,
+  .edu-row:focus-within::before {
+    inline-size: 100%;
+  }
+
+  .edu-row__index {
+    display: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 48rem) {
+    .edu-row {
+      grid-template-columns: 2.5rem 160px minmax(0, 1fr) auto;
+      padding-block: var(--space-5);
+    }
+
+    .edu-row__index {
+      display: block;
+    }
+  }
+
+  /* The thumbnail is a small picture, not a framed print: no inset line on it. */
+  .edu-row__thumb::after {
+    display: none;
+  }
+
+  .edu-row__thumb .frame__media {
+    transition: transform var(--motion-slow) var(--ease-out);
+  }
+
+  .edu-row:hover .edu-row__thumb .frame__media {
+    transform: scale(1.04);
+  }
+
+  .edu-row__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .edu-row__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .edu-row:hover .edu-row__link,
+  .edu-row__link:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: var(--line-w);
+  }
+
+  .edu-row__arrow {
+    opacity: 0;
+    padding-inline: var(--space-3);
+    transition: opacity var(--motion-fast) var(--ease-out);
+  }
+
+  .edu-row:hover .edu-row__arrow,
+  .edu-row:focus-within .edu-row__arrow {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .edu-row__arrow {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .edu-row::before,
+    .edu-row__thumb .frame__media {
+      transition: none;
+    }
+
+    .edu-row:hover .edu-row__thumb .frame__media {
+      transform: none;
+    }
+  }
+
+  /* --- skip link ----------------------------------------------------------- */
+
+  /* Hidden until focused, then a plain square black-on-white control sitting over the
+     navbar. Not `display:none`, so it stays in the tab order. */
+  .skip-link {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: var(--gutter);
+    z-index: 60;
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface);
+    border: var(--line-w) solid var(--ink);
+    color: var(--ink);
+    font-size: var(--text-ui);
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  /* --- breadcrumbs --------------------------------------------------------- */
+
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-5) var(--space-6);
+    font-size: var(--text-meta);
+    color: var(--ink-secondary);
+    list-style: none;
+  }
+
+  /* WCAG 2.2 target size (minimum) is 24×24: a breadcrumb link is 23px tall on its
+     own at this type size, so it gets the floor explicitly. */
+  .breadcrumbs a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 1.5rem;
+    min-inline-size: 1.5rem;
+    color: var(--ink-secondary);
+    text-decoration: none;
+  }
+
+  .breadcrumbs a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  .breadcrumbs [aria-current='page'] {
+    color: var(--ink);
+    max-inline-size: 46ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .breadcrumbs__sep {
+    color: var(--ink-faint);
+  }
+
+  /* --- pagination ---------------------------------------------------------- */
+
+  .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding-block: var(--space-10);
+  }
+
+  .pagination__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 40px;
+    min-block-size: 40px;
+    padding-inline: var(--space-2);
+    border: var(--line-w) solid transparent;
+    color: var(--ink);
+    font-size: var(--text-ui);
+  }
+
+  .pagination__item:hover {
+    border-color: var(--line-emphasis-color);
+    text-decoration: none;
+  }
+
+  .pagination__item[aria-current='page'] {
+    border-color: var(--line-emphasis-color);
+    font-weight: var(--weight-strong);
+  }
+
+  .pagination__item[aria-disabled='true'] {
+    color: var(--ink-disabled);
+  }
+
+  /* --- filter controls ----------------------------------------------------- */
+
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 40px;
+    padding-inline: var(--space-4);
+    border: var(--line-w) solid var(--line-structural-color);
+    color: var(--ink);
+    font-size: var(--text-ui);
+    background-color: var(--surface);
+  }
+
+  .filter-chip:hover {
+    border-color: var(--line-emphasis-color);
+    text-decoration: none;
+  }
+
+  .filter-chip[aria-current='true'],
+  .filter-chip[data-active='true'] {
+    border-color: var(--line-emphasis-color);
+    font-weight: var(--weight-strong);
+  }
+
+  /* --- notices / empty states ---------------------------------------------- */
+
+  .notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .notice--plain {
+    border: 0;
+    padding-inline: 0;
+  }
+
+  /* --- skeletons ----------------------------------------------------------- */
+
+  /* The pulse lives on the *region*, not on each bar: bars are inserted in different
+     frames (and at different depths), so a per-element animation leaves the block and
+     its caption breathing out of phase — which reads as a rendering glitch. One region,
+     one timeline. */
+  .skeleton {
+    background-color: var(--line-skeleton-color);
+  }
+
+  .skeleton-region {
+    animation: skeleton-pulse 1.6s var(--ease-in-out) infinite;
+  }
+
+  .skeleton--text {
+    block-size: 0.75em;
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-region {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* --- Radix surfaces: dialog, accordion (square, white, hairline) --- */
+
+  .surface-panel {
+    background-color: var(--surface);
+    border: var(--line-w) solid var(--line-structural-color);
+    color: var(--ink);
+  }
+
+  /* The generic (titled, centred) dialog's own backdrop. It is deliberately *not*
+     `.drawer__overlay`: the drawer's light wash belongs to the navigation drawer, and
+     coupling two patterns to one class meant neither could change alone. */
+  .dialog__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .dialog__overlay[data-state='open'] {
+    animation: drawer-fade-in var(--motion-base) var(--ease-out);
+  }
+
+  .dialog__overlay[data-state='closed'] {
+    animation: drawer-fade-out var(--motion-base) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dialog__overlay[data-state='open'],
+    .dialog__overlay[data-state='closed'] {
+      animation: none;
+    }
+  }
+
+  .accordion__item {
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .accordion__trigger {
+    display: flex;
+    inline-size: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    text-align: start;
+    font-size: var(--text-subheading);
+    font-weight: var(--weight-medium);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .accordion__content {
+    padding-block-end: var(--space-5);
+    color: var(--ink-secondary);
+  }
+
+  /* --- media gallery + lightbox ---------------------------------------------
+     Every CMS content image — a gallery block, an inline media grid, an upload in
+     the prose — is a `.lightbox-trigger` inside one `LightboxScope`, so one
+     component owns click, previous/next, Arrow keys, Escape, focus return and the
+     animations. Motion (the home stage's engine) drives the open/close fade and
+     the directional image change; this file only lays the pieces out.
+  ------------------------------------------------------------------------- */
+
+  .gallery-item {
+    position: relative;
+    inline-size: 100%;
+  }
+
+  /* A button that is only an image: no chrome of its own, the frame inside it is the
+     visible boundary, and the focus ring is the document's 2px outline. */
+  .lightbox-trigger {
+    display: block;
+    inline-size: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: zoom-in;
+  }
+
+  /* Dedicated full-page backdrop: black at half opacity, so the page stays legible
+     behind the image for spatial context while the image clearly dominates. */
+  .lightbox__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    padding-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
+    outline: none;
+  }
+
+  @media (min-width: 48rem) {
+    .lightbox {
+      gap: var(--space-5);
+      padding: var(--space-10);
+    }
+  }
+
+  /* The stage is a fixed box (the viewport minus the control bar) and the image is
+     absolutely centred inside it, so a portrait following a landscape never moves
+     the controls, and the outgoing and incoming images overlap during the change
+     instead of stacking. */
+  .lightbox__stage {
+    position: relative;
+    flex: 1 1 auto;
+    inline-size: 100%;
+    min-block-size: 0;
+  }
+
+  .lightbox__image {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    inline-size: auto;
+    block-size: auto;
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    object-fit: contain;
+    background-color: var(--surface);
+    user-select: none;
+  }
+
+  .lightbox__bar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1);
+    background-color: var(--surface);
+  }
+
+  .lightbox__counter {
+    min-inline-size: 4.5rem;
+    padding-inline: var(--space-2);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- project facts ----------------------------------------------------------
+     A compact drafting-style facts block, not a table: one thin top rule, a tiny
+     tick before each label, label and value set closely side by side, two columns
+     where the width allows and one on narrow phones. Capped well inside the 1440px
+     container so a label is never a screen-width away from its value. No cards, no
+     fills, no grid of borders.
+  ------------------------------------------------------------------------- */
+
+  .facts {
+    position: relative;
+    max-inline-size: 56rem;              /* ≈ 896px */
+    margin-block-start: var(--space-10);
+    padding-block-start: var(--space-5);
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .facts__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: var(--space-10);
+    row-gap: var(--space-4);
+    margin: 0;
+  }
+
+  @media (min-width: 30rem) {
+    .facts__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .facts__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 8.5rem) minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: baseline;
+    padding-inline-start: var(--space-4);
+    min-inline-size: 0;
+  }
+
+  /* The drafting tick: a short decorative dash at the item's start. */
+  .facts__item::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.8em;
+    inline-size: 0.5rem;
+    block-size: var(--line-w-decor);
+    background-color: var(--line-decor-color);
+  }
+
+  .facts__label {
+    font-size: var(--text-label);
+    font-weight: var(--weight-label);
+    letter-spacing: var(--tracking-label);
+    line-height: var(--leading-ui);
+    color: var(--ink-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  /* `dir="auto"` isolates a Latin value inside a Persian page (and vice versa) so its
+     punctuation stays put — but a digit-only value such as a year has no strong
+     character and resolves to LTR, which would park it at the far end of the cell.
+     `match-parent` keeps every value aligned to the label column regardless. */
+  .facts__value {
+    margin: 0;
+    font-size: var(--text-body);
+    line-height: var(--leading-ui);
+    overflow-wrap: anywhere;
+    text-align: match-parent;
+  }
+
+  /* --- contact: email and phone ----------------------------------------------
+     One row each, hairline above, label over a large value with a copy control at the
+     far end. The value stays left-to-right (`dir="ltr"` on the link) in both locales. */
+  .reach {
+    margin: 0 0 var(--space-8);
+  }
+
+  .reach__row {
+    padding-block: var(--space-4) var(--space-3);
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .reach__row dt {
+    color: var(--ink-secondary);
+  }
+
+  .reach__value {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: var(--space-4);
+    margin: 0;
+  }
+
+  .reach__link {
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--text-heading);
+    font-weight: var(--weight-heading);
+    line-height: 1.4;
+    min-block-size: 2.75rem;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: var(--line-w);
+    transition: text-decoration-color var(--motion-fast) var(--ease-out);
+  }
+
+  .reach__link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .reach__copy {
+    min-block-size: 44px;
+    padding-inline: var(--space-2);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .reach__copy:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  /* --- contact: map ----------------------------------------------------------
+     Until asked for, a drafting-grid field with the button on it — nothing is
+     requested from the map provider. Once loaded the map is desaturated so the page
+     stays black and white. */
+  .map {
+    margin: var(--space-8) 0 0;
+  }
+
+  .map__frame {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: var(--line-w) solid var(--line-structural-color);
+    background-color: var(--surface);
+    background-image:
+      linear-gradient(var(--line-decor-color) var(--line-w), transparent var(--line-w)),
+      linear-gradient(90deg, var(--line-decor-color) var(--line-w), transparent var(--line-w));
+    background-size: 1.5rem 1.5rem;
+  }
+
+  .map__show {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+  }
+
+  [dir='rtl'] .map__show {
+    translate: 50% -50%;
+  }
+
+  .map__media {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.05);
+  }
+
+  /* --- about: selected work and the closing line --------------------------- */
+  .about-work {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--grid-gap);
+  }
+
+  /* Phones keep the two project columns; every selected card stays visible (the third
+     wraps to a second row) so the count above the grid is never larger than what a
+     phone visitor can reach. */
+  @media (min-width: 48rem) {
+    .about-work {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .about-talk {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    color: var(--ink);
+    font-size: var(--text-title);
+    font-weight: var(--weight-title);
+    line-height: var(--leading-title);
+    font-family: var(--font-ui);
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+    padding-block-end: var(--space-2);
+    transition: border-color var(--motion-fast) var(--ease-out);
+  }
+
+  .about-talk:hover {
+    border-color: var(--line-emphasis-color);
+  }
+
+  .about-talk__arrow {
+    display: inline-block;
+    transition: transform var(--motion-base, 240ms) var(--ease-out);
+  }
+
+  .about-talk:hover .about-talk__arrow {
+    transform: translateX(var(--space-2));
+  }
+
+  [dir='rtl'] .about-talk:hover .about-talk__arrow {
+    transform: translateX(calc(-1 * var(--space-2)));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-talk__arrow {
+      transition: none;
+    }
+
+    .about-talk:hover .about-talk__arrow {
+      transform: none;
+    }
+  }
+
+  /* --- long URLs / latin runs inside Persian copy --------------------------- */
+
+  /* WCAG 2.2 SC 2.5.8 (AA) wants pointer targets of at least 24×24 CSS px. A link
+     inside a sentence is exempt by the same criterion, so prose keeps its natural line
+     box and the floor is applied *deliberately* to standalone navigational links:
+     headings, list items, contact rows, footer links. */
+  .target-standalone {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+  }
+
+  .link-inline {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: var(--line-w);
+    overflow-wrap: anywhere;
+  }
+
+}
+
+  /* --- Bang portfolio: monochrome, sharp, sparse -------------------------------- */
+  .bang-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-block-size: 44px; padding-inline: 1.25rem;
+    border: 1px solid var(--ink); background: var(--ink); color: var(--surface);
+    font-size: var(--text-ui); text-decoration: none; cursor: pointer;
+  }
+  .bang-btn:hover { background: var(--surface); color: var(--ink); }
+  .bang-btn--ghost { background: transparent; color: var(--ink); }
+  .bang-btn--ghost:hover { background: var(--ink); color: var(--surface); }
+  .bang-btn:focus-visible, .bang-row:focus-visible, .bang-card__link:focus-visible, .bang-dot:focus-visible {
+    outline: 2px solid currentColor; outline-offset: 3px;
+  }
+  .bang-canvas { border-block: 1px solid var(--line-structural-color); }
+  .bang-canvas__stage { position: relative; min-block-size: 52svh; }
+  .bang-canvas__tile { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms ease; }
+  .bang-canvas__tile.is-active { position: relative; opacity: 1; }
+  .bang-canvas__wordmark {
+    position: absolute; inset-inline: 0; bottom: 0.5rem; text-align: center;
+    font-size: clamp(2.5rem, 9vw, 7rem); font-weight: 800; letter-spacing: -0.04em;
+    color: #fff; mix-blend-mode: difference; pointer-events: none; user-select: none;
+  }
+  .bang-canvas__controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; padding-block: 1rem; }
+  .bang-canvas__dots { display: flex; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+  .bang-dot { min-inline-size: 44px; min-block-size: 44px; border: 1px solid var(--line-structural-color); background: transparent; color: var(--ink); }
+  .bang-dot.is-active { background: var(--ink); color: var(--surface); }
+  .bang-canvas__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .bang-archive__desktop { display: none; }
+  @media (min-width: 900px) {
+    .bang-archive__desktop { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start; }
+    .bang-cards { display: none; }
+  }
+  .bang-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+  .bang-row { display: grid; grid-template-columns: 3.5rem 1fr auto; gap: 1rem; align-items: baseline; padding-block: 1rem; border-bottom: 1px solid var(--line-structural-color); color: inherit; text-decoration: none; }
+  .bang-row.is-selected .bang-row__title { text-decoration: underline; text-underline-offset: 4px; }
+  .bang-row__num { font-variant-numeric: tabular-nums; }
+  .bang-row__title { font-size: 1.25rem; font-weight: 650; }
+  .bang-row__meta { font-size: 0.85rem; opacity: 0.75; }
+  .bang-preview { position: sticky; top: 1rem; border: 1px solid var(--ink); }
+  .bang-preview__empty { aspect-ratio: 4 / 3; }
+  .bang-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 2rem; }
+  .bang-card__link { color: inherit; text-decoration: none; display: block; }
+  .bang-card__frame { display: block; border: 1px solid var(--ink); }
+  .bang-card__caption { display: block; padding-block: 0.75rem; }
+  .bang-card__title { display: block; font-size: 1.15rem; font-weight: 650; }
+  .bang-card__meta { display: block; font-size: 0.9rem; opacity: 0.8; }
+  .bang-facts { display: grid; border-top: 1px solid var(--ink); margin-block: 2rem; }
+  .bang-facts__row { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding-block: 0.75rem; border-bottom: 1px solid var(--line-structural-color); }
+  .bang-facts__row dt { font-weight: 650; }
+  .bang-case__title { font-size: clamp(2.2rem, 7vw, 5rem); line-height: 0.95; letter-spacing: -0.03em; font-weight: 800; }
+  .bang-case__repeat { font-size: clamp(2.2rem, 7vw, 5rem); font-weight: 800; opacity: 0.12; white-space: nowrap; overflow: hidden; user-select: none; }
+  .bang-bio__backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.6); display: grid; place-items: center; padding: 1rem; z-index: 60; }
+  .bang-bio { background: var(--surface); color: var(--ink); border: 1px solid var(--ink); max-inline-size: 34rem; inline-size: 100%; max-block-size: 90svh; overflow: auto; padding: 1.5rem; }
+  @media (max-width: 640px) { .bang-bio { min-block-size: 100svh; max-block-size: 100svh; } }
+  .bang-bio__head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .bang-bio__socials { list-style: none; display: flex; gap: 1rem; padding: 0; }
+  .bang-footer__utils { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; padding-block: 1rem; border-top: 1px solid var(--line-structural-color); }
+  @media (prefers-reduced-motion: reduce) {
+    .bang-canvas__tile { transition: none; }
+  }

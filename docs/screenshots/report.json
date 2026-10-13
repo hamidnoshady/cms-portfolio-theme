@@ -1,0 +1,486 @@
+{
+  "base": "http://127.0.0.1:3200",
+  "results": [
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "01-home-entrance-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "02-home-menu-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "03-home-entrance-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "04-projects-1920",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1905,
+      "documentScrollWidth": 1905,
+      "innerWidth": 1920,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "05-projects-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "06-projects-1024",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1009,
+      "documentScrollWidth": 1009,
+      "innerWidth": 1024,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "07-projects-768",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 753,
+      "documentScrollWidth": 753,
+      "innerWidth": 768,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "08-projects-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "09-projects-320",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 305,
+      "documentScrollWidth": 305,
+      "innerWidth": 320,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "10-project-detail-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "11-education-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "12-blog-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "13-article-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "14-about-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "15-contact-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "16-services-blocks-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "17-search-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "18-en-blog-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "19-en-contact-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "20-mobile-drawer-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "21-skeletons-projects-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "22-cms-unreachable-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "23-holding-suspended-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "24-holding-suspended-1440-projects",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "25-empty-projects-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "26-empty-blog-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "27-skeletons-projects-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "28-missing-logo-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "29-long-labels-nav-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "30-invalid-form-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "39-form-success-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "31-zoom200-home-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 705,
+      "documentScrollWidth": 705,
+      "innerWidth": 720,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "32-zoom200-projects-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 705,
+      "documentScrollWidth": 705,
+      "innerWidth": 720,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "33-reduced-motion-home-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "34-education-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "35-article-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "36-about-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "37-contact-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "name": "38-en-education-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "40-no-js-home-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "41-lightbox-fa-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "42-lightbox-en-1440",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 1425,
+      "documentScrollWidth": 1425,
+      "innerWidth": 1440,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "43-lightbox-fa-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "44-services-blocks-768",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 753,
+      "documentScrollWidth": 753,
+      "innerWidth": 768,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "45-services-blocks-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    },
+    {
+      "consoleErrors": [],
+      "expectOk": true,
+      "name": "46-project-detail-390",
+      "overflowOk": true,
+      "status": 200,
+      "bodyScrollWidth": 375,
+      "documentScrollWidth": 375,
+      "innerWidth": 390,
+      "offenders": []
+    }
+  ]
+}

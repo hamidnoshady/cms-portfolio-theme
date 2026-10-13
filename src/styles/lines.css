@@ -1,0 +1,185 @@
+/* ============================================================================
+   The two line systems.
+
+   STRUCTURAL — continuous, organizing. Rendered as a real element (`<hr>`/`<span>`)
+   or as a frame, always `--line-structural-color` at `--line-w` thickness.
+   DECORATIVE — short drafting fragments (`DecorativeMark`), never load-bearing,
+   never the only boundary of a control, `aria-hidden` and out of layout sizing.
+
+   Neither is ever used as the sole indicator of state: active navigation keeps a
+   solid 1px emphasis underline *and* `aria-current`; focus uses an outline.
+   ========================================================================== */
+/* Layer note: inside the components layer so a utility can always adjust a rule locally. */
+@layer components {
+
+  .rule-h {
+    display: block;
+    inline-size: 100%;
+    block-size: var(--line-w);
+    background-color: var(--line-structural-color);
+    border: 0;
+  }
+
+  .rule-v {
+    display: block;
+    block-size: 100%;
+    inline-size: var(--line-w);
+    background-color: var(--line-structural-color);
+    border: 0;
+  }
+
+  /* A section boundary that should read slightly stronger than a card rule. */
+  .rule-h--major {
+    background-color: rgba(0, 0, 0, 0.38);
+  }
+
+  /* Decorative rules are *rules*, not marks: used sparingly, e.g. the short baseline
+     under a heading label. */
+  .rule-h--decor,
+  .rule-v--decor {
+    background-color: var(--line-decor-color);
+  }
+
+  .rule-h--decor {
+    block-size: var(--line-w-decor);
+  }
+
+  .rule-v--decor {
+    inline-size: var(--line-w-decor);
+  }
+
+  /* 1px solid black, reserved for active/interactive meaning. */
+  .rule-h--emphasis {
+    block-size: 1px;
+    background-color: var(--line-emphasis-color);
+  }
+
+  .rule-v--emphasis {
+    inline-size: 1px;
+    background-color: var(--line-emphasis-color);
+  }
+
+  /* --- image frame: a continuous structural rectangle inset 5px inside the media.
+     The 5px is frame inset (the rule sits *on* the photograph), never white padding. */
+  .frame {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background-color: var(--line-skeleton-color);
+  }
+
+  .frame > img,
+  .frame > .frame__media {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* The frame sizing rule (see `FramedMedia`): full width, but never taller than
+     `--frame-cap` — the frame narrows to keep its ratio instead. */
+  .frame--capped {
+    inline-size: 100%;
+    max-inline-size: min(100%, calc(var(--frame-cap, 72svh) * var(--ar, 1.5)));
+    margin-inline: auto;
+  }
+
+  .frame::after {
+    content: '';
+    position: absolute;
+    inset: var(--frame-inset);
+    border: var(--line-w) solid var(--line-structural-color);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Deliberately fragmented frame: corners + one edge, for variety where a page has
+     several framed images in a row. Structural coverage stays high elsewhere. */
+  .frame--fragmented::after {
+    border: 0;
+    background-image:
+      linear-gradient(var(--line-structural-color), var(--line-structural-color)),
+      linear-gradient(var(--line-structural-color), var(--line-structural-color)),
+      linear-gradient(var(--line-structural-color), var(--line-structural-color)),
+      linear-gradient(var(--line-structural-color), var(--line-structural-color)),
+      linear-gradient(var(--line-structural-color), var(--line-structural-color)),
+      linear-gradient(var(--line-structural-color), var(--line-structural-color));
+    background-repeat: no-repeat;
+    background-size:
+      var(--corner-arm, 16px) var(--line-w),
+      var(--line-w) var(--corner-arm, 16px),
+      var(--corner-arm, 16px) var(--line-w),
+      var(--line-w) var(--corner-arm, 16px),
+      var(--corner-arm, 16px) var(--line-w),
+      var(--line-w) var(--corner-arm, 16px);
+    background-position:
+      left top,
+      left top,
+      right top,
+      right top,
+      left bottom,
+      left bottom;
+  }
+
+  /* --- card boundary: hairline above and below the compact card caption --- */
+  .card-rule {
+    display: block;
+    block-size: var(--line-w);
+    background-color: var(--line-structural-color);
+  }
+
+  /* --- caption rule: short structural dash that introduces a caption/label --- */
+  .caption-rule {
+    display: inline-block;
+    inline-size: 24px;
+    block-size: var(--line-w);
+    background-color: var(--line-structural-color);
+    vertical-align: middle;
+  }
+
+  /* --- active underline: 1px solid black under the current navigation item --- */
+  .active-underline {
+    position: relative;
+  }
+
+  .active-underline::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: -6px;
+    block-size: 1px;
+    background-color: var(--line-emphasis-color);
+  }
+
+  /* --- decorative marks -------------------------------------------------------
+     Rendered by `<DecorativeMark variant="…">` as a tiny inline SVG in the server
+     component tree: no client effect, no animation loop, no layout box. Wrappers
+     position it with logical `inset-inline-*`, so RTL/LTR placement is intentional.
+  --------------------------------------------------------------------------- */
+
+  .mark {
+    position: absolute;
+    pointer-events: none;
+    color: var(--line-decor-color);
+    z-index: 1;
+  }
+
+  .mark--interactive-adjacent {
+    color: rgba(0, 0, 0, 0.28);
+  }
+
+  .mark svg {
+    display: block;
+    overflow: visible;
+    /* Decorative strokes follow the decorative width token (0.5px on 2x displays),
+       independent of structural rules and control boundaries. */
+    stroke-width: var(--line-w-decor);
+  }
+
+  @media (max-width: 47.999rem) {
+    /* Density scales down on mobile; the motif stays recognisable. */
+    .mark--desktop-only {
+      display: none;
+    }
+  }
+
+}

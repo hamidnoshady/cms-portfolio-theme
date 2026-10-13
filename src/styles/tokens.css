@@ -1,0 +1,180 @@
+/* ============================================================================
+   Design tokens — the single source for colour, geometry, type, lines, motion.
+   Raw values live here; `src/app/globals.css` maps a subset into Tailwind's
+   `@theme inline` namespace so utilities and semantic classes read one set.
+   ========================================================================== */
+
+:root {
+  /* --- surface & ink (pure white interface, black type, black linework) --- */
+  --surface: #ffffff;
+  --ink: #000000;
+  /* 0.64 black on white ≈ #5c5c5c ≈ 6.4:1 — the *only* tone used for body-level
+     secondary text, so metadata never falls under WCAG AA. */
+  --ink-secondary: rgba(0, 0, 0, 0.64);
+  /* 0.45 is for non-text marks (disabled glyphs, decorative numerals) — never for
+     copy, and never as the only sign that a control exists. */
+  --ink-faint: rgba(0, 0, 0, 0.45);
+  --ink-disabled: rgba(0, 0, 0, 0.35);
+
+  /* --- geometry: every corner square --- */
+  --radius: 0px;
+  --content-max: 1440px;
+  --gutter: 16px;             /* mobile */
+  --grid-gap: 12px;           /* mobile: 2 project cards @390px = 173px each */
+  --frame-inset: 5px;         /* inset of the structural rectangle inside media */
+
+  /* --- lines -------------------------------------------------------------
+     Two systems, one thickness scale:
+       structural → continuous rules that organize (nav, rows, cards, columns)
+       decorative → small drafting fragments that ornament
+     Both are black at low opacity; only emphasis (active/interactive) is solid.
+     `--line-w` is 0.5px on 2x displays. On 1x displays a 0.5px border rounds to a
+     full pixel, which is why the *opacity* — not a heavier colour — carries the
+     delicacy. Verified at 1x and 2x, see docs/DESIGN-SYSTEM.md.
+  ------------------------------------------------------------------------- */
+  --line-w: 1px;
+  --line-w-decor: 1px;
+  --line-structural-color: rgba(0, 0, 0, 0.3);
+  --line-decor-color: rgba(0, 0, 0, 0.2);
+  --line-emphasis-color: #000000;
+  --line-skeleton-color: rgba(0, 0, 0, 0.05);
+
+  /* --- spacing scale --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+  --space-40: 10rem;
+
+  /* --- typography -------------------------------------------------------
+     Shazde 100–900 is the Persian product family when the licensed files are
+     present (`public/fonts/shazde/`); Vazirmatn variable is the shipped fallback.
+     Inter is the English family. `--font-ui` is set per locale in typography.css.
+  ------------------------------------------------------------------------- */
+  --font-fa: 'Shazde', 'Vazirmatn Variable', 'Vazirmatn', system-ui, sans-serif;
+  --font-en: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-brand: var(--font-ui);
+  --font-numeral: var(--font-en);   /* Persian still uses fa digits via helpers */
+
+  --text-display: clamp(2.25rem, 5.5vw, 4.25rem);
+  --text-title: clamp(1.75rem, 3.2vw, 2.625rem);
+  --text-heading: clamp(1.3125rem, 2vw, 1.75rem);
+  --text-subheading: clamp(1.125rem, 1.4vw, 1.375rem);
+  --text-body-lg: clamp(1.0625rem, 1.1vw, 1.1875rem);
+  --text-body: 1rem;
+  --text-ui: 0.875rem;
+  --text-label: 0.8125rem;
+  --text-meta: 0.8125rem;
+  --text-caption: 0.75rem;
+  --text-summary: 0.9375rem;  /* the short description under a project's facts */
+
+  --weight-thin: 100;
+  --weight-extralight: 200;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+
+  /* Applied weights: hierarchy is size + space + colour first, weight second. */
+  --weight-display: var(--weight-medium);
+  --weight-title: var(--weight-medium);
+  --weight-heading: var(--weight-medium);
+  --weight-body: var(--weight-regular);
+  --weight-ui: var(--weight-medium);
+  --weight-label: var(--weight-medium);
+  --weight-meta: var(--weight-regular);
+  --weight-strong: var(--weight-semibold);
+
+  --leading-display: 1.25;
+  --leading-title: 1.3;
+  --leading-heading: 1.45;
+  --leading-body: 1.8;        /* Persian-first default; tightened for `en` below */
+  --leading-body-lg: 1.85;
+  --leading-ui: 1.6;
+  --leading-meta: 1.7;
+  --leading-summary: 2;       /* airy: light Persian strokes need the room */
+
+  --tracking-label: 0.04em;   /* Latin label tracking; zeroed on fa */
+  --tracking-ui: 0.02em;
+  --measure-prose: 68ch;
+  --measure-lede: 46ch;
+
+  /* --- chrome: navbar height and brand mark scale -------------------------
+     The navbar and the logo grow together (phone → tablet → desktop) so the
+     mark reads as the site's identity rather than a utility icon, while the
+     bar keeps balanced whitespace above and below it. `--logo-max-inline`
+     caps a wide wordmark-style asset so it can never squeeze the centre
+     navigation, the language switch or the menu control. The logo is sized
+     by *height* with `width: auto` + `object-fit: contain`, never from the
+     file's pixel dimensions.
+  ------------------------------------------------------------------------- */
+  --navbar-block: 82px;        /* brief: 80–84 on phones */
+  --logo-block: 42px;          /* brief: 40–44 on phones */
+  --logo-max-inline: min(44vw, 12rem);
+
+  /* --- motion (restrained) --- */
+  --motion-fast: 140ms;
+  --motion-base: 240ms;
+  --motion-drawer: 280ms;   /* mobile drawer travel; brief: 250–350ms */
+  --motion-lightbox: 260ms; /* lightbox open/close; brief: 220–300ms */
+  --motion-slow: 420ms;
+  --motion-reveal: 560ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.15, 1);
+
+  /* --- focus: visible, square, never only a line colour --- */
+  --focus-width: 2px;
+  --focus-offset: 2px;
+}
+
+@media (min-width: 30rem) {
+  :root {
+    --gutter: 20px;
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 24px;
+    --grid-gap: 16px;
+    --navbar-block: 88px;      /* brief: 86–90 on tablets */
+    --logo-block: 46px;        /* brief: 44–48 on tablets */
+    --logo-max-inline: 14rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --gutter: 32px;
+    --grid-gap: 20px;
+    --navbar-block: 94px;      /* brief: 90–96 on desktop */
+    --logo-block: 52px;        /* brief: 48–54 on desktop */
+    --logo-max-inline: 16rem;
+  }
+}
+
+@media (min-width: 90rem) {
+  :root {
+    --gutter: 40px;
+  }
+}
+
+/* True half-pixel hairlines where the device can draw them. */
+@media (min-resolution: 2dppx) {
+  :root {
+    --line-w: 0.5px;
+    --line-w-decor: 0.5px;
+  }
+}

@@ -1,0 +1,111 @@
+/* ============================================================================
+   Base layer. Tailwind's preflight is the single reset; this file only sets the
+   document defaults the design system owns (no second reset, no competing
+   normalisation).
+   ========================================================================== */
+/* Layer note: inside Tailwind's layer order so utilities can override these document defaults. */
+@layer base {
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    font-weight: var(--weight-body);
+    line-height: var(--leading-body);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Square everywhere, including focus rings and form controls the UA would round. */
+  *,
+  *::before,
+  *::after {
+    border-radius: var(--radius);
+  }
+
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: var(--focus-width) solid var(--ink);
+    outline-offset: var(--focus-offset);
+  }
+
+  ::selection {
+    background-color: var(--ink);
+    color: var(--surface);
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  svg {
+    overflow: visible;
+  }
+
+  /* Full-bleed figures use 100vw, which includes a classic scrollbar's width. */
+  body {
+    overflow-x: clip;
+  }
+
+  /* Mixed Persian/Latin/number strings (titles, captions, captions with a date) keep
+     the direction the author typed per field, without moving the surrounding layout. */
+  [dir='auto'],
+  .bidi-isolate {
+    unicode-bidi: plaintext;
+  }
+
+  bdi {
+    unicode-bidi: isolate;
+  }
+
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    inset-block-start: var(--space-2);
+    inset-inline-start: var(--space-2);
+    z-index: 60;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line-emphasis-color);
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+}

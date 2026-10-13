@@ -1,0 +1,127 @@
+name: CI
+
+# The one test gate. It runs on every pull request, and `publish-image.yml` calls it
+# (`workflow_call`) before building the GHCR image, so "the tests pass" has a single
+# definition. There is deliberately no `push: main` trigger: a merge starts the
+# publisher, which runs this workflow first — adding the trigger would run it twice.
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Validate Eshobe manifest
+        run: npm run validate:manifest
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+
+  audits:
+    name: Browser audits (a11y + interaction)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The audits run against the production standalone build, exactly as on a host:
+      # `ARCH2_INCLUDE_QA=1` lets the mock CMS serve its `/qa/media/*` placeholders.
+      - name: Build the standalone output with QA fixtures
+        run: |
+          npm run build
+          ARCH2_INCLUDE_QA=1 npm run prepare:standalone
+      - name: Check the browser binary
+        run: /usr/bin/google-chrome --version
+      - name: Serve the two audit pairs and run both audits
+        env:
+          ARCH2_CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -euo pipefail
+          # The audits need exactly two mock/theme pairs: the primary site on :3200 and the
+          # deliberately slow one on :3300. `qa-servers.sh` intentionally leaves those two
+          # ports to the developer (it owns the scenario ports only), so the pairs are wired
+          # here the same way that script wires its own themes. Output goes to a file: a
+          # backgrounded server that inherited the step's stdout pipe would keep the runner
+          # waiting for EOF and hang the job.
+          {
+            node --experimental-strip-types scripts/mock-cms.mjs \
+              --port 4011 --origin http://127.0.0.1:3200 &
+            ( cd .next/standalone && \
+              PORT=3200 HOSTNAME=0.0.0.0 \
+              ESHOBE_CMS_URL=http://127.0.0.1:4011 \
+              ESHOBE_PUBLIC_ORIGIN=http://127.0.0.1:3200 \
+              node server.js ) &
+            node --experimental-strip-types scripts/mock-cms.mjs \
+              --port 4015 --origin http://127.0.0.1:3300 --mode slow --delay 2500 &
+            ( cd .next/standalone && \
+              PORT=3300 HOSTNAME=0.0.0.0 \
+              ESHOBE_CMS_URL=http://127.0.0.1:4015 \
+              ESHOBE_PUBLIC_ORIGIN=http://127.0.0.1:3300 \
+              node server.js ) &
+          } > /tmp/qa.log 2>&1
+          ready=0
+          for _ in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:3200/ \
+              && curl -sf -o /dev/null http://127.0.0.1:3300/; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != 1 ]; then
+            echo 'the audit servers did not come up' >&2
+            cat /tmp/qa.log >&2 || true
+            exit 1
+          fi
+          node scripts/a11y-audit.mjs --base http://127.0.0.1:3200 --out docs/screenshots/live-cms
+          node scripts/interaction-audit.mjs \
+            --base http://127.0.0.1:3200 \
+            --slow-base http://127.0.0.1:3300 \
+            --out docs/screenshots/live-cms
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-reports
+          path: docs/screenshots/live-cms/*.json
+          if-no-files-found: ignore
+
+  image:
+    name: Image build (no push)
+    # The publisher builds the image for real; this proves the Dockerfile on PRs only.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          cache-from: type=gha,scope=image
+          cache-to: type=gha,mode=max,scope=image

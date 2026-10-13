@@ -1,0 +1,15 @@
+node_modules/
+
+# Build output of the vendored runtime (`npm run vendor:build` regenerates it).
+vendor/site-runtime/dist/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.env
+.env.local
+.env*.local
+npm-debug.log*

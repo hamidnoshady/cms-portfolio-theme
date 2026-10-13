@@ -1,41 +1,52 @@
-# Eshobe CMS Portfolio Theme
+# Bang Portfolio — Eshobe CMS portfolio theme
 
-A proposed Estudio Bang-inspired portfolio theme for Eshobe CMS.
+Estudio Bang-inspired portfolio theme for Eshobe CMS (`eshobe.theme.json` key `bang-portfolio`, contractVersion 1).
 
-## Rebuild specification
+- Black-and-white interface, natural-color photography, sharp corners, sparse composition.
+- Home curated image composition with one accessible link per work, Browse Projects action, reduced-motion + static fallback.
+- Archives: desktop numbered list with photographic preview (hover and focus stay in sync), mobile photographic cards. Projects and Objects share one case-study implementation.
+- Case studies: semantic H1 + decorative repeat (hidden from AT), year/type/location/collaborators + facts, narrative, responsive media, related work, inquiry CTA, native share with clipboard fallback.
+- About with CMS Team block + accessible biography panels (explicit close, focus restore, Escape). Contact + Careers from CMS forms. Legal long-form with no fixed controls covering text.
+- CMS owns content/media/forms/auth/tenants/publishing/branding; theme owns routes/rendering/motion/a11y/SEO/relays/preview/health.
 
-Read [the complete website audit, rebuild plan, and AI coding-agent prompt](docs/bang-eshobe-rebuild-plan.md).
+## Target languages
 
-The document covers all 13 review sections: current behavior and architecture; working implementation; confirmed bugs and compatibility gaps; duplicate/legacy areas; target architecture; UX/UI; functions; security and permissions; data/API changes; verification requirements; and the full implementation prompt.
+Persian (`fa`, default, RTL) and English (`en`, LTR) — the locales the inspected CMS supports (`src/lib/locales.ts` registers only `fa`/`en`). Spanish parity is **not** claimed: it requires platform-wide `es` support, not a theme-only fake.
 
-## Status
+## Routes
 
-This repository currently contains the planning specification. The website implementation, application scaffolding, tests, CI, and deployment have not been added. The audit covers every primary public section and two representative case studies; it does not claim exhaustive backend or provider verification.
+`/`, `/about`, `/projects`, `/objects`, `/projects/[slug]`, `/objects/[slug]`, `/contact`, `/careers`, `/legal` with locale variants (`/en/...`). One route builder (`src/lib/routing/paths.ts`) serves navigation, archives, related work, language switch, metadata, sitemap, previews, redirects. Legacy `/projects/raw` → `/objects/raw`.
 
-## Implementation scope
+## Content slots (`eshobe.theme.json`)
 
-- Home image composition and featured work.
-- About and team biographies.
-- Projects and Objects archives and case-study details.
-- Contact and Careers forms.
-- Legal page, branding, navigation, locale switching, sharing, and studio clocks.
-- Eshobe content bindings, server-side tenant isolation, publishing, preview, revalidation, and deployment contracts.
-- Responsive accessibility, regression/integration tests, and exact-revision verification.
+`home`, `about`, `contact`, `careers`, `legal` (pages); `projectsCategory`, `objectsCategory` (categories); `contactForm`, `careersForm` (forms). Resolved via `/api/site`. Missing bindings render meaningful empty states, never fabricated content.
 
-Preserve the reference's monochrome interface and photography while fixing usability and integration defects. Reuse Eshobe's existing platform rather than creating a second CMS.
+## Forms
 
-## Decisions required before implementation
+Fields/labels/required/options render from CMS definitions. States: `idle → invalid | submitting → accepted | recoverable error`. Labels stay visible, errors associated, first invalid focused, status announced, values preserved, double-submit prevented.
 
-- Target languages: English/Spanish, Persian/English, or all three. Current inspected Eshobe code supports Persian and English.
-- Visual fidelity: recommended direction is to preserve Bang's style and motion while improving usability.
-- Approved brand/content assets, video requirements, mail provider, and staging recipients.
+**Company/honeypot fix:** `company` is legitimate. The canonical CMS honeypot is `__eshobe_website_check` (`src/lib/public-form-fields.ts` in eshobe-cms). The theme uses it, never treats `company` as spam, and excludes reserved names from submission data. Regression tests prove a non-empty Company submits normally.
 
-The specification identifies a critical reuse regression: the existing architecture theme treats `company` as a honeypot, which conflicts with the reference's real Company field. Implement the canonical CMS honeypot contract and regression tests before reusing that form.
+## Security
 
-## References
+Server-side tenant isolation (site key is the tenant), published-only public reads (`_status=published` even with site key), proxy path/method allowlist, same-site validation for pages/posts/categories/media/forms/bindings, private uncached previews, signed raw-body revalidation, bounded relay bodies, process-local rate limit (single instance; multi-replica needs edge throttling — see `docs/DEPLOYMENT.md`). Secrets stay server-only.
 
-- [Live reference](https://bybang.co/)
-- [Eshobe CMS](https://github.com/hamidnoshady/eshobe-cms)
-- [Architecture theme integration reference](https://github.com/hamidnoshady/cms-arch3-theme)
+## Develop
 
-Audit dated 13 October 2026. Source revisions and evidence limits are recorded in the specification. Refresh current code and CI before implementation.
+```bash
+npm ci
+npm run dev
+npm run verify   # manifest + typecheck + lint + tests + build
+ESHOBE_DEV_FIXTURES=1 npm run dev   # offline fixtures
+```
+
+## Docs
+
+- `docs/bang-eshobe-rebuild-plan.md` — audit + rebuild specification (planning reference).
+- `docs/CONTENT.md` — content model, slots, editor workflows, provisioning.
+- `docs/DEPLOYMENT.md` — configuration, Docker, health, CI/image, rollback.
+- `docs/THEME_API.md`, `docs/SPEC.md` — inherited platform contracts.
+
+## Verification
+
+See `docs/QA.md` for what was actually run. Final report sections (Implemented; Bugs fixed; Architecture; UX/UI; Security; Dead code; Tests; Verification/CI; Remaining issues) are in the delivery message.

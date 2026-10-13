@@ -1,0 +1,110 @@
+{
+  "base": "http://127.0.0.1:3200",
+  "results": [
+    {
+      "detail": "Enter control 44px tall",
+      "name": "home: the Enter control is visible before any interaction",
+      "ok": true
+    },
+    {
+      "detail": "6 rows after a keypress",
+      "name": "home: keyboard Enter opens the menu",
+      "ok": true
+    },
+    {
+      "detail": "menu opened",
+      "name": "home: clicking Enter opens the menu",
+      "ok": true
+    },
+    {
+      "detail": "went straight to the menu",
+      "name": "home: the intro does not replay (menu shown on the second visit)",
+      "ok": true
+    },
+    {
+      "detail": "14 tabs stayed inside",
+      "name": "drawer: Tab stays inside (focus trap)",
+      "ok": true
+    },
+    {
+      "detail": "closed, focus in header, body overflow visible",
+      "name": "drawer: Escape closes it and focus returns to the trigger",
+      "ok": true
+    },
+    {
+      "detail": "navigated to /projects with the drawer closed",
+      "name": "drawer: navigating from the drawer closes it",
+      "ok": true
+    },
+    {
+      "detail": "exactly one POST",
+      "name": "contact: a double submit is ignored",
+      "ok": true
+    },
+    {
+      "detail": "values preserved after a failure",
+      "name": "contact: a failed submit keeps the entered values",
+      "ok": true
+    },
+    {
+      "detail": "navigated to /en",
+      "name": "home: the language link navigates before the menu is entered",
+      "ok": true
+    },
+    {
+      "detail": "filters, search actions and breadcrumbs all stay under /en",
+      "name": "locale: English archive controls and breadcrumbs stay in English",
+      "ok": true
+    },
+    {
+      "detail": "/projects/khaneye-noor opens the project detail",
+      "name": "search: hits link to their real section and open its composition",
+      "ok": true
+    },
+    {
+      "detail": "both mismatched detail URLs redirected",
+      "name": "detail: wrong-section URLs redirect to the canonical section",
+      "ok": true
+    },
+    {
+      "detail": "notes filter selected; a cross-section category is empty",
+      "name": "blog: category controls filter and reject other sections",
+      "ok": true
+    },
+    {
+      "detail": "fa: rtl right edge, 280ms; en: ltr left edge, 280ms",
+      "name": "drawer: each locale opens from its own edge with bounded motion",
+      "ok": true
+    },
+    {
+      "detail": "blocked inline, then submitted after correction",
+      "name": "contact: an invalid email is blocked inline and posts nothing",
+      "ok": true
+    },
+    {
+      "detail": "title 166px in a 166px card, no overflow",
+      "name": "projects: long card metadata stays readable at 390px",
+      "ok": true
+    },
+    {
+      "detail": "weights 300, 400, 500, 600, 700, 800, 900",
+      "name": "fonts: the licensed Shazde weights are installed and active",
+      "ok": true
+    },
+    {
+      "detail": "decorative 1px → 0.5px; structural 1px → 0.5px",
+      "name": "lines: decorative strokes follow the decorative token at 1x and 2x",
+      "ok": true
+    },
+    {
+      "detail": "panel, rows and skeleton are static; drawer still opens",
+      "name": "reduced motion: the drawer is immediate but still operable",
+      "ok": true
+    },
+    {
+      "detail": "education header + featured + 4 rows; blog lead/latest split + 3 rows",
+      "name": "loading: slow archive navigation keeps the real header and its own composition",
+      "ok": true
+    }
+  ]
+}
