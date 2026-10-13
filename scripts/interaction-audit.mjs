@@ -7,18 +7,18 @@ import puppeteer from 'puppeteer-core'
 /**
  * Interaction audit — the behaviours a screenshot cannot prove.
  *
- * The brief asks for specific *behaviour*: a visible Enter control that also works from
- * the keyboard, one bounded transition with no replay, a drawer that traps focus, closes
- * on Escape, restores focus, unlocks scrolling and closes on navigation, and a form that
- * cannot be submitted twice.
+ * The brief asks for specific *behaviour*: a visible Browse action, dots that switch
+ * the featured work with no repeated links, a pause control, a drawer that traps focus,
+ * closes on Escape, restores focus, unlocks scrolling and closes on navigation, and a
+ * form that cannot be submitted twice.
  *
  * It also pins the behaviours a structural a11y pass cannot see: the language link must
- * stay reachable before the menu is entered, English archive controls and breadcrumbs
- * must remain English, search hits must open the section that owns the document,
- * wrong-section detail URLs must redirect, the drawer must open from the correct physical
- * edge with bounded motion, an invalid email must be blocked inline, long card metadata
- * must not collapse the title, the licensed Shazde weights must be active, and the
- * decorative stroke token must drive mark strokes at 1x/2x.
+ * stay reachable from the canvas, English archive links and breadcrumbs must remain
+ * English, wrong-section detail URLs must redirect to the canonical section, the drawer
+ * must open from the correct physical edge with bounded motion, an invalid email must
+ * be blocked inline, long card metadata must not collapse the title, the licensed
+ * Shazde weights must be active, and the decorative stroke token must drive mark
+ * strokes at 1x/2x.
  *
  *   node scripts/interaction-audit.mjs [--base http://127.0.0.1:3200] [--out docs/screenshots]
  *
@@ -111,60 +111,56 @@ const main = async () => {
     await page.waitForSelector(selector, { timeout, visible: true })
   }
 
-  // The home menu lives below the entrance in normal flow; "opened" means scrolled into view.
-  const menuInView = async (page, timeout = 8000) => {
-    await page.waitForFunction(
-      () => {
-        const menu = document.querySelector('#home-menu')
-        if (!menu) return false
-        const box = menu.getBoundingClientRect()
-        return box.top < window.innerHeight * 0.5 && box.bottom > 0
-      },
-      { timeout },
-    )
-  }
-
-  // ------------------------------------------------------------------ entrance
-  await check('home: the Enter control is visible before any interaction', async (page) => {
+  // ------------------------------------------------------------------ home canvas
+  await check('home: the Browse Projects action is visible before any interaction', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.stage .btn')
-    const box = await page.$eval('.stage .btn', (el) => el.getBoundingClientRect().height)
-    if (box < 24) throw new Error(`Enter control is only ${Math.round(box)}px tall`)
-    return `Enter control ${Math.round(box)}px tall`
+    await loaded(page, '.bang-canvas')
+    const box = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getBoundingClientRect().height)
+    if (box < 24) throw new Error(`Browse action is only ${Math.round(box)}px tall`)
+    return `Browse action ${Math.round(box)}px tall`
   })
 
-  await check('home: keyboard Enter opens the menu', async (page) => {
+  await check('home: dots switch the featured work', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.stage .btn')
-    await page.keyboard.press('Enter')
-    await menuInView(page)
-    const rows = await page.$$eval('.menu-row__label', (els) => els.map((el) => el.textContent.trim()))
-    if (rows.length === 0) throw new Error('menu opened with no rows')
-    return `${rows.length} rows after a keypress`
+    await loaded(page, '.bang-canvas__dots')
+    const before = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getAttribute('href'))
+    const dots = await page.$$('.bang-canvas__dots .bang-dot')
+    if (dots.length < 2) throw new Error('fewer than two featured works to switch between')
+    await dots[1].click()
+    await sleep(600)
+    const after = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getAttribute('href'))
+    if (before === after) throw new Error('the featured work did not change')
+    return `${dots.length} works, ${before} → ${after}`
   })
 
-  await check('home: clicking Enter opens the menu', async (page) => {
+  await check('home: one accessible destination per work (visual copies are decorative)', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.stage .btn')
-    await page.click('.stage .btn')
-    await menuInView(page)
-    return 'menu scrolled into view'
+    await loaded(page, '.bang-canvas')
+    const state = await page.evaluate(() => {
+      const hrefs = [...document.querySelectorAll('.bang-canvas a[href]')].map((a) => a.getAttribute('href'))
+      const dupes = hrefs.filter((href, index) => hrefs.indexOf(href) !== index)
+      const hidden = [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => !tile.hasAttribute('aria-hidden')).length
+      return { dupes, hrefs: hrefs.length, unlabelledTiles: hidden }
+    })
+    if (state.dupes.length > 0) throw new Error(`repeated canvas links: ${state.dupes.join(', ')}`)
+    if (state.unlabelledTiles > 0) throw new Error(`${state.unlabelledTiles} canvas tiles miss aria-hidden`)
+    return `${state.hrefs} canvas links, no repeats`
   })
 
-  await check('home: the intro does not replay (menu shown on the second visit)', async (page) => {
+  await check('home: the pause control stops the rotation', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.stage .btn')
-    await page.click('.stage .btn')
-    await menuInView(page)
-    await page.goto(`${BASE}/about`, { waitUntil: 'load' })
-    await loaded(page, 'main')
-    await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await menuInView(page)
-    return 'went straight to the menu'
+    await loaded(page, '.bang-canvas')
+    const pause = await page.$('.bang-canvas__actions button[aria-pressed]')
+    if (!pause) return 'no pause control (reduced-motion static composition)'
+    await pause.click()
+    await sleep(300)
+    const pressed = await page.evaluate(() => document.querySelector('.bang-canvas__actions button[aria-pressed]')?.getAttribute('aria-pressed'))
+    if (pressed !== 'true') throw new Error('pause did not engage')
+    return 'rotation paused'
   })
 
   // --------------------------------------------------------------------- drawer
@@ -273,10 +269,10 @@ const main = async () => {
   })
 
   // ------------------------------------------------------- language and locale
-  await check('home: the language link navigates before the menu is entered', async (page) => {
+  await check('home: the language link navigates from the canvas', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.stage .btn')
+    await loaded(page, '.bang-canvas')
     const link = await page.$('a[hreflang="en"]')
     if (!link) throw new Error('no English language link on the entrance')
     await link.focus()
@@ -290,7 +286,7 @@ const main = async () => {
   await check('locale: English archive controls and breadcrumbs stay in English', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     const problems = []
-    for (const path of ['/en/projects', '/en/education', '/en/blog', '/en/search']) {
+    for (const path of ['/en/projects', '/en/objects']) {
       await page.goto(`${BASE}${path}`, { waitUntil: 'load' })
       await loaded(page, 'main')
       const state = await page.evaluate(() => ({
@@ -307,24 +303,23 @@ const main = async () => {
     return 'filters, search actions and breadcrumbs all stay under /en'
   })
 
-  await check('search: hits link to their real section and open its composition', async (page) => {
+  await check('case study: facts, inquiry CTA and related work render', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
-    await page.goto(`${BASE}/search?q=${encodeURIComponent('نور')}`, { waitUntil: 'load' })
-    await loaded(page, '.entry-row')
-    const hrefs = await page.$$eval('.entry-row a', (els) => els.map((el) => el.getAttribute('href')))
-    const project = hrefs.find((href) => href?.includes('/projects/'))
-    const education = hrefs.find((href) => href?.includes('/education/'))
-    if (!project || !education) throw new Error(`hits were not section-resolved: ${hrefs.join(', ')}`)
-    await page.goto(`${BASE}${project}`, { waitUntil: 'load' })
+    await page.goto(`${BASE}/projects/khaneye-noor`, { waitUntil: 'load' })
     await loaded(page, 'main')
-    const projectComposition = await page.evaluate(() => ({
-      facts: Boolean(document.querySelector('main section[aria-label] dl')),
-      blogLead: Boolean(document.querySelector('.split')),
+    const composition = await page.evaluate(() => ({
+      facts: Boolean(document.querySelector('.bang-facts')),
+      h1: document.querySelectorAll('main h1').length,
+      inquiry: [...document.querySelectorAll('main a')].some((a) => a.getAttribute('href')?.includes('/contact')),
+      repeatHidden: document.querySelector('.bang-case__repeat')?.getAttribute('aria-hidden') === 'true',
+      share: [...document.querySelectorAll('main button')].some((b) => (b.textContent ?? '').includes('اشتراک') || (b.textContent ?? '').includes('Share')),
     }))
-    if (!projectComposition.facts || projectComposition.blogLead) {
-      throw new Error(`project hit did not open the project composition: ${JSON.stringify(projectComposition)}`)
-    }
-    return `${project} opens the project detail`
+    if (composition.h1 !== 1) throw new Error(`case study has ${composition.h1} h1 elements`)
+    if (!composition.repeatHidden) throw new Error('the decorative repeated title is not hidden from assistive tech')
+    if (!composition.facts) throw new Error('the facts table is missing')
+    if (!composition.inquiry) throw new Error('the inquiry CTA is missing')
+    if (!composition.share) throw new Error('the share control is missing')
+    return 'khaneye-noor: h1, hidden repeat, facts, inquiry, share'
   })
 
   await check('detail: wrong-section URLs redirect to the canonical section', async (page) => {
@@ -334,30 +329,26 @@ const main = async () => {
       const url = page.url().replace(BASE, '')
       if (!url.endsWith(to)) throw new Error(`${from} → ${url}, expected ${to}`)
     }
-    await expectRedirect('/blog/workshop-light', '/education/workshop-light')
-    await expectRedirect('/education/notes-on-lines', '/blog/notes-on-lines')
+    await expectRedirect('/projects/raw-lamp', '/objects/raw-lamp')
+    await expectRedirect('/objects/khaneye-noor', '/projects/khaneye-noor')
     return 'both mismatched detail URLs redirected'
   })
 
-  // --------------------------------------------------------------- taxonomy
-  await check('blog: category controls filter and reject other sections', async (page) => {
-    await page.setViewport({ width: 1440, height: 900 })
-    await page.goto(`${BASE}/blog?category=notes`, { waitUntil: 'load' })
-    await loaded(page, 'main')
-    // A small filtered archive renders a lead + latest notes, not `.entry-row`s, so count
-    // any archive item: the split's links plus the rows below it.
-    const items = () => document.querySelectorAll('.split a[href], .entry-row').length
-    const state = await page.evaluate(() => ({
-      active: [...document.querySelectorAll('.filter-chip[aria-current="true"]')].map((chip) => chip.textContent.trim()),
-      items: document.querySelectorAll('.split a[href], .entry-row').length,
-    }))
-    if (state.active.length !== 1) throw new Error(`no single selected blog filter: ${JSON.stringify(state.active)}`)
-    if (state.items === 0) throw new Error('the blog filter returned no entries')
-    await page.goto(`${BASE}/blog?category=residential`, { waitUntil: 'load' })
-    await loaded(page, 'main')
-    const crossed = await page.evaluate(items)
-    if (crossed !== 0) throw new Error(`a project category returned ${crossed} blog entries`)
-    return `notes filter selected; a cross-section category is empty`
+  // --------------------------------------------------------------- archives
+  await check('archives: projects and objects list entries without overflow at 390px', async (page) => {
+    await page.setViewport({ width: 390, height: 844 })
+    for (const path of ['/projects', '/objects']) {
+      await page.goto(`${BASE}${path}`, { waitUntil: 'load' })
+      await loaded(page, 'main')
+      const state = await page.evaluate(() => ({
+        cards: document.querySelectorAll('.bang-card').length,
+        documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        rows: document.querySelectorAll('.bang-row').length,
+      }))
+      if (state.cards === 0) throw new Error(`${path} rendered no cards`)
+      if (state.documentOverflow > 1) throw new Error(`${path} overflows by ${state.documentOverflow}px`)
+    }
+    return 'both archives render cards with no overflow'
   })
 
   // ------------------------------------------------------------ drawer geometry
@@ -465,17 +456,15 @@ const main = async () => {
   })
 
   // ------------------------------------------------------- responsive captions
-  await check('projects: long card metadata stays readable at 390px', async (page) => {
+  await check('archives: long card metadata stays readable at 390px', async (page) => {
     await page.setViewport({ width: 390, height: 844 })
     await page.goto(`${BASE}/projects`, { waitUntil: 'load' })
-    await loaded(page, '.pcard')
+    await loaded(page, '.bang-card')
     const measured = await page.evaluate(() => {
-      const card = document.querySelector('.pcard')
-      const title = card.querySelector('.pcard__title')
-      const year = card.querySelector('.pcard__year')
-      const meta = card.querySelector('.pcard__place')
+      const card = document.querySelector('.bang-card')
+      const title = card.querySelector('.bang-card__title')
+      const meta = card.querySelector('.bang-card__meta')
       title.textContent = 'خانه‌ای با نام بسیار طولانی در منطقه شمال غرب — نمونه'
-      if (year) year.textContent = '۱۴۰۴'
       meta.textContent = 'تهران، منطقه شمال غرب — خیابان بسیار طولانی'
       const cardRect = card.getBoundingClientRect()
       const titleRect = title.getBoundingClientRect()
@@ -498,7 +487,7 @@ const main = async () => {
   // ---------------------------------------------------------------- typography
   await check('fonts: the licensed Shazde weights are installed and active', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
-    await page.goto(`${BASE}/projects`, { waitUntil: 'load' })
+    await page.goto(`${BASE}/about`, { waitUntil: 'load' })
     await loaded(page, '.pcard')
     const fonts = await page.evaluate(async () => {
       await document.fonts.ready
@@ -519,7 +508,7 @@ const main = async () => {
   await check('lines: decorative strokes follow the decorative token at 1x and 2x', async (page) => {
     const read = async (scale) => {
       await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: scale })
-      await page.goto(`${BASE}/projects`, { waitUntil: 'load' })
+      await page.goto(`${BASE}/about`, { waitUntil: 'load' })
       await loaded(page, '.pcard')
       return page.evaluate(() => ({
         mark: getComputedStyle(document.querySelector('.mark svg')).strokeWidth,
@@ -614,51 +603,49 @@ const main = async () => {
       }
     }
 
-    const education = await captureSkeleton({
-      from: '/blog',
-      target: '/education',
-      selector: '.skeleton-region .entry-row--compact',
+    const objects = await captureSkeleton({
+      from: '/projects',
+      target: '/objects',
+      selector: '.skeleton-region.grid-projects',
       sample: () => {
         const region = document.querySelector('.skeleton-region')
-        if (!region || !region.querySelector('.entry-row--compact')) return false
+        if (!region || !region.classList.contains('grid-projects')) return false
         return {
-          featured: Boolean(region.querySelector(':scope > div.grid')),
+          cards: region.querySelectorAll(':scope > div').length,
           heading: document.querySelector('h1')?.textContent?.trim() ?? '',
           label: region.querySelector('.sr-only')?.textContent?.trim() ?? '',
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          rows: region.querySelectorAll('.entry-row--compact').length,
         }
       },
     })
-    if (education.heading !== 'آموزش') throw new Error(`education header changed while loading: “${education.heading}”`)
-    if (!education.featured || education.rows < 3) {
-      throw new Error(`education skeleton lost its composition: ${JSON.stringify(education)}`)
+    if (objects.heading !== 'آبژه‌ها') throw new Error(`objects header changed while loading: “${objects.heading}”`)
+    if (objects.cards < 3) {
+      throw new Error(`objects skeleton lost its composition: ${JSON.stringify(objects)}`)
     }
-    if (!education.label.includes('بارگذاری')) throw new Error(`education loading label: “${education.label}”`)
-    if (education.overflow > 1) throw new Error(`education skeleton overflows by ${education.overflow}px`)
+    if (!objects.label.includes('بارگذاری')) throw new Error(`objects loading label: “${objects.label}”`)
+    if (objects.overflow > 1) throw new Error(`objects skeleton overflows by ${objects.overflow}px`)
 
-    const blog = await captureSkeleton({
-      from: '/projects',
-      target: '/blog',
-      selector: '.skeleton-region .split',
+    const projects = await captureSkeleton({
+      from: '/objects',
+      target: '/projects',
+      selector: '.skeleton-region.grid-projects',
       sample: () => {
         const region = document.querySelector('.skeleton-region')
-        if (!region || !region.querySelector('.split')) return false
+        if (!region || !region.classList.contains('grid-projects')) return false
         return {
-          divider: Boolean(region.querySelector('.split__divider')),
+          cards: region.querySelectorAll(':scope > div').length,
           heading: document.querySelector('h1')?.textContent?.trim() ?? '',
           label: region.querySelector('.sr-only')?.textContent?.trim() ?? '',
-          rows: region.querySelectorAll('.entry-row').length,
-          split: true,
         }
       },
     })
-    if (blog.heading !== 'یادداشت‌ها') throw new Error(`blog header changed while loading: “${blog.heading}”`)
-    if (!blog.divider || blog.rows < 2) {
-      throw new Error(`blog skeleton lost its composition: ${JSON.stringify(blog)}`)
+    if (projects.heading !== 'پروژه‌ها') throw new Error(`projects header changed while loading: “${projects.heading}”`)
+    if (projects.cards < 3) {
+      throw new Error(`projects skeleton lost its composition: ${JSON.stringify(projects)}`)
     }
-    if (!blog.label.includes('بارگذاری')) throw new Error(`blog loading label: “${blog.label}”`)
-    return `education header + featured + ${education.rows} rows; blog lead/latest split + ${blog.rows} rows`
+    if (!projects.label.includes('بارگذاری')) throw new Error(`projects loading label: “${projects.label}”`)
+    return `objects header + ${objects.cards} cards; projects header + ${projects.cards} cards`
+
   })
 
   await browser.close()

@@ -38,6 +38,15 @@ export const resolveThemeRoute = (
   const base = { explicitLocale: split.explicit, locale: split.locale }
   const [head, second] = split.rest
   if (!head) return { ...base, kind: 'home' }
+  // The CMS contract reserves `/posts`; portfolio entries live at `/projects`
+  // (a slug that belongs to objects redirects again to its canonical section).
+  if (head === 'posts') {
+    return {
+      ...base,
+      kind: 'alias',
+      to: second ? `/projects/${encodeURIComponent(decodeURIComponent(second))}` : '/projects',
+    }
+  }
   switch (head) {
     case 'projects':
       return second

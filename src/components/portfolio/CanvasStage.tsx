@@ -15,11 +15,10 @@ const MAX_TILES = 8
  * pause control and a static no-JS fallback list.
  */
 export const CanvasStage = ({
-  browseHref, browseLabel, locale, origin, works,
+  browseHref, browseLabel, origin, works,
 }: {
   browseHref: string
   browseLabel: string
-  locale: string
   origin: string
   works: CanvasWork[]
 }) => {

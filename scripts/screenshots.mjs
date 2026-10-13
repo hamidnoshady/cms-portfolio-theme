@@ -46,9 +46,9 @@ const smallPhone = { deviceScaleFactor: scale, height: 640, width: 320 }
 const zoomed = { deviceScaleFactor: scale * 2, height: 450, width: 720 }
 
 const shots = [
-  { name: '01-home-entrance-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.btn', text: 'ورود' } },
+  { name: '01-home-entrance-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__actions .bang-btn', text: 'دیدن پروژه‌ها' } },
   // The menu only exists after a client interaction, so this shot is also the hydration proof.
-  { name: '02-home-menu-1440', path: '/', viewport: desktop, action: 'enter-stage', waitMs: 2400, expect: { selector: '.menu-row__label' } },
+  { name: '02-home-canvas-dots-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__dots .bang-dot' } },
   { name: '03-home-entrance-390', path: '/', viewport: phone, waitMs: 2400 },
   { name: '04-projects-1920', path: '/projects', viewport: wide, fullPage: true },
   { name: '05-projects-1440', path: '/projects', viewport: desktop, fullPage: true },
@@ -57,28 +57,28 @@ const shots = [
   { name: '08-projects-390', path: '/projects', viewport: phone, fullPage: true },
   { name: '09-projects-320', path: '/projects', viewport: smallPhone, fullPage: true },
   { name: '10-project-detail-1440', path: '/projects/khaneye-noor', viewport: desktop, fullPage: true },
-  { name: '11-education-1440', path: '/education', viewport: desktop, fullPage: true },
-  { name: '12-blog-1440', path: '/blog', viewport: desktop, fullPage: true },
-  { name: '13-article-1440', path: '/blog/notes-on-lines', viewport: desktop, fullPage: true },
+  { name: '11-objects-1440', path: '/objects', viewport: desktop, fullPage: true },
+  { name: '12-careers-1440', path: '/careers', viewport: desktop, fullPage: true },
+  { name: '13-object-1440', path: '/objects/raw-lamp', viewport: desktop, fullPage: true },
   { name: '14-about-1440', path: '/about', viewport: desktop, fullPage: true },
   { name: '15-contact-1440', path: '/contact', viewport: desktop, fullPage: true },
   { name: '16-services-blocks-1440', path: '/services', viewport: desktop, fullPage: true },
-  { name: '17-search-1440', path: '/search?q=%DB%8C%D8%A7%D8%AF%D8%AF%D8%A7%D8%B4%D8%AA', viewport: desktop, fullPage: true },
-  { name: '18-en-blog-1440', path: '/en/blog', viewport: desktop, fullPage: true },
+  { name: '17-legal-1440', path: '/legal', viewport: desktop, fullPage: true },
+  { name: '18-en-objects-1440', path: '/en/objects', viewport: desktop, fullPage: true },
   { name: '19-en-contact-390', path: '/en/contact', viewport: phone, fullPage: true },
-  { name: '20-mobile-drawer-390', path: '/blog', viewport: phone, action: 'open-drawer', expect: { selector: '.drawer__row' } },
+  { name: '20-mobile-drawer-390', path: '/projects', viewport: phone, action: 'open-drawer', expect: { selector: '.drawer__row' } },
   // Skeletons are captured through a *client-side* navigation, which is the only place a
   // visitor can actually see one: a cold page load waits for `generateMetadata` first.
   // Category-filtered targets on purpose: the unfiltered archive is usually already in
   // the server's fetch cache, and a cached navigation never shows a skeleton.
-  { name: '21-skeletons-projects-1440', path: '/blog', viewport: desktop, base: 'SLOW', action: 'client-nav-skeleton', target: '/projects', throttle: true, expect: { selector: '.grid-projects .skeleton' } },
+  { name: '21-skeletons-projects-1440', path: '/objects', viewport: desktop, base: 'SLOW', action: 'client-nav-skeleton', target: '/projects', throttle: true, expect: { selector: '.grid-projects .skeleton' } },
   { name: '22-cms-unreachable-1440', path: '/projects', viewport: desktop, base: 'FAIL', fullPage: true, expect: { selector: 'h1', text: 'اتصال به سامانهٔ محتوا' } },
   // Lifecycle + empty-content scenarios run against their own mock CMS instances.
   { name: '23-holding-suspended-1440', path: '/', viewport: desktop, base: 'HOLDING', fullPage: true, expect: { selector: 'h1', text: 'موقتاً در دسترس نیست' } },
   // A suspended site must show no portfolio content at all — proven negatively.
   { name: '24-holding-suspended-1440-projects', path: '/projects', viewport: desktop, base: 'HOLDING', fullPage: true, expect: { absent: '.frame-project, .card-project', selector: 'h1', text: 'موقتاً در دسترس نیست' } },
   { name: '25-empty-projects-1440', path: '/projects', viewport: desktop, base: 'EMPTY', fullPage: true, expect: { selector: 'h2', text: 'هنوز چیزی منتشر نشده' } },
-  { name: '26-empty-blog-1440', path: '/blog', viewport: desktop, base: 'EMPTY', fullPage: true, expect: { selector: 'h2', text: 'هنوز چیزی منتشر نشده' } },
+  { name: '26-empty-objects-1440', path: '/objects', viewport: desktop, base: 'EMPTY', fullPage: true, expect: { selector: 'h2', text: 'هنوز چیزی منتشر نشده' } },
 // The 390px skeleton is the two-column project grid — the same geometry as the archive.
   { name: '27-skeletons-projects-390', path: '/about', viewport: phone, base: 'SLOW', action: 'client-nav-skeleton', target: '/projects', throttle: true, expect: { selector: '.grid-projects .skeleton' } },
   // Edge cases the brief calls out explicitly: missing logo, long labels, invalid form,
@@ -90,12 +90,12 @@ const shots = [
   { name: '39-form-success-1440', path: '/contact', viewport: desktop, action: 'submit-valid-form', expect: { selector: '[aria-live="polite"]', text: 'ثبت شد' } },
   { name: '31-zoom200-home-1440', path: '/', viewport: zoomed, waitMs: 2400 },
   { name: '32-zoom200-projects-1440', path: '/projects', viewport: zoomed, fullPage: true },
-  { name: '33-reduced-motion-home-1440', path: '/', viewport: desktop, emulate: { reducedMotion: 'reduce' }, action: 'enter-stage', waitMs: 1200 },
-  { name: '34-education-390', path: '/education', viewport: phone, fullPage: true },
-  { name: '35-article-390', path: '/blog/notes-on-lines', viewport: phone, fullPage: true },
+  { name: '33-reduced-motion-home-1440', path: '/', viewport: desktop, emulate: { reducedMotion: 'reduce' }, waitMs: 1200, expect: { selector: '.bang-canvas' } },
+  { name: '34-objects-390', path: '/objects', viewport: phone, fullPage: true },
+  { name: '35-object-390', path: '/objects/raw-lamp', viewport: phone, fullPage: true },
   { name: '36-about-390', path: '/about', viewport: phone, fullPage: true },
   { name: '37-contact-390', path: '/contact', viewport: phone, fullPage: true },
-  { name: '38-en-education-390', path: '/en/education', viewport: phone, fullPage: true },
+  { name: '38-en-objects-390', path: '/en/objects', viewport: phone, fullPage: true },
   // Progressive enhancement: with scripting off the entrance cannot run, so the home
   // page must still offer the CMS menu. Chromium parses `<noscript>` children into the
   // DOM exactly when scripting is disabled, so a menu that `:has()` the no-JS caption
@@ -108,7 +108,7 @@ const shots = [
     viewport: desktop,
     waitMs: 600,
     fullPage: true,
-    expect: { selector: '.home-menu:has(noscript p) a[href="/projects"]', text: 'پروژه‌ها' },
+    expect: { selector: '.bang-canvas__actions a[href="/projects"]', text: 'دیدن پروژه‌ها' },
   },
   // The unified lightbox (issue #9): a gallery-block thumbnail opens the dialog over its
   // own backdrop. In Persian the *next* control (second step button) points left, in
@@ -120,7 +120,7 @@ const shots = [
   { name: '44-services-blocks-768', path: '/services', viewport: tablet, fullPage: true, expect: { selector: '.grid-media .lightbox-trigger' } },
   { name: '45-services-blocks-390', path: '/services', viewport: phone, fullPage: true, expect: { selector: '.grid-media .lightbox-trigger' } },
   // Project detail at phone width: the compact facts block and content images rendered once.
-  { name: '46-project-detail-390', path: '/projects/khaneye-noor', viewport: phone, fullPage: true, expect: { selector: '.facts .facts__item' } },
+  { name: '46-project-detail-390', path: '/projects/khaneye-noor', viewport: phone, fullPage: true, expect: { selector: '.bang-facts__row' } },
 ]
 
 /** True when something accepts a TCP connection at `origin` (a slow server still does). */

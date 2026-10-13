@@ -8,7 +8,8 @@ import { NextResponse, type NextRequest } from 'next/server'
  * afterwards can no longer change the status code. Redirects and 404s are exactly the
  * cases where the status matters, so they are decided here, in front of the renderer:
  *
- *  - the CMS's reserved `/posts…` paths redirect (307) to this theme's `/blog…`;
+ *  - the CMS's reserved `/posts…` paths redirect (307) to this theme's `/projects…`
+ *    (a project URL reached for an object redirects again to its canonical section);
  *  - `/home` redirects to `/`;
  *  - a locale prefix the deployment does not serve, or a generic page slug the CMS does
  *    not know, rewrites (status 404) to the theme's own 404 route — a real status with
@@ -24,7 +25,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 
 const KNOWN_LOCALES = ['fa', 'en']
-const SECTIONS = new Set(['about', 'blog', 'contact', 'education', 'projects', 'posts', 'search'])
+const SECTIONS = new Set(['about', 'careers', 'contact', 'legal', 'objects', 'projects', 'posts'])
 const NOT_FOUND_ROUTE = '/arch-not-found'
 
 const servedLocales = (): string[] => {
@@ -104,11 +105,20 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 
   const routeHeaders = (): Headers => withRouteHeaders(request, locale, pathname)
 
-  // The CMS reserves `/posts…`; this theme's canonical blog lives at `/blog…`.
+  // The CMS reserves `/posts…`; portfolio entries live at `/projects…` (objects
+  // redirect again to their canonical section when the slug belongs there).
   if (rest[0] === 'posts') {
     const url = request.nextUrl.clone()
     const target = rest.slice(1).join('/')
-    url.pathname = `${prefix && prefix !== defaultLocale() ? `/${prefix}` : ''}/blog${target ? `/${target}` : ''}`
+    url.pathname = `${prefix && prefix !== defaultLocale() ? `/${prefix}` : ''}/projects${target ? `/${target}` : ''}`
+    return NextResponse.redirect(url, 307)
+  }
+
+  // Legacy object URL preserved from the reference: objects once lived under
+  // `/projects/*`. Decided here (not in the view) so the response is a real 307.
+  if (rest.length === 2 && rest[0] === 'projects' && rest[1] === 'raw') {
+    const url = request.nextUrl.clone()
+    url.pathname = `${prefix && prefix !== defaultLocale() ? `/${prefix}` : ''}/objects/raw`
     return NextResponse.redirect(url, 307)
   }
 

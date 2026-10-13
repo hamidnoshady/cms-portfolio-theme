@@ -10,7 +10,7 @@ import { StateView } from '@/views/StateView'
 
 /**
  * The catch-all resolves everything that is not a fixed section route: CMS pages, the
- * CMS's reserved `/posts…` paths (aliased onto the theme's `/blog`), and the
+ * CMS's reserved `/posts…` paths (aliased onto `/projects`), and the
  * canonical-URL redirect for a bound page reached through its own slug.
  *
  * Fixed sections have real route files, so if one of them arrives here it is simply

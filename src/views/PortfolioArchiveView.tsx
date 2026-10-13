@@ -56,7 +56,7 @@ export const PortfolioArchiveView = async ({ locale, section }: { locale: Locale
         {entries.length === 0 ? (
           <EmptyState locale={locale} />
         ) : (
-          <PortfolioArchive entries={entries} locale={locale} origin={ctx.site.media.origin} />
+          <PortfolioArchive entries={entries} origin={ctx.site.media.origin} />
         )}
       </ContentContainer>
     </InteriorPage>

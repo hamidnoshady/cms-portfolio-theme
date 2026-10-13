@@ -32,7 +32,7 @@ const BASE = argOf('--base', process.env.AUDIT_BASE ?? 'http://127.0.0.1:3200')
 const OUT = argOf('--out', 'docs/screenshots')
 const PATHS = (
   argOf('--paths', process.env.AUDIT_PATHS) ??
-  '/,/projects,/projects/khaneye-noor,/education,/blog,/blog/notes-on-lines,/about,/contact,/search?q=نور,/services,/en,/en/projects,/en/blog,/en/contact,/en/about,/does-not-exist,/arch-not-found'
+  '/,/projects,/projects/khaneye-noor,/objects,/objects/raw-lamp,/about,/contact,/careers,/legal,/en,/en/projects,/en/objects,/en/about,/en/contact,/en/careers,/en/legal,/does-not-exist'
 ).split(',')
 
 const audit = async (page) => page.evaluate(() => {

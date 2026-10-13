@@ -30,8 +30,8 @@ export const TeamBiography = ({ labels, member, origin }: { labels: { biography:
         {labels.open}
       </button>
       {open ? (
-        <div className="bang-bio__backdrop" onClick={close} role="presentation">
-          <div ref={panelRef} role="dialog" aria-modal="true" aria-label={`${member.name} — ${labels.biography}`} className="bang-bio" onClick={(e) => e.stopPropagation()}>
+        <div className="bang-bio__backdrop">
+          <div ref={panelRef} role="dialog" aria-modal="true" aria-label={`${member.name} — ${labels.biography}`} className="bang-bio">
             <div className="bang-bio__head">
               <h3>{member.name}</h3>
               <button type="button" className="bang-btn" onClick={close}>{labels.close}</button>
@@ -42,7 +42,7 @@ export const TeamBiography = ({ labels, member, origin }: { labels: { biography:
             {member.socials.length ? (
               <ul className="bang-bio__socials">
                 {member.socials.map((s) => (
-                  <li key={s.url}><a href={s.url} rel="noreferrer" target="_blank">{s.label}</a></li>
+                  <li key={s.url}><a className="link-inline type-ui target-standalone" href={s.url} rel="noreferrer" target="_blank">{s.label}</a></li>
                 ))}
               </ul>
             ) : null}

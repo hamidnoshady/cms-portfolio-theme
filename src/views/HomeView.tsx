@@ -66,7 +66,7 @@ export const HomeView = async ({ locale }: { locale: Locale }) => {
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             {links.map((l) => (
               <li key={l.href}>
-                <Link aria-current={l.current ? 'page' : undefined} href={l.href}>{l.label}</Link>
+                <Link aria-current={l.current ? 'page' : undefined} className="nav-link" href={l.href}>{l.label}</Link>
               </li>
             ))}
           </ul>
@@ -74,7 +74,8 @@ export const HomeView = async ({ locale }: { locale: Locale }) => {
         <LanguageSwitch current={locale} hrefs={switchTargetsForPath(ctx, () => THEME_ROUTES.home)} label={t.languageSwitch} />
       </header>
       <main className="flex-1" id="content">
-        <CanvasStage browseHref={browseHref} browseLabel={t.browseProjects} locale={locale} origin={ctx.site.media.origin} works={works} />
+        <h1 className="sr-only">{brandName(ctx.site)}</h1>
+        <CanvasStage browseHref={browseHref} browseLabel={t.browseProjects} origin={ctx.site.media.origin} works={works} />
         <p className="type-meta mt-4 text-center" aria-hidden="true">estudiobang</p>
       </main>
       <footer className="bang-footer">

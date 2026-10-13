@@ -112,7 +112,7 @@ export const CaseStudyView = async ({ locale, section, slug }: { locale: Locale;
             <ul className="mt-6 grid gap-6 md:grid-cols-3">
               {await Promise.all(related.map(async (r) => (
                 <li key={r.id}>
-                  <Link href={await localizedPostHref(r, ctx)}>{r.title}</Link>
+                  <Link className="link-inline type-ui target-standalone" href={await localizedPostHref(r, ctx)}>{r.title}</Link>
                 </li>
               )))}
             </ul>

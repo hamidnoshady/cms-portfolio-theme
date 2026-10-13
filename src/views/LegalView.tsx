@@ -43,7 +43,10 @@ export const LegalView = async ({ locale }: { locale: Locale }) => {
     return (
       <InteriorPage context={ctx} crumbs={crumbs} currentPath={THEME_ROUTES.legal} label={t.breadcrumb}>
         <ContentContainer>
-          <EmptyState body={t.missingContentBody} locale={locale} title={t.missingContentTitle} />
+          <h1 className="type-title">{t.legal}</h1>
+          <div className="mt-8">
+            <EmptyState body={t.missingContentBody} locale={locale} title={t.missingContentTitle} />
+          </div>
         </ContentContainer>
       </InteriorPage>
     )

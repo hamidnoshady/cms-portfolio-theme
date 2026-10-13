@@ -79,7 +79,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!root) return new Set()
     return new Set([String(root.id), ...categorySubtree(root, categories).map((category) => String(category.id))])
   }
-  const projectIds = subtreeOf('projects')
   const objectIds = subtreeOf('objects')
   const boundPageIds = new Set(
     (['home', 'about', 'contact', 'careers', 'legal'] as const).flatMap((section) => {

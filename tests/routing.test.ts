@@ -43,6 +43,11 @@ describe('route resolution', () => {
     expect(route.kind).toBe('projects')
     expect(route.locale).toBe('en')
   })
+  it('aliases the CMS-reserved /posts paths onto the portfolio projects route', () => {
+    expect(resolveThemeRoute(['posts'], site)).toMatchObject({ kind: 'alias', to: '/projects' })
+    expect(resolveThemeRoute(['posts', 'raw-lamp'], site)).toMatchObject({ kind: 'alias', to: '/projects/raw-lamp' })
+  })
+
   it('treats an unknown single segment as a CMS page and longer paths as not found', () => {
     expect(resolveThemeRoute(['our-studio'], site)).toMatchObject({ kind: 'page', slug: 'our-studio' })
     expect(resolveThemeRoute(['our', 'studio'], site).kind).toBe('notFound')

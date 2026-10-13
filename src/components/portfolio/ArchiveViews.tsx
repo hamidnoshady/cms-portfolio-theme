@@ -19,7 +19,7 @@ export type ArchiveEntry = {
  * Desktop: numbered rows with one photographic preview (hover AND focus update it).
  * Mobile: photographic cards with readable titles/metadata.
  */
-export const PortfolioArchive = ({ entries, locale, origin }: { entries: ArchiveEntry[]; locale: string; origin: string }) => {
+export const PortfolioArchive = ({ entries, origin }: { entries: ArchiveEntry[]; origin: string }) => {
   const [selected, setSelected] = useState(0)
   const current = entries[Math.min(selected, Math.max(0, entries.length - 1))] ?? null
   if (entries.length === 0) return null

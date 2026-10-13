@@ -526,13 +526,12 @@ export const FIXTURE_HEADER = {
   id: 'header-1',
   navItems: [
     { id: 'nav-1', link: { label: 'پروژه‌ها', type: 'custom', url: '/projects' } },
-    { id: 'nav-2', link: { label: 'آموزش', type: 'custom', url: '/education' } },
-    { id: 'nav-3', link: { label: 'یادداشت‌ها', type: 'custom', url: '/blog' } },
+    { id: 'nav-2', link: { label: 'آبژه‌ها', type: 'custom', url: '/objects' } },
     { id: 'nav-4', link: { label: 'درباره ما', reference: { relationTo: 'pages', value: 'pg-about' }, type: 'reference' } },
     { id: 'nav-5', link: { label: 'تماس', reference: { relationTo: 'pages', value: 'pg-contact' }, type: 'reference' } },
     // A `posts` reference carries a document id, so it exercises the id lookup rather
     // than the slug lookup the archive routes use.
-    { id: 'nav-6', link: { label: 'یادداشت برگزیده', reference: { relationTo: 'posts', value: 'post-n1' }, type: 'reference' } },
+    { id: 'nav-6', link: { label: 'آبژهٔ برگزیده', reference: { relationTo: 'posts', value: 'post-o1' }, type: 'reference' } },
   ],
 }
 
