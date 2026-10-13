@@ -45,6 +45,16 @@ const argOf = (name, fallback) => {
 const BASE = argOf('base', process.env.AUDIT_BASE ?? 'http://127.0.0.1:3200').replace(/\/$/u, '')
 const OUT = argOf('out', 'docs/screenshots/bang-home/motion')
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** Whether an optional helper binary exists on this host. */
+const hasBinary = (command) => {
+  try {
+    execFileSync('which', [command], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
 const desktop = { deviceScaleFactor: 1, height: 900, width: 1440 }
 
 const chromiumLibs = () => {
@@ -327,25 +337,54 @@ const main = async () => {
 
   await browser.close()
 
-  // Sheets and an animation, so the sequence can be read without opening the browser.
-  const sheet = (sequence, name) => {
-    const files = frames[sequence].map((_, index) => join(OUT, `${sequence}-${String(index).padStart(2, '0')}.png`))
-    if (files.length === 0) return
-    execFileSync('montage', [...files, '-tile', '3x', '-geometry', '+4+4', '-background', '#f5f5f5', '-resize', '480x300', join(OUT, `${name}.jpg`)])
+  /**
+   * Sheets and an animation, so the sequence can be read without opening a browser.
+   *
+   * ImageMagick is a *convenience*, not a requirement: the frames themselves, the JSON
+   * report and an HTML sheet (plain markup, no tooling) are written either way, so the
+   * evidence exists on a host that has none of it — a runner, for instance, whose
+   * `montage` may simply not be installed. Failing an audit because a picture book could
+   * not be assembled would be a test that measures the machine.
+   */
+  const filesFor = (sequence) =>
+    frames[sequence].map((_, index) => join(OUT, `${sequence}-${String(index).padStart(2, '0')}.png`))
+  const sheets = {}
+  const ready = frames.wheel.length > 0 && hasBinary('montage') && hasBinary('convert')
+  if (ready) {
+    try {
+      for (const [sequence, name] of [['wheel', 'motion-wheel'], ['drag', 'motion-drag'], ['cursor', 'motion-cursor']]) {
+        const files = filesFor(sequence)
+        if (files.length === 0) continue
+        execFileSync('montage', [...files, '-tile', '3x', '-geometry', '+4+4', '-background', '#f5f5f5', '-resize', '480x300', join(OUT, `${name}.jpg`)])
+        sheets[name] = 'jpg'
+      }
+      execFileSync('convert', ['-delay', '11', '-loop', '0', ...filesFor('wheel'), '-resize', '50%', join(OUT, 'motion-wheel.gif')])
+      sheets['motion-wheel.gif'] = 'gif'
+    } catch (error) {
+      sheets.error = String(error).slice(0, 160)
+    }
   }
-  sheet('wheel', 'motion-wheel')
-  sheet('drag', 'motion-drag')
-  sheet('cursor', 'motion-cursor')
-  try {
-    const gifFrames = frames.wheel.map((_, index) => join(OUT, `wheel-${String(index).padStart(2, '0')}.png`))
-    execFileSync('convert', ['-delay', '11', '-loop', '0', ...gifFrames, '-resize', '50%', join(OUT, 'motion-wheel.gif')])
-  } catch (error) {
-    console.warn(`[motion] no animation written: ${String(error).slice(0, 120)}`)
+  if (Object.keys(sheets).length === 0) {
+    // No ImageMagick: the same sequences as one page, so the evidence is still readable.
+    const sheetHtml = Object.entries(frames)
+      .map(
+        ([key, sequence]) =>
+          `<h2>${key} (${sequence.length} frames)</h2><ol>${sequence
+            .map((_, index) => `<li><img alt="${key} ${index}" src="${key}-${String(index).padStart(2, '0')}.png"></li>`)
+            .join('')}</ol>`,
+      )
+      .join('\n')
+    writeFileSync(
+      join(OUT, 'motion-sheets.html'),
+      `<!doctype html><meta charset="utf-8"><title>Home canvas motion</title><style>body{font:14px/1.4 system-ui;margin:2rem}ol{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}img{max-width:320px;border:1px solid #ddd}</style>${sheetHtml}\n`,
+    )
+    sheets['motion-sheets.html'] = 'html'
+    console.warn('[motion] ImageMagick not installed — wrote motion-sheets.html instead of the composite sheets')
   }
 
   writeFileSync(
     join(OUT, 'motion-report.json'),
-    `${JSON.stringify({ base: BASE, frames, results, viewport: desktop }, null, 2)}\n`,
+    `${JSON.stringify({ base: BASE, frames, results, sheets, viewport: desktop }, null, 2)}\n`,
   )
   const failed = results.filter((entry) => !entry.ok)
   console.log(`\n${results.length - failed.length}/${results.length} checks passed — evidence in ${OUT}`)

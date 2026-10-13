@@ -27,7 +27,7 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -378.012,
+          "x": -378.011,
           "y": -3066.19
         },
         "visible": 6
@@ -202,7 +202,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -416.747
+          "y": -414.764
         },
         "visible": 5
       },
@@ -216,7 +216,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -672.584
+          "y": -672.26
         },
         "visible": 4
       },
@@ -230,7 +230,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -929.135
+          "y": -931.932
         },
         "visible": 4
       },
@@ -244,7 +244,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1194.05
+          "y": -1194.26
         },
         "visible": 4
       },
@@ -258,7 +258,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1452.21
+          "y": -1452.28
         },
         "visible": 4
       },
@@ -286,7 +286,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1971.86
+          "y": -1968.97
         },
         "visible": 4
       },
@@ -300,7 +300,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2234.35
+          "y": -2233.94
         },
         "visible": 4
       },
@@ -314,7 +314,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2492.18
+          "y": -2492.21
         },
         "visible": 4
       },
@@ -328,7 +328,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2751.84
+          "y": -2751.83
         },
         "visible": 5
       }
@@ -336,12 +336,12 @@
   },
   "results": [
     {
-      "detail": "y 0 → -2751.84",
+      "detail": "y 0 → -2751.83",
       "name": "the wheel pans the field without ever resetting it",
       "ok": true
     },
     {
-      "detail": "steps 170, 247, 256, 257, 265, 258, 260, 260, 262, 258, 260",
+      "detail": "steps 170, 245, 257, 260, 262, 258, 260, 257, 265, 258, 260",
       "name": "every step moves the plane forward, none of them jumps a seam",
       "ok": true
     },
@@ -370,7 +370,7 @@
       "ok": true
     },
     {
-      "detail": "x -275 → -363 (88px of momentum)",
+      "detail": "x -275 → -364 (89px of momentum)",
       "name": "the released flick keeps travelling in the same direction, then stops",
       "ok": true
     },
@@ -399,6 +399,12 @@
       "ok": true
     }
   ],
+  "sheets": {
+    "motion-wheel": "jpg",
+    "motion-drag": "jpg",
+    "motion-cursor": "jpg",
+    "motion-wheel.gif": "gif"
+  },
   "viewport": {
     "deviceScaleFactor": 1,
     "height": 900,
