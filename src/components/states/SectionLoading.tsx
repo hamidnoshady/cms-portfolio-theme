@@ -25,9 +25,8 @@ import type { Locale } from '@/lib/cms/types'
  *    hairline rule, filter geometry) while loading; only the collection-dependent part
  *    becomes a skeleton, so the visible anchor does not change on resolve.
  * 3. **The skeleton is the real geometry.** Each variant mirrors the component it
- *    replaces: the project grid keeps its 2/3/4 columns and mixed ratios, education
- *    keeps the featured-entry-then-rows rhythm, the blog keeps the lead/latest split
- *    with its divider, and search keeps single-column rows. Nothing is a generic box.
+ *    replaces: the projects/objects archives keep the portfolio grid, and detail and
+ *    generic pages keep the reading-column rhythm. Nothing is a generic box.
  *
  * Each region carries one localized sentence for screen readers; the placeholder
  * geometry itself is `aria-hidden`. Chrome data (`/api/site`, header, footer) is cached

@@ -2,23 +2,23 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "detail": "Enter control 44px tall",
-      "name": "home: the Enter control is visible before any interaction",
+      "detail": "Browse action 44px tall",
+      "name": "home: the Browse Projects action is visible before any interaction",
       "ok": true
     },
     {
-      "detail": "6 rows after a keypress",
-      "name": "home: keyboard Enter opens the menu",
+      "detail": "6 works, /projects/villa-398 → /projects/khaneye-noor",
+      "name": "home: dots switch the featured work",
       "ok": true
     },
     {
-      "detail": "menu opened",
-      "name": "home: clicking Enter opens the menu",
+      "detail": "3 canvas links, no repeats",
+      "name": "home: one accessible destination per work (visual copies are decorative)",
       "ok": true
     },
     {
-      "detail": "went straight to the menu",
-      "name": "home: the intro does not replay (menu shown on the second visit)",
+      "detail": "rotation paused",
+      "name": "home: the pause control stops the rotation",
       "ok": true
     },
     {
@@ -27,7 +27,7 @@
       "ok": true
     },
     {
-      "detail": "closed, focus in header, body overflow visible",
+      "detail": "closed, focus in header, body overflow clip visible",
       "name": "drawer: Escape closes it and focus returns to the trigger",
       "ok": true
     },
@@ -48,7 +48,7 @@
     },
     {
       "detail": "navigated to /en",
-      "name": "home: the language link navigates before the menu is entered",
+      "name": "home: the language link navigates from the canvas",
       "ok": true
     },
     {
@@ -57,8 +57,8 @@
       "ok": true
     },
     {
-      "detail": "/projects/khaneye-noor opens the project detail",
-      "name": "search: hits link to their real section and open its composition",
+      "detail": "khaneye-noor: h1, hidden repeat, facts, inquiry, share",
+      "name": "case study: facts, inquiry CTA and related work render",
       "ok": true
     },
     {
@@ -67,8 +67,8 @@
       "ok": true
     },
     {
-      "detail": "notes filter selected; a cross-section category is empty",
-      "name": "blog: category controls filter and reject other sections",
+      "detail": "both archives render cards with no overflow",
+      "name": "archives: projects and objects list entries without overflow at 390px",
       "ok": true
     },
     {
@@ -82,8 +82,8 @@
       "ok": true
     },
     {
-      "detail": "title 166px in a 166px card, no overflow",
-      "name": "projects: long card metadata stays readable at 390px",
+      "detail": "title 343px in a 343px card, no overflow",
+      "name": "archives: long card metadata stays readable at 390px",
       "ok": true
     },
     {
@@ -102,7 +102,7 @@
       "ok": true
     },
     {
-      "detail": "education header + featured + 4 rows; blog lead/latest split + 3 rows",
+      "detail": "objects header + 8 cards; en projects header + 8 cards",
       "name": "loading: slow archive navigation keeps the real header and its own composition",
       "ok": true
     }

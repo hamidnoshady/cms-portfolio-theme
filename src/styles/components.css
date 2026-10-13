@@ -1637,6 +1637,10 @@
     inset-block-start: var(--space-2);
     inset-inline-start: var(--gutter);
     z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    min-inline-size: 44px;
     padding: var(--space-2) var(--space-4);
     background: var(--surface);
     border: var(--line-w) solid var(--ink);

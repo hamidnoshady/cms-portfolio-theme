@@ -2,7 +2,50 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "contrast": [],
+      "contrast": [
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        }
+      ],
       "h1": 1,
       "headings": [
         1
@@ -16,8 +59,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/projects",
@@ -40,46 +82,31 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2,
-        3,
-        3
-      ],
-      "ok": true,
-      "path": "/education",
-      "problems": [],
-      "title": "آموزش — استودیوی نمونه"
-    },
-    {
-      "contrast": [],
-      "h1": 1,
-      "headings": [
-        1,
-        2,
-        2
-      ],
-      "ok": true,
-      "path": "/blog",
-      "problems": [],
-      "title": "یادداشت‌ها — استودیوی نمونه"
-    },
-    {
-      "contrast": [],
-      "h1": 1,
-      "headings": [
-        1,
-        2
-      ],
-      "ok": true,
-      "path": "/blog/notes-on-lines",
-      "problems": [],
-      "title": "یادداشتی دربارهٔ خطوط — نمونه"
-    },
-    {
-      "contrast": [],
-      "h1": 1,
-      "headings": [
         1
+      ],
+      "ok": true,
+      "path": "/objects",
+      "problems": [],
+      "title": "آبژه‌ها — استودیوی نمونه"
+    },
+    {
+      "contrast": [],
+      "h1": 1,
+      "headings": [
+        1,
+        2
+      ],
+      "ok": true,
+      "path": "/objects/raw-lamp",
+      "problems": [],
+      "title": "چراغ RAW — نمونه"
+    },
+    {
+      "contrast": [],
+      "h1": 1,
+      "headings": [
+        1,
+        2
       ],
       "ok": true,
       "path": "/about",
@@ -102,32 +129,71 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1
+        1,
+        2
       ],
       "ok": true,
-      "path": "/search?q=نور",
+      "path": "/careers",
       "problems": [],
-      "title": "جست‌وجو — استودیوی نمونه"
+      "title": "همکاری"
     },
     {
       "contrast": [],
       "h1": 1,
       "headings": [
         1,
-        2,
-        3,
-        3,
-        3,
-        3,
-        3
+        2
       ],
       "ok": true,
-      "path": "/services",
+      "path": "/legal",
       "problems": [],
-      "title": "خدمات (نمونه)"
+      "title": "حقوقی"
     },
     {
-      "contrast": [],
+      "contrast": [
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        },
+        {
+          "cls": "bang-canvas__wordmark",
+          "ratio": 1,
+          "need": 3,
+          "size": 112,
+          "text": "estudiobang"
+        }
+      ],
       "h1": 1,
       "headings": [
         1
@@ -141,8 +207,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/en/projects",
@@ -153,14 +218,24 @@
       "contrast": [],
       "h1": 1,
       "headings": [
+        1
+      ],
+      "ok": true,
+      "path": "/en/objects",
+      "problems": [],
+      "title": "Objects — استودیوی نمونه"
+    },
+    {
+      "contrast": [],
+      "h1": 1,
+      "headings": [
         1,
-        2,
         2
       ],
       "ok": true,
-      "path": "/en/blog",
+      "path": "/en/about",
       "problems": [],
-      "title": "Notes — استودیوی نمونه"
+      "title": "درباره ما (نمونه)"
     },
     {
       "contrast": [],
@@ -178,12 +253,25 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1
+        1,
+        2
       ],
       "ok": true,
-      "path": "/en/about",
+      "path": "/en/careers",
       "problems": [],
-      "title": "درباره ما (نمونه)"
+      "title": "Careers"
+    },
+    {
+      "contrast": [],
+      "h1": 1,
+      "headings": [
+        1,
+        2
+      ],
+      "ok": true,
+      "path": "/en/legal",
+      "problems": [],
+      "title": "Legal"
     },
     {
       "contrast": [],
@@ -193,17 +281,6 @@
       ],
       "ok": true,
       "path": "/does-not-exist",
-      "problems": [],
-      "title": "صفحه پیدا نشد — استودیوی نمونه"
-    },
-    {
-      "contrast": [],
-      "h1": 1,
-      "headings": [
-        1
-      ],
-      "ok": true,
-      "path": "/arch-not-found",
       "problems": [],
       "title": "صفحه پیدا نشد — استودیوی نمونه"
     }

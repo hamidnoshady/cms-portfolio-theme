@@ -560,15 +560,11 @@ const main = async () => {
 
     await page.setViewport({ width: 1440, height: 900 })
 
-    // Capture through a throttled *client* navigation, the path a visitor actually meets
-    // a skeleton on: the prefetched segment boundary paints while the data request is in
-    // flight. A full page load streams fallback and resolved content in one response, so
-    // the inline swap can land before a script reads the fallback, and the server's fetch
-    // cache makes a repeat load instant. The wait is scoped to the variant's own selector
-    // — never the root boundary — and the sample runs atomically inside `waitForFunction`.
-    const captureSkeleton = async ({ from, target, selector, sample }) => {
-      await page.goto(`${SLOW_BASE}${from}`, { waitUntil: 'load', timeout: 60000 })
-      await loaded(page, 'header')
+    // Client navigation through the real header: the layout (and its header) stays
+    // mounted by construction, so whatever fallback the archive paints is sampled
+    // with the genuine chrome around it — the navbar rule, the archive heading and
+    // the grid geometry must all survive the slow collection read.
+    const captureSkeleton = async ({ from, heading, href }) => {
       const client = await page.createCDPSession()
       await client.send('Network.enable')
       await client.send('Network.emulateNetworkConditions', {
@@ -578,19 +574,37 @@ const main = async () => {
         uploadThroughput: (500 * 1024) / 8,
       })
       try {
-        const clicked = await page.evaluate((href) => {
-          const link = [...document.querySelectorAll(`a[href="${href}"]`)].find((node) => {
-            const rect = node.getBoundingClientRect()
-            return rect.width > 0 && rect.height > 0
-          })
+        await page.goto(`${SLOW_BASE}${from}`, { waitUntil: 'domcontentloaded', timeout: 60000 })
+        await page.waitForSelector('header nav a', { timeout: 30000 })
+        const clicked = await page.evaluate((target) => {
+          const link = [...document.querySelectorAll('header a')].find(
+            (a) => a.getAttribute('href') === target && a.getBoundingClientRect().width > 0,
+          )
           if (!link) return false
           link.click()
           return true
-        }, target)
-        if (!clicked) throw new Error(`no reachable link from ${from} to ${target}`)
-        await page.waitForSelector(selector, { timeout: 20000 })
-        const handle = await page.waitForFunction(sample, { polling: 'raf', timeout: 5000 })
-        return await handle.jsonValue()
+        }, href)
+        if (!clicked) throw new Error(`no reachable header link to ${href} on ${from}`)
+        // The archive boundary resolves its chrome context first (a generic
+        // skeleton), then paints its own grid skeleton while the collection read
+        // is in flight — the grid is the composition this check samples.
+        await page.waitForSelector('.skeleton-region.grid-projects', { timeout: 25000 })
+        const handle = await page.waitForFunction(
+          (want) => {
+            const region = document.querySelector('.skeleton-region')
+            if (!region || !region.classList.contains('grid-projects')) return false
+            if ((document.querySelector('h1')?.textContent?.trim() ?? '') !== want) return false
+            return {
+              cards: region.querySelectorAll(':scope > div').length,
+              header: Boolean(document.querySelector('header')),
+              label: region.querySelector('.sr-only')?.textContent?.trim() ?? '',
+              overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            }
+          },
+          { polling: 'raf', timeout: 10000 },
+          heading,
+        )
+        return { ...(await handle.jsonValue()), heading }
       } finally {
         await client
           .send('Network.emulateNetworkConditions', {
@@ -603,49 +617,17 @@ const main = async () => {
       }
     }
 
-    const objects = await captureSkeleton({
-      from: '/projects',
-      target: '/objects',
-      selector: '.skeleton-region.grid-projects',
-      sample: () => {
-        const region = document.querySelector('.skeleton-region')
-        if (!region || !region.classList.contains('grid-projects')) return false
-        return {
-          cards: region.querySelectorAll(':scope > div').length,
-          heading: document.querySelector('h1')?.textContent?.trim() ?? '',
-          label: region.querySelector('.sr-only')?.textContent?.trim() ?? '',
-          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        }
-      },
-    })
-    if (objects.heading !== 'آبژه‌ها') throw new Error(`objects header changed while loading: “${objects.heading}”`)
-    if (objects.cards < 3) {
-      throw new Error(`objects skeleton lost its composition: ${JSON.stringify(objects)}`)
-    }
+    const objects = await captureSkeleton({ from: '/projects', heading: 'آبژه‌ها', href: '/objects' })
+    if (!objects.header) throw new Error('objects skeleton lost the header')
+    if (objects.cards < 3) throw new Error(`objects skeleton lost its composition: ${JSON.stringify(objects)}`)
     if (!objects.label.includes('بارگذاری')) throw new Error(`objects loading label: “${objects.label}”`)
     if (objects.overflow > 1) throw new Error(`objects skeleton overflows by ${objects.overflow}px`)
 
-    const projects = await captureSkeleton({
-      from: '/objects',
-      target: '/projects',
-      selector: '.skeleton-region.grid-projects',
-      sample: () => {
-        const region = document.querySelector('.skeleton-region')
-        if (!region || !region.classList.contains('grid-projects')) return false
-        return {
-          cards: region.querySelectorAll(':scope > div').length,
-          heading: document.querySelector('h1')?.textContent?.trim() ?? '',
-          label: region.querySelector('.sr-only')?.textContent?.trim() ?? '',
-        }
-      },
-    })
-    if (projects.heading !== 'پروژه‌ها') throw new Error(`projects header changed while loading: “${projects.heading}”`)
-    if (projects.cards < 3) {
-      throw new Error(`projects skeleton lost its composition: ${JSON.stringify(projects)}`)
-    }
-    if (!projects.label.includes('بارگذاری')) throw new Error(`projects loading label: “${projects.label}”`)
-    return `objects header + ${objects.cards} cards; projects header + ${projects.cards} cards`
-
+    const projects = await captureSkeleton({ from: '/en/objects', heading: 'Projects', href: '/en/projects' })
+    if (!projects.header) throw new Error('projects skeleton lost the header')
+    if (projects.cards < 3) throw new Error(`projects skeleton lost its composition: ${JSON.stringify(projects)}`)
+    if (!projects.label.includes('Loading')) throw new Error(`projects loading label: “${projects.label}”`)
+    return `objects header + ${objects.cards} cards; en projects header + ${projects.cards} cards`
   })
 
   await browser.close()
