@@ -2,50 +2,7 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "contrast": [
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        }
-      ],
+      "contrast": [],
       "h1": 1,
       "headings": [
         1
@@ -150,50 +107,7 @@
       "title": "حقوقی"
     },
     {
-      "contrast": [
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        },
-        {
-          "cls": "bang-canvas__wordmark",
-          "ratio": 1,
-          "need": 3,
-          "size": 112,
-          "text": "estudiobang"
-        }
-      ],
+      "contrast": [],
       "h1": 1,
       "headings": [
         1

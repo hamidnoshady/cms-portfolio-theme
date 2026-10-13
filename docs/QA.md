@@ -38,10 +38,12 @@ the resulting screenshots look fine while measuring nothing.
 | Vendored runtime builds | `npm run vendor:build` | passes (8 modules emitted) |
 | TypeScript | `npm run typecheck` | clean, `strict` + `noUncheckedIndexedAccess` + `verbatimModuleSyntax` |
 | ESLint | `npm run lint` | 0 errors, 0 warnings |
-| Unit/integration tests | `npm test` | **16 files, 171 tests, all passing** |
+| Unit/integration tests | `npm test` | **25 files, 291 tests, all passing** |
 | Production build | `npm run build` | Next 16.3.8, compiles, all routes emitted |
 | Browser evidence | `node scripts/screenshots.mjs` | **46 shots, 0 failures**, no page errors, no horizontal overflow (re-captured 2026-10-06 after the UI/UX refactor, including six new lightbox / gallery / facts shots) |
-| Interaction behaviour | `node scripts/interaction-audit.mjs` | **21/21 checks pass** — the nine original entrance/drawer/form checks plus locale retention on English archives, canonical search sections, wrong-section redirects, blog category scoping, drawer edge + bounded motion per locale, inline email validation, 390px card-metadata stress, active Shazde weights, decorative stroke tokens at 1x/2x, reduced-motion stillness, and slow-archive loading compositions (see §3) |
+| Interaction behaviour | `node scripts/interaction-audit.mjs` | **20/20 checks pass** — the canvas checks (no carousel controls left, every work reachable without a pointer, a drag that pans and a click that opens) plus the drawer/focus-trap/form checks, locale retention on English archives, canonical search sections, wrong-section redirects, drawer edge + bounded motion per locale, inline email validation, 390px card-metadata stress, active Shazde weights, decorative stroke tokens at 1x/2x, reduced-motion stillness, and slow-archive loading compositions (see §3) |
+| Home canvas behaviour | `node scripts/home-canvas-audit.mjs` | **31/31 checks pass** — bounded tile count under sustained panning, no blank frame over 30 wheel steps, no tile teleports while visible, the wrapping-period budget, rigid one-to-one drag, click-opens-that-work inside a real modal, Escape restoring the canvas position and URL exactly, the custom cursor (state, label, position, never in the hit path), phone field with no sideways overflow, reduced motion and no-JS presentations (see §3) |
+| Home canvas motion | `node scripts/home-canvas-motion.mjs` | **13/13 checks pass** — frame sequences for a sustained wheel pan, a flick with momentum, a cursor sweep over distinct works and an open/close: the DOM is constant, a tile is always on screen, the plane advances monotonically, every tile keeps its work, the field comes to rest and stays there, and closing returns to the same place |
 | Structural a11y | `npm run a11y` | **17/17 pages clean** (one `h1`, a `<main>`, no skipped heading levels, no missing/empty `alt`, no duplicate ids, no sub-24px target, no sub-4.5 contrast on body text) |
 | Manifest | `tests/manifest.test.ts` + the CMS's own parser | accepted (§5) |
 
@@ -69,7 +71,10 @@ no-push container build; `publish-image.yml` pushes `ghcr.io/<owner>/<repo>` on 
 | `tests/gallery.test.tsx` | the unified lightbox: a thumbnail opens a real dialog with a localized title over the dedicated `.lightbox__overlay` (never `.drawer__overlay`); close control, Escape and a click on the empty stage dismiss it and focus returns to the thumbnail; in Persian *previous* is the right chevron and *next* the left, ArrowLeft advances and the incoming image slides in from the left (English mirrored); the grid is `.grid-media` with the editor's column choice as a desktop-only modifier |
 | `tests/lightbox-reduced-motion.test.tsx` | under `prefers-reduced-motion` the lightbox still opens, steps and closes, with no slide offset and no lingering exit |
 | `tests/content-media.test.tsx` | server-rendered rich text: every content image (uploads, inline `mediaBlock`, each `mediaGrid` cell) renders once as a trigger of one lightbox in document order; prose without photographs ships no trigger; the project page renders content media once with no second gallery and the compact facts block |
-| `tests/ui-contract.test.ts` | the stylesheet contract: `.grid-media` is 2 columns until `64rem` (nothing changes at `48rem`), no static `.media-grid__list` remains; home-menu labels carry no permanent underline and mark the current page by weight; the lightbox overlay is a fixed full-page rgba(0,0,0,.45–.55) layer below the lightbox while the drawer wash stays 0.25; navbar/logo tokens sit inside the brief's ranges per breakpoint and nothing hard-codes a logo height |
+| `tests/home-canvas.test.ts` | the canvas in arithmetic: the composition is byte-identical between renders (no randomness, no clock), every tile stays inside the plane and inside the wrapping budget, the field is bounded (`MAX_SLOTS`) and every work has a destination, sizes/crops/depths/positions all differ (a field, not a grid), a tile's work is tied to its slot, the whole viewport is covered at every sampled offset, no tile is ever jumped while it is on screen, the plane/tile-scale numbers in `canvasPlan.ts` and `components.css` are one decision, and the pan engine settles instead of animating forever |
+| `tests/home-shell.test.tsx` | the canvas in the DOM: bounded tiles with a stable key and href each, the field hidden from assistive technology with no duplicated tab stops, the selected-work index carrying exactly one destination per work and switching between a plain open section (no canvas) and a disclosure (canvas live), and the cursor's modes, labels and `pointer-events: none` |
+| `tests/case-study-overlay.test.tsx` | opening a work *over* the canvas: the shell's dialog semantics, inert page behind it, Escape/close unwinding the pushed history entry, the tab following the open work and the canvas' own title coming back on teardown, plus the routing facts — both sections intercepted in both locales, empty fallback on every other URL, and the canonical server-rendered pages untouched beside them |
+| `tests/ui-contract.test.ts` | the stylesheet contract: `.grid-media` is 2 columns until `64rem` (nothing changes at `48rem`), no static `.media-grid__list` remains; the home canvas is laid out in a plane larger than the viewport (physical offsets, `--bang-plane`, wrapping by exactly that plane) with tiles sized from the composition variables against the world viewport; homepage chrome carries no permanent underline and marks the current page by weight; the lightbox overlay is a fixed full-page rgba(0,0,0,.45–.55) layer below the lightbox while the drawer wash stays 0.25; navbar/logo tokens sit inside the brief's ranges per breakpoint and nothing hard-codes a logo height |
 
 ## 3. Browser evidence
 
@@ -81,9 +86,9 @@ no-push container build; `publish-image.yml` pushes `ghcr.io/<owner>/<repo>` on 
 
 | # | Shot | What it proves |
 | --- | --- | --- |
-| 01 | `home-entrance-1440` | white viewport, centred CMS logo, drawn rule, Enter control, scroll cue |
-| 02 | `home-menu-1440` | the entrance → menu transition: shrinking logo, row rules, staggered labels, mirrored elbow mark |
-| 03 | `home-entrance-390` | the same entrance at phone width |
+| 01 | `home-canvas-1440` | the composition: several works scattered around the wordmark, mixed crops and depths, the chrome floating over the field |
+| 02 | `home-canvas-index-1440` | the selected-work list opened from its corner control — the canonical link per work |
+| 03 | `home-canvas-390` | the same field at phone width, larger frames, no sideways overflow |
 | 04–09 | `projects-{1920,1440,1024,768,390,320}` | 4/3/2 columns, **2 columns at 390 and 320**, mixed 3:2 / 3:4 / 1:1 frames from real dimensions |
 | 10 | `project-detail-1440` | breadcrumbs, title, only real facts (compact `.facts` block), controlled hero ratio, content images rendered once through the lightbox (no duplicate gallery), related |
 | 11 | `education-1440` | one featured entry + compact rows, honest reading time, thin separators |
@@ -107,9 +112,9 @@ no-push container build; `publish-image.yml` pushes `ghcr.io/<owner>/<repo>` on 
 | 30 | `invalid-form-390` | untouched submit surfaces field-level errors (`aria-invalid="true"`) |
 | 39 | `form-success-1440` | the happy path through the real proxy to the CMS API |
 | 31–32 | `zoom200-{home,projects}-1440` | 200% zoom: same layout, no clipping, no overflow |
-| 33 | `reduced-motion-home-1440` | `prefers-reduced-motion` → final state immediately, no entrance animation |
+| 33 | `reduced-motion-home-1440` | `prefers-reduced-motion` → static field (the whole plane fitted into the box, work list open, system cursor), no pan, no entrance animation |
 | 34–38 | interior pages at 390 | education, article, about, contact, and the English mirror |
-| 40 | `no-js-home-1440` | JavaScript disabled: the entrance's `<noscript>` menu offers every CMS destination, and the mark/rule/cue are revealed by the no-script stylesheet instead of staying at `opacity:0` |
+| 40 | `no-js-home-1440` | JavaScript disabled: every tile and every work link is in the served markup (the Suspense loading boundary is what a JS-less browser paints — see `docs/LIMITATIONS.md` §10) |
 | 41 | `lightbox-fa-1440` | the unified lightbox opened from a gallery thumbnail on a Persian page: dedicated 50% backdrop, image contained in the viewport, *previous* on the right with a right-pointing chevron, *next* pointing left, Persian counter |
 | 42 | `lightbox-en-1440` | the same on an English page: mirrored controls (previous left, next right), Latin counter |
 | 43 | `lightbox-fa-390` | the lightbox at phone width: image and control bar inside the viewport, body scroll locked |
@@ -170,6 +175,50 @@ The loading check needs a slow-CMS instance — pass `--slow-base` (or `AUDIT_SL
 with none running it reports `skipped` rather than quietly passing. Both browser scripts
 refuse to run against a server whose own CSS/JS 500s, because an unstyled page manufactures
 defects that do not exist (see regression item 23).
+
+### Home canvas (`node scripts/home-canvas-audit.mjs`, `node scripts/home-canvas-motion.mjs`)
+
+The home page is a field of photographs that never ends, so "how it looks" is the smaller
+half of the evidence: what matters is how it *behaves* at offsets no screenshot can reach.
+Both scripts run against the production standalone build in a real browser.
+
+`home-canvas-audit.mjs` asserts, over a sustained pan and across presentations:
+
+| Check | Result |
+| --- | --- |
+| Tile count is constant while panning (a bounded DOM, not an accumulating one) | 12 tiles, 31 samples |
+| A tile is on screen in every sampled frame (no end, no seam, no reset) | minimum 2 |
+| No tile is corrected while any part of it is on screen (a wrap is never visible) | 31 samples |
+| The plane follows the wheel, never runs ahead of it, never reverses | travelled 7650px for 7800px of wheel |
+| The wrapping period holds the viewport plus two of the largest tile | plane 2850×1800, viewport 1440×900, largest 541×414 |
+| The cursor is the studio's own over a work, names it, and sits *at* the pointer | mode `work`, label matches, < 1.5px off after it converges, 26px mark |
+| The cursor never intercepts the pointer and changes state away from a work | `pointer-events: none`; mode `default` |
+| A drag pans without opening a work; a click opens *that* work in a real modal | `/` stays `/`, then `/projects/khaneye-noor` with `aria-modal="true"` |
+| The canvas holds still behind the open work and closing restores the position exactly | world transform unchanged, then identical |
+| A direct visit to the same URL renders the server page, not an overlay | 200, `h1` = the work |
+| The phone gets the same bounded field with no sideways overflow | 12 tiles, −15px overflow |
+| Reduced motion: static field, scrollable page, open work list, system cursor | all four |
+| Without scripting: the composition and the work list are served | 12 tiles, 5 links |
+
+`home-canvas-motion.mjs` writes the *sequences* — `docs/screenshots/bang-home/motion/`
+holds 12 wheel frames, 5 drag frames, 3 cursor frames and the open/close pair, plus
+`motion-wheel.gif`, `motion-wheel.jpg`, `motion-drag.jpg` and `motion-report.json` with
+every frame's world transform, DOM size, tile count, visible count and href list. Its
+assertions are the ones a still cannot make: every step advances the plane (no seam, no
+reset), the DOM never grows (148 nodes in all 12 frames), a tile is always visible, every
+tile keeps its work, the released flick travels 80–90px further and then stops, the field
+comes to rest and *stays* there, and closing returns to the same place on the field.
+
+Both scripts stand in for the pointer device headless Chromium does not have
+(`pointer: fine` / `hover: hover`) and script nothing else: every other media query,
+including the emulated `prefers-reduced-motion`, is the browser's own answer.
+
+They also wait for what they measure instead of assuming a delay — the canvas taking over,
+the cursor reaching the pointer, the plane coming to rest — and a failed check is emitted as
+a workflow annotation (a job's raw log can be unreadable from outside the run, and an audit
+whose failure cannot be read is not evidence). Composite sheets and the GIF need
+ImageMagick; without it the frames, the JSON report and an HTML sheet are still written, so
+a host without it cannot fail the audit for a reason that is not about the theme.
 
 ### How the hard cases were made observable
 
@@ -390,6 +439,75 @@ Each was reproduced in a browser or by a failing test before being fixed (37 ite
 45. **A digit-only project fact drifted to the far end of its cell.** `dir="auto"` on the
     value isolates a Latin run inside Persian copy, but a bare year has no strong character
     and resolves to LTR; `text-align: match-parent` keeps every value on the label column.
+
+46. **The canvas field was one screenful tall, so it went blank as you panned.** The
+    composition covered exactly the viewport, but the wrapping period is
+    `viewport + 2 × largest tile`: panning one tile-height past the origin moved the
+    composition off screen and left an empty frame — the "end" the reference never shows.
+    The field is now laid out in a *plane* (`--bang-plane`, two viewports on both axes)
+    that is also the period, filled by a jittered lattice whose cells are smaller than the
+    viewport, so a photograph is visible at every offset. `tests/home-canvas.test.ts`
+    sweeps 60×60 offsets per viewport and asserts it; `home-canvas-audit.mjs` asserts it in
+    the browser.
+47. **A tile could teleport in front of the visitor.** The phone width scale (`185%`) put
+    the largest tile at 693×693 against a period of 693px — exactly on the tangency line,
+    where a wrap can happen while the tile is still on screen. The scale is now inside the
+    documented budget (`PLANE ≥ 1 + 2 × MAX_WIDTH × TILE_SCALE`), a development-only
+    warning fires if the measured plane ever falls short, and a test walks real offsets and
+    fails on any correction applied to a visible tile.
+48. **Clicking a project image replaced the page instead of opening it over the canvas.**
+    The tiles were plain `<a>` elements, so a click was a full document navigation: the
+    intercepted route in `src/app/@overlay` never matched, the canvas was thrown away and
+    the visitor lost their place. The tiles are `next/link` navigations now (prefetch off —
+    the field holds the same few works repeatedly), which is what makes the overlay — and
+    "closing restores the canvas context" — real.
+49. **No click ever reached a tile: `setPointerCapture` on `pointerdown` swallowed it.**
+    Capturing the pointer in the press handler retargets the subsequent click away from the
+    anchor, so every tile was a link that could not be clicked. Capture is now taken by the
+    *move* handler, once the gesture has actually become a pan, and the click that follows a
+    pan is discarded by a flag that the next gesture clears — never by a timer.
+50. **The custom cursor was invisible in RTL.** It was positioned with
+    `inset-inline-start: 0` and then translated by a pointer's `clientX`: in a right-to-left
+    document the inline-start edge is the right edge, so the mark was drawn one viewport
+    width off — named the right work, in the wrong place. The cursor's origin is physical
+    (`top/left`) now, and the audit asserts the mark is within 1.5px of the pointer, not
+    merely that it has the right label.
+51. **An open case study left the tab showing the studio's name.** The overlay renders into
+    a parallel slot, so Next applies the metadata of the page that stayed mounted — the
+    canvas. The shell now sets `document.title` to the open work and restores the canvas'
+    own title on close (`tests/case-study-overlay.test.tsx`).
+52. **The canvas kept gliding under an open work.** Momentum released just before a click
+    carried the field on for another second behind the overlay, so "closing returns to the
+    canvas you left" was false by up to ~100px. The field freezes while
+    `html[data-bang-overlay='open']` and resumes from the same position; the audit measures
+    the transform twice while the work is open, then again after closing.
+53. **The uploaded mark was stretched into a 672×342 hero.** `.bang-wordmark__mark` asked
+    for `min(42rem, 68vw)` — correct for a wide wordmark, wrong for a square logo, which the
+    sample CMS logo is (64×64), and wrong for an SVG without an intrinsic size, which is
+    painted at whatever box it lands in. A mark is the studio's own artwork: the hero mark
+    is now drawn at logo scale (`clamp(2.5rem, 9vw, 7rem)`, `inline-size: auto`), and the
+    blend that protects *text* wordmarks is no longer applied to a logo.
+54. **The canvas' footer links were 23px tall.** The home footer's links had no minimum
+    target, so the a11y audit flagged `/` and `/en` (WCAG 2.2 SC 2.5.8) while every other
+    surface passed. They now carry the same 44px minimum the rest of the chrome uses.
+55. **A screenshot expectation asserted the wrong element.** `39-form-success-1440` looked
+    for `[aria-live="polite"]` and the first match on the page is a copy-link control (the
+    submission's live region is a `role="status"` further down), so a working submission read
+    as a failure. Scoped to `[role="status"]`; the shot now captures the real success state.
+
+56. **The motion audit crashed on a host without ImageMagick.** Assembling the contact
+    sheets and the GIF ran *after* every check had passed, and `spawnSync montage ENOENT`
+    turned a green run red on the CI runner (nothing on a GitHub runner guarantees
+    ImageMagick). The sheets are a convenience now: the frames, the JSON report and an HTML
+    sheet are always written, the composites only when the binaries exist, and CI installs
+    them so the run still carries the animation.
+57. **Two audit assertions were about the machine, not the theme.** "The canvas is
+    interactive 1.2s after load" and "the plane moves < 900px per sample" both pass on a
+    warm developer machine and can fail on a cold runner under load. The first is now a
+    wait for the canvas to take over (the assertion is *that* it becomes interactive, not
+    when), and the second asserts what actually matters: the plane never travels further
+    than the wheel asked for and never reverses direction. The cursor checks likewise wait
+    for the mark to reach the pointer rather than sleeping a fixed 400ms.
 
 ## 7. What is *not* verified
 

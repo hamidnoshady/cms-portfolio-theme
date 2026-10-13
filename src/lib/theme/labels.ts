@@ -70,6 +70,7 @@ type Dictionary = {
   showMap: string
   openMap: string
   photoAt: (position: number, total: number) => string
+  selectedWorkCount: (total: number) => string
   selectedWorkShown: (shown: number, total: number) => string
 }
 
@@ -141,6 +142,7 @@ const fa: Dictionary = {
   showMap: 'نمایش نقشه',
   openMap: 'باز کردن در نقشه',
   photoAt: (position, total) => `تصویر ${formatNumber(position, 'fa')} از ${formatNumber(total, 'fa')}`,
+  selectedWorkCount: (total) => `${formatNumber(total, 'fa')} اثر`,
   selectedWorkShown: (shown, total) => `${formatNumber(shown, 'fa')} از ${formatNumber(total, 'fa')}`,
 }
 
@@ -212,6 +214,7 @@ const en: Dictionary = {
   showMap: 'Show map',
   openMap: 'Open in maps',
   photoAt: (position, total) => `Photograph ${formatNumber(position, 'en')} of ${formatNumber(total, 'en')}`,
+  selectedWorkCount: (total) => `${formatNumber(total, 'en')} ${total === 1 ? 'work' : 'works'}`,
   selectedWorkShown: (shown, total) => `${formatNumber(shown, 'en')} of ${formatNumber(total, 'en')}`,
 }
 

@@ -748,410 +748,6 @@
     padding-block: var(--space-10) var(--space-16);
   }
 
-  /* --- home ---------------------------------------------------------------
-     The menu is drawn like a sheet of dimensions: every row sits on a hairline
-     with end ticks (an architectural dimension line), numbered in drafting
-     style. Hover is three coordinated, compositor-only moves: the label steps
-     forward, a leader line extends from it to an arrow, and the other rows
-     recede. There is no underline under the label — the row's own linework,
-     the label's movement and the arrow carry the affordance, and keyboard focus
-     drives the same states as hover. The current page is marked by weight and a
-     solid index, plus `aria-current`.
-  ------------------------------------------------------------------------- */
-
-  .home {
-    --dir-sign: 1;
-  }
-
-  [dir='rtl'] .home,
-  .home[dir='rtl'] {
-    --dir-sign: -1;
-  }
-
-  /* The home bar follows the same chrome tokens as the interior navbar, so the mark
-     that settles here after the entrance is the same size the visitor meets on every
-     interior page. */
-  .home-bar {
-    position: sticky;
-    inset-block-start: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    min-block-size: var(--navbar-block);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(6px);
-  }
-
-  .home-bar__mark {
-    display: flex;
-    align-items: center;
-    block-size: var(--logo-block);
-  }
-
-  .home-bar__mark img {
-    block-size: var(--logo-block);
-    inline-size: auto;
-    max-inline-size: var(--logo-max-inline);
-    object-fit: contain;
-  }
-
-  .home-intro {
-    position: relative;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: var(--space-12);
-    min-block-size: calc(100svh - var(--navbar-block));
-    padding-block: var(--space-8) var(--space-16);
-  }
-
-  .home-logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-8);
-    will-change: transform, opacity;
-  }
-
-  .home-logo__inner {
-    position: relative;
-    padding: clamp(1.25rem, 3vw, 2.5rem);
-  }
-
-  .home-logo__frame {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  .home-logo__corner {
-    position: absolute;
-    inline-size: 18px;
-    block-size: 18px;
-    overflow: visible;
-    stroke: var(--line-structural-color);
-    stroke-width: var(--line-w);
-  }
-
-  /* Physical corners on purpose: the frame is symmetric, so it reads the same in
-     both directions and a logical mapping would only add RTL mirroring rules. */
-  .home-logo__corner--tl {
-    top: 0;
-    left: 0;
-  }
-
-  .home-logo__corner--tr {
-    top: 0;
-    right: 0;
-    rotate: 90deg;
-  }
-
-  .home-logo__corner--br {
-    right: 0;
-    bottom: 0;
-    rotate: 180deg;
-  }
-
-  .home-logo__corner--bl {
-    bottom: 0;
-    left: 0;
-    rotate: 270deg;
-  }
-
-  .home-logo__mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-  }
-
-  /* Explicit size: an SVG with only a viewBox has no intrinsic width and would
-     collapse to 0px as a flex item. */
-  .home-logo__img {
-    display: block;
-    inline-size: min(26rem, 68vw);
-    block-size: auto;
-    max-block-size: 42svh;
-    object-fit: contain;
-  }
-
-  .home-logo__wordmark {
-    font-family: var(--font-brand);
-    font-size: var(--text-display);
-    font-weight: var(--weight-light);
-    line-height: var(--leading-display);
-    text-align: center;
-  }
-
-  .home-logo__datum {
-    position: relative;
-    display: block;
-    inline-size: min(18rem, 60vw);
-    block-size: 9px;
-  }
-
-  .home-logo__datum::before,
-  .home-logo__datum::after {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inline-size: var(--line-w);
-    background: var(--line-structural-color);
-  }
-
-  .home-logo__datum::before {
-    inset-inline-start: 0;
-  }
-
-  .home-logo__datum::after {
-    inset-inline-end: 0;
-  }
-
-  .home-logo__datum-line {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-start: 4px;
-    display: block;
-    block-size: var(--line-w);
-    background: var(--line-structural-color);
-  }
-
-  .home-cue {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .home-cue__line {
-    position: relative;
-    display: block;
-    inline-size: var(--line-w);
-    block-size: 3rem;
-    overflow: hidden;
-    background: var(--line-decor-color);
-  }
-
-  .home-cue__line::after {
-    content: '';
-    position: absolute;
-    inset-inline: 0;
-    inset-block-start: -40%;
-    block-size: 40%;
-    background: var(--ink);
-    animation: home-cue-travel 2.4s var(--ease-in-out) infinite;
-  }
-
-  @keyframes home-cue-travel {
-    to {
-      transform: translateY(350%);
-    }
-  }
-
-  .home-menu {
-    position: relative;
-    min-block-size: calc(100svh - var(--navbar-block));
-    padding-block: var(--space-16) var(--space-24);
-    scroll-margin-block-start: var(--navbar-block);
-  }
-
-  .home-menu__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-block-end: var(--space-6);
-  }
-
-  .home-menu__count {
-    color: var(--ink-faint);
-    font-family: var(--font-numeral);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .home-menu__list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .home-row {
-    position: relative;
-  }
-
-  /* Dimension line: a hairline with a short tick at each end. It draws in from
-     the reading start (scaleX driven by Motion). */
-  .home-row__rule {
-    position: absolute;
-    inset-inline: 0;
-    inset-block-start: 0;
-    display: block;
-    block-size: var(--line-w);
-    background: var(--line-structural-color);
-    transform-origin: var(--rule-origin, left center);
-  }
-
-  [dir='rtl'] .home-row__rule {
-    --rule-origin: right center;
-  }
-
-  .home-row__rule::before,
-  .home-row__rule::after {
-    content: '';
-    position: absolute;
-    inset-block-start: -4px;
-    inline-size: var(--line-w);
-    block-size: 9px;
-    background: var(--line-structural-color);
-  }
-
-  .home-row__rule::before {
-    inset-inline-start: 0;
-  }
-
-  .home-row__rule::after {
-    inset-inline-end: 0;
-  }
-
-  .home-row__rule--closing {
-    position: relative;
-  }
-
-  .home-row__link {
-    position: relative;
-    display: grid;
-    grid-template-columns: 3rem minmax(0, auto) minmax(2rem, 1fr) 1.5rem;
-    align-items: center;
-    gap: var(--space-4);
-    min-block-size: 44px;
-    padding-block: clamp(1rem, 2.4vw, 1.75rem);
-    color: var(--ink);
-    text-decoration: none;
-  }
-
-  .home-row__index {
-    color: var(--ink-faint);
-    font-family: var(--font-numeral);
-    font-size: var(--text-meta);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: var(--tracking-ui);
-    transition: color var(--motion-base) var(--ease-out);
-  }
-
-  [lang='fa'] .home-row__index {
-    font-family: var(--font-ui);
-    letter-spacing: 0;
-  }
-
-  /* No `text-decoration` here, on purpose: a line under every menu label made the
-     dimension-sheet composition busier than it needs to be. The label moves, the
-     leader extends and the arrow arrives instead. */
-  .home-row__label {
-    font-family: var(--font-brand);
-    font-size: clamp(1.5rem, 3.4vw, 2.75rem);
-    font-weight: var(--weight-light);
-    line-height: var(--leading-title);
-    overflow-wrap: anywhere;
-    text-decoration: none;
-    transition:
-      translate var(--motion-slow) var(--ease-out),
-      opacity var(--motion-slow) var(--ease-out),
-      font-weight var(--motion-base) var(--ease-out);
-  }
-
-  .home-row__leader {
-    display: block;
-    block-size: var(--line-w);
-    background: var(--ink);
-    transform: scaleX(0);
-    transform-origin: var(--rule-origin, left center);
-    transition: transform var(--motion-reveal) var(--ease-out);
-  }
-
-  [dir='rtl'] .home-row__leader {
-    --rule-origin: right center;
-  }
-
-  .home-row__arrow {
-    inline-size: 1.5rem;
-    block-size: 0.75rem;
-    stroke: var(--ink);
-    stroke-width: var(--line-w);
-    opacity: 0.25;
-    translate: calc(var(--dir-sign) * -0.5rem) 0;
-    transition:
-      opacity var(--motion-base) var(--ease-out),
-      translate var(--motion-slow) var(--ease-out);
-  }
-
-  [dir='rtl'] .home-row__arrow {
-    scale: -1 1;
-  }
-
-  /* Others recede while one row is pointed at (hover or keyboard focus). */
-  .home-menu__list:hover .home-row:not(:hover) .home-row__label,
-  .home-menu__list:focus-within .home-row:not(:focus-within) .home-row__label {
-    opacity: 0.32;
-  }
-
-  .home-row__link:hover .home-row__label,
-  .home-row__link:focus-visible .home-row__label {
-    translate: calc(var(--dir-sign) * 0.75rem) 0;
-  }
-
-  .home-row__link:hover .home-row__index,
-  .home-row__link:focus-visible .home-row__index,
-  .home-row__link[aria-current='page'] .home-row__index {
-    color: var(--ink);
-  }
-
-  /* Current page: a heavier cut of the label and a solid index — never an underline
-     alone, and `aria-current` carries the meaning for assistive technology. */
-  .home-row__link[aria-current='page'] .home-row__label {
-    font-weight: var(--weight-regular);
-  }
-
-  .home-row__link:hover .home-row__leader,
-  .home-row__link:focus-visible .home-row__leader {
-    transform: scaleX(1);
-  }
-
-  .home-row__link:hover .home-row__arrow,
-  .home-row__link:focus-visible .home-row__arrow {
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  @media (max-width: 47.99rem) {
-    .home-row__link {
-      grid-template-columns: 2rem minmax(0, 1fr) 1.25rem;
-    }
-
-    .home-row__leader {
-      display: none;
-    }
-  }
-
-  @media (hover: none) {
-    .home-row__arrow {
-      opacity: 0.6;
-      translate: 0 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .home-cue__line::after {
-      animation: none;
-      inset-block-start: 30%;
-    }
-
-    .home-logo {
-      will-change: auto;
-    }
-  }
-
   /* --- mobile drawer ------------------------------------------------------- */
 
   .drawer__overlay {
@@ -2216,7 +1812,30 @@
 
 }
 
-  /* --- Bang portfolio: monochrome, sharp, sparse -------------------------------- */
+/* ============================================================================
+   Bang portfolio — the reference's own vocabulary: monochrome, sharp, sparse.
+
+   Everything here is inside `@layer components` (the layer every other component
+   file uses), so a Tailwind utility on the same element still wins — an unlayered
+   block would silently outrank `md:hidden`, `md:flex` and friends.
+
+   Two presentations share one template and are switched by a document attribute the
+   canvas client component owns:
+
+     (no attribute)           → static: a full-height field in a normal, scrolling
+                                document; the selected-work index is an open section
+                                under it. This is what the server renders, so it is
+                                also the no-JavaScript presentation.
+     html[data-bang-canvas=pan] → canvas: the field is the viewport, wheel/touch/drag
+                                pan it forever, the chrome floats over it and the index
+                                is a corner disclosure.
+
+   The attribute is set from script *only* when a fine pointer is present and reduced
+   motion is not requested, and it is removed again on teardown.
+   ========================================================================== */
+@layer components {
+
+  /* --- buttons ------------------------------------------------------------ */
   .bang-btn {
     display: inline-flex; align-items: center; justify-content: center;
     min-block-size: 44px; padding-inline: 1.25rem;
@@ -2226,23 +1845,431 @@
   .bang-btn:hover { background: var(--surface); color: var(--ink); }
   .bang-btn--ghost { background: transparent; color: var(--ink); }
   .bang-btn--ghost:hover { background: var(--ink); color: var(--surface); }
-  .bang-btn:focus-visible, .bang-row:focus-visible, .bang-card__link:focus-visible, .bang-dot:focus-visible {
+  .bang-btn:focus-visible, .bang-row:focus-visible, .bang-card__link:focus-visible,
+  .bang-index__link:focus-visible, .bang-nav__link:focus-visible, .bang-footer__link:focus-visible {
     outline: 2px solid currentColor; outline-offset: 3px;
   }
-  .bang-canvas { border-block: 1px solid var(--line-structural-color); }
-  .bang-canvas__stage { position: relative; min-block-size: 52svh; }
-  .bang-canvas__tile { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms ease; }
-  .bang-canvas__tile.is-active { position: relative; opacity: 1; }
-  .bang-canvas__wordmark {
-    position: absolute; inset-inline: 0; bottom: 0.5rem; text-align: center;
-    font-size: clamp(2.5rem, 9vw, 7rem); font-weight: 800; letter-spacing: -0.04em;
-    color: #fff; mix-blend-mode: difference; pointer-events: none; user-select: none;
+
+  /* --- home shell --------------------------------------------------------- */
+  .bang-home {
+    --bang-chrome: 3.5rem;
+    /* The canvas plane, in viewports. The tiles are laid out in it and it is the field's
+       wrapping period; its value and the tile-size budget in `canvasPlan.ts` are one
+       decision (see `.bang-canvas__world`). */
+    --bang-plane: 2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100svh;
+    background: var(--surface);
   }
-  .bang-canvas__controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; padding-block: 1rem; }
-  .bang-canvas__dots { display: flex; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
-  .bang-dot { min-inline-size: 44px; min-block-size: 44px; border: 1px solid var(--line-structural-color); background: transparent; color: var(--ink); }
-  .bang-dot.is-active { background: var(--ink); color: var(--surface); }
-  .bang-canvas__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  /* Compact corner logo + navigation, the language switch on the other edge. */
+  .bang-top {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    min-block-size: var(--bang-chrome);
+    padding: var(--space-3) var(--gutter);
+  }
+
+  .bang-nav { flex: 1 1 auto; min-inline-size: 0; }
+  .bang-nav__list {
+    display: none;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    align-items: baseline;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .bang-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    color: var(--ink);
+    font-size: var(--text-ui);
+    text-decoration: none;
+  }
+  /* The reference's chrome is text without decoration; the current page is marked by
+     weight and `aria-current`, and hover/focus draws the line. */
+  .bang-nav__link:hover, .bang-nav__link:focus-visible { text-decoration: underline; text-underline-offset: 0.3em; }
+  .bang-nav__link[aria-current='page'] { font-weight: var(--weight-semibold); }
+
+  .bang-top__utils { display: flex; align-items: center; gap: var(--space-4); margin-inline-start: auto; }
+  .bang-top__language { flex: 0 0 auto; }
+
+  @media (min-width: 48rem) {
+    .bang-nav__list { display: flex; }
+  }
+
+  /* --- the field ---------------------------------------------------------- */
+  .bang-stage {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .bang-canvas {
+    position: relative;
+    display: block;
+    block-size: 100svh;
+    overflow: hidden;
+    /* One surface for the whole home page: a drag across a tile must pan, not scroll
+       the document, while a two-finger pinch still zooms. */
+    touch-action: pinch-zoom;
+    user-select: none;
+  }
+
+  /* The plane the tiles are laid out in, and the field's wrapping period. It is
+     `--bang-plane` viewports wide *and* tall so that the composition can cover the
+     viewport in every direction while the period stays exactly one plane — the two are
+     the same number, which is what makes a wrap land on the tile's own copy.
+
+     Physical offsets, not logical ones: the composition, `place()` and
+     `getBoundingClientRect` share one coordinate system, which `inset-inline-start`
+     would mirror in RTL — and a mirrored plane would put every tile out of step with
+     the math that wraps it. The tile variables below are physical for the same reason.
+
+     `--bang-plane` and `MAX_WIDTH`/`MOBILE_TILE_SCALE` in `canvasPlan.ts` are one
+     decision: `PLANE >= 1 + 2 * MAX_WIDTH * TILE_SCALE`. The unit test reads both files
+     and fails if the pair drifts apart. */
+  .bang-canvas__world {
+    --tile-fit: 1;
+    --tile-scale: 1;
+    position: absolute;
+    inset-block-start: 0;
+    left: 0;
+    inline-size: calc(var(--bang-plane, 2) * 100%);
+    block-size: calc(var(--bang-plane, 2) * 100%);
+    will-change: transform;
+  }
+
+  .bang-canvas__tile {
+    position: absolute;
+    top: calc(var(--tile-y, 0) * 100%);
+    left: calc(var(--tile-x, 0) * 100%);
+    inline-size: calc(var(--tile-w, 0.2) * 100% * var(--tile-scale, 1) * var(--tile-fit, 1));
+    /* 46% of the *viewport* (the cap the reference's frames never exceed), expressed
+       against the plane the tile is measured in. */
+    max-block-size: calc(46% / var(--bang-plane, 2));
+    aspect-ratio: var(--tile-ratio, 1.5);
+    display: block;
+    overflow: hidden;
+    will-change: transform;
+  }
+
+  .bang-canvas__image {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    transition: scale var(--motion-slow) var(--ease-out);
+  }
+
+  /* Hover/focus feedback that does not depend on the custom cursor existing. */
+  .bang-canvas__tile:hover .bang-canvas__image { scale: 1.04; }
+
+  /* The static presentation — no JavaScript, `prefers-reduced-motion: reduce`, or the
+     CMS turning `canvasMotion` off — fits the *whole* plane into the box instead of
+     showing one window of it. Every work is therefore on screen at once and reachable
+     without a script, and the document scrolls normally. */
+  html:not([data-bang-canvas='pan']) .bang-canvas__world {
+    scale: calc(1 / var(--bang-plane, 2));
+    transform-origin: 0 0;
+  }
+
+  /* Phones get a coarser field: larger photographs, as the reference shows them. The
+     widths scale off the same plan values, so the composition is unchanged — and the
+     scale stays inside the wrapping budget (`MOBILE_TILE_SCALE` in `canvasPlan.ts`). */
+  @media (max-width: 47.99rem) {
+    .bang-canvas__world { --tile-scale: 1.2; }
+    .bang-canvas__tile { max-block-size: calc(38% / var(--bang-plane, 2)); }
+  }
+
+  /* The wordmark sits above the photographs and inverts over them: white type with a
+     `difference` blend is black on the white page and light over a dark frame — the
+     reference's central mark, without a second colour in the palette. */
+  .bang-wordmark {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 6;
+    display: grid;
+    place-items: center;
+    block-size: 100svh;
+    margin: 0;
+    pointer-events: none;
+    text-align: center;
+  }
+
+  .bang-wordmark__text {
+    font-family: var(--font-brand);
+    font-size: clamp(2.25rem, 11vw, 10rem);
+    font-weight: var(--weight-extrabold);
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: #ffffff;
+    mix-blend-mode: difference;
+  }
+
+  /* A mark is the studio's own artwork, and the size of a mark is part of that artwork:
+     a logo is not a hero image. The field therefore draws the uploaded mark at *logo*
+     scale — a wordmark-height band the mark fits itself into, whatever its own aspect
+     ratio — instead of stretching it to the stage. An SVG with no intrinsic size would
+     otherwise be painted at the size of whatever box it landed in, which is how a 64px
+     sample logo once filled the middle of the canvas. */
+  .bang-wordmark__mark {
+    inline-size: auto;
+    block-size: clamp(2.5rem, 9vw, 7rem);
+    max-inline-size: min(80vw, 42rem);
+    object-fit: contain;
+  }
+
+  /* --- selected work index (the canonical, accessible list) ---------------- */
+  .bang-index {
+    padding: var(--space-6) var(--gutter) var(--space-12);
+    border-block-start: 1px solid var(--line-structural-color);
+  }
+
+  /* One row shape for the static label and the disclosure button: the server renders
+     the label (an open section is what a visitor without a script gets), the client
+     swaps in the button once it can actually toggle something. */
+  .bang-index__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-block-size: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+  }
+  .bang-index__toggle { cursor: pointer; }
+  .bang-index__summary::after {
+    content: '';
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-inline-end: 1px solid var(--ink);
+    border-block-end: 1px solid var(--ink);
+    rotate: 45deg;
+    transition: rotate var(--motion-base) var(--ease-out);
+  }
+  .bang-index__summary[aria-expanded='true']::after { rotate: -135deg; }
+  .bang-index__label::after { display: none; }
+  .bang-index__count { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+  /* The list is content, not a popover: it is in the flow in every presentation. The
+     canvas presentation folds it behind the button, and `data-bang-index` on the root
+     records the visitor's explicit intent — the same attribute pattern the cursor and
+     the case-study overlay use, so the stylesheet never needs to know whether a script
+     has run. */
+  html[data-bang-index='closed'] .bang-index__body { display: none; }
+  html[data-bang-canvas='pan']:not([data-bang-index='open']) .bang-index__body { display: none; }
+
+  .bang-index__list {
+    display: grid;
+    gap: 0;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bang-index__link {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    align-items: baseline;
+    min-block-size: 44px;
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--line-structural-color);
+    color: inherit;
+    text-decoration: none;
+  }
+  .bang-index__link:hover .bang-index__title, .bang-index__link:focus-visible .bang-index__title {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .bang-index__number { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .bang-index__title { font-size: var(--text-ui); overflow-wrap: anywhere; }
+  .bang-index__meta { grid-column: 2; color: var(--ink-secondary); }
+  .bang-index__actions { margin: var(--space-4) 0 0; }
+
+  /* --- custom cursor ------------------------------------------------------ */
+  .bang-cursor {
+    position: fixed;
+    /* Physical, like the field: the cursor is placed from a pointer's `clientX/clientY`
+       and `inset-inline-start` would offset every position by the viewport width in
+       RTL. */
+    top: 0;
+    left: 0;
+    z-index: 90;
+    display: none;
+    translate: -50% -50%;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  html[data-bang-cursor='on'] .bang-cursor { display: block; }
+  /* A stale cursor can never sit on top of an open case study, whatever the timing
+     of the overlay's own attribute. */
+  html[data-bang-overlay='open'] .bang-cursor { display: none !important; }
+  .bang-cursor[data-hidden] { opacity: 0; }
+
+  .bang-cursor__mark {
+    display: block;
+    inline-size: 10px;
+    block-size: 10px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    transition: inline-size var(--motion-fast) var(--ease-out), block-size var(--motion-fast) var(--ease-out);
+  }
+
+  .bang-cursor[data-mode='control'] .bang-cursor__mark {
+    inline-size: 5px;
+    block-size: 5px;
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .bang-cursor[data-mode='work'] .bang-cursor__mark {
+    inline-size: 26px;
+    block-size: 26px;
+    border-color: var(--ink);
+    background: color-mix(in srgb, var(--surface) 30%, transparent);
+  }
+
+  /* The label is CMS content (the work's own title), never invented copy. */
+  .bang-cursor__label {
+    position: absolute;
+    inset-block-start: calc(100% + 8px);
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    max-inline-size: 16rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--ink);
+    color: var(--surface);
+    font-size: var(--text-caption);
+    line-height: var(--leading-ui);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Hiding the system pointer is only safe because the replacement is a fixed,
+     non-interactive element that is removed the moment any of the conditions above
+     stop holding. */
+  html[data-bang-cursor='on'],
+  html[data-bang-cursor='on'] * { cursor: none; }
+
+  /* --- footer / utility controls ------------------------------------------ */
+  .bang-footer {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+    min-block-size: var(--bang-chrome);
+    padding: var(--space-3) var(--gutter);
+  }
+  .bang-footer__end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+  .bang-footer__links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+  /* The same 44px target the rest of the theme's chrome uses (`.nav-link`): the footer
+     sits over the canvas, where a thin link is a link nobody can hit. */
+  .bang-footer__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    color: var(--ink-secondary);
+    text-decoration: none;
+  }
+  .bang-footer__link:hover, .bang-footer__link:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: 0.25em; }
+
+  /* --- the canvas presentation ------------------------------------------- */
+  html[data-bang-canvas='pan'],
+  html[data-bang-canvas='pan'] body { overflow: hidden; }
+
+  html[data-bang-canvas='pan'] .bang-stage { position: fixed; inset: 0; display: block; }
+  html[data-bang-canvas='pan'] .bang-canvas { position: absolute; inset: 0; block-size: auto; }
+  html[data-bang-canvas='pan'] .bang-wordmark { position: fixed; }
+
+  html[data-bang-canvas='pan'] .bang-top { position: fixed; inset-block-start: 0; inset-inline: 0; }
+  html[data-bang-canvas='pan'] .bang-footer { position: fixed; inset-block-end: 0; inset-inline: 0; }
+
+  html[data-bang-canvas='pan'] .bang-index {
+    position: fixed;
+    inset-block-end: calc(var(--bang-chrome) + var(--space-2));
+    inset-inline-start: var(--gutter);
+    z-index: 30;
+    max-inline-size: min(24rem, calc(100vw - 2 * var(--gutter)));
+    padding: 0;
+    border-block-start: 0;
+  }
+  /* Closed, the index is a corner control; open, it becomes a panel with its own
+     scroll — the wheel handler leaves it alone (see `CanvasField`). */
+  html[data-bang-canvas='pan'] .bang-index__summary {
+    padding-inline: var(--space-3);
+    border: 1px solid var(--line-structural-color);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  html[data-bang-canvas='pan'] .bang-index__body {
+    max-block-size: min(60svh, 24rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-3) var(--space-4) var(--space-2);
+    border: 1px solid var(--line-structural-color);
+    border-block-start: 0;
+    background: var(--surface);
+  }
+
+  /* --- the case-study overlay ------------------------------------------- */
+  .bang-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--surface);
+    color: var(--ink);
+    animation: bang-overlay-in var(--motion-slow) var(--ease-out);
+  }
+
+  html[data-bang-overlay='open'],
+  html[data-bang-overlay='open'] body { overflow: hidden; }
+
+  .bang-overlay__bar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--gutter);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border-block-end: 1px solid var(--line-structural-color);
+  }
+
+  .bang-overlay__body { padding-block: var(--space-6) var(--space-16); }
+
+  @keyframes bang-overlay-in {
+    from { opacity: 0; translate: 0 1.5rem; }
+    to { opacity: 1; translate: 0 0; }
+  }
+
+  /* --- archives, rows, facts, case studies, biographies ------------------- */
   .bang-archive__desktop { display: none; }
   @media (min-width: 900px) {
     .bang-archive__desktop { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start; }
@@ -2273,6 +2300,10 @@
   .bang-bio__head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
   .bang-bio__socials { list-style: none; display: flex; gap: 1rem; padding: 0; }
   .bang-footer__utils { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; padding-block: 1rem; border-top: 1px solid var(--line-structural-color); }
+
+  /* Reduced motion keeps every state, drops the travel. */
   @media (prefers-reduced-motion: reduce) {
-    .bang-canvas__tile { transition: none; }
+    .bang-canvas__image { transition: none; }
+    .bang-overlay { animation: none; }
   }
+}

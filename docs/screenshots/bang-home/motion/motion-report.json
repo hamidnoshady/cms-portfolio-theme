@@ -1,0 +1,413 @@
+{
+  "base": "http://127.0.0.1:3200",
+  "frames": {
+    "close": [
+      {
+        "cursor": {
+          "label": "دفتر افق — نمونه",
+          "mode": "work"
+        },
+        "domNodes": 152,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -380.061,
+          "y": -3067.31
+        },
+        "visible": 6
+      }
+    ],
+    "cursor": [
+      {
+        "cursor": {
+          "label": "دفتر افق — نمونه",
+          "mode": "work"
+        },
+        "domNodes": 149,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -378.011,
+          "y": -3066.19
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "باغ و دیوار — نمونه",
+          "mode": "work"
+        },
+        "domNodes": 149,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -379.943,
+          "y": -3067.24
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "پروژهٔ مجموعهٔ ورزشی — نمونه",
+          "mode": "work"
+        },
+        "domNodes": 149,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -380.061,
+          "y": -3067.31
+        },
+        "visible": 6
+      }
+    ],
+    "drag": [
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -55,
+          "y": -2890
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -110,
+          "y": -2920
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -165,
+          "y": -2950
+        },
+        "visible": 8
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -220,
+          "y": -2980
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -275,
+          "y": -3010
+        },
+        "visible": 6
+      }
+    ],
+    "open": [
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 225,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -380.061,
+          "y": -3067.31
+        },
+        "visible": 6
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 225,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": -380.061,
+          "y": -3067.31
+        },
+        "visible": 6
+      }
+    ],
+    "wheel": [
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": 0
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -169.566
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -414.764
+        },
+        "visible": 5
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -672.26
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -931.932
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -1194.26
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -1452.28
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -1711.84
+        },
+        "visible": 2
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -1968.97
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -2233.94
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -2492.21
+        },
+        "visible": 4
+      },
+      {
+        "cursor": {
+          "label": "",
+          "mode": "default"
+        },
+        "domNodes": 148,
+        "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
+        "tiles": 12,
+        "transform": {
+          "x": 0,
+          "y": -2751.83
+        },
+        "visible": 5
+      }
+    ]
+  },
+  "results": [
+    {
+      "detail": "y 0 → -2751.83",
+      "name": "the wheel pans the field without ever resetting it",
+      "ok": true
+    },
+    {
+      "detail": "steps 170, 245, 257, 260, 262, 258, 260, 257, 265, 258, 260",
+      "name": "every step moves the plane forward, none of them jumps a seam",
+      "ok": true
+    },
+    {
+      "detail": "12 tiles, 148 DOM nodes, constant",
+      "name": "the field never grows while it moves",
+      "ok": true
+    },
+    {
+      "detail": "minimum 2 tiles",
+      "name": "a tile is on screen in every frame (no blank, no seam)",
+      "ok": true
+    },
+    {
+      "name": "every tile keeps its work",
+      "ok": true
+    },
+    {
+      "detail": "y -2860 → -2860",
+      "name": "the field comes to rest and stays there",
+      "ok": true
+    },
+    {
+      "detail": "pointer moved -55,-30 → plane moved -55,-30",
+      "name": "the plane follows the pointer one-to-one",
+      "ok": true
+    },
+    {
+      "detail": "x -275 → -364 (89px of momentum)",
+      "name": "the released flick keeps travelling in the same direction, then stops",
+      "ok": true
+    },
+    {
+      "name": "a drag never opens a work",
+      "ok": true
+    },
+    {
+      "detail": "دفتر افق — نمونه | باغ و دیوار — نمونه | پروژهٔ مجموعهٔ ورزشی — نمونه",
+      "name": "the cursor names the work it is over, and changes with it",
+      "ok": true
+    },
+    {
+      "detail": "y -3067.31 → -3067.31",
+      "name": "the canvas is frozen, not reset, behind the open work",
+      "ok": true
+    },
+    {
+      "detail": "-380.061,-3067.31 → -380.061,-3067.31",
+      "name": "closing returns to the same place on the field",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "no console errors",
+      "ok": true
+    }
+  ],
+  "sheets": {
+    "motion-wheel": "jpg",
+    "motion-drag": "jpg",
+    "motion-cursor": "jpg",
+    "motion-wheel.gif": "gif"
+  },
+  "viewport": {
+    "deviceScaleFactor": 1,
+    "height": 900,
+    "width": 1440
+  }
+}

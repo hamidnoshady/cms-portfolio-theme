@@ -6,13 +6,15 @@ import { ContentContainer } from '@/components/design/Container'
 import { CmsImage } from '@/components/media/CmsImage'
 import { Gallery } from '@/components/media/Gallery'
 import { MetadataTable } from '@/components/portfolio/MetadataTable'
+import { CaseStudyShell } from '@/components/portfolio/CaseStudyShell'
 import { ShareButton } from '@/components/portfolio/ShareButton'
 import { CmsForm } from '@/components/forms/CmsForm'
 import { loadPageContext } from '@/lib/cms/pageContext'
 import { getPostContext, localizedPostHref } from '@/lib/cms/content'
 import { getFormById } from '@/lib/cms/endpoints'
 import { breadcrumbsFor } from '@/lib/routing/breadcrumbs'
-import { detailPath, type PortfolioSection } from '@/lib/routing/paths'
+import { href } from '@/lib/routing/locale'
+import { detailPath, THEME_ROUTES, type PortfolioSection } from '@/lib/routing/paths'
 import { resolveLocaleRoute } from '@/lib/routing/resolve'
 import { metadataFor } from '@/lib/seo/metadata'
 import { labels as dictionary } from '@/lib/theme/labels'
@@ -41,7 +43,18 @@ export const caseMetadata = async (locale: Locale, section: PortfolioSection, sl
   })
 }
 
-export const CaseStudyView = async ({ locale, section, slug }: { locale: Locale; section: PortfolioSection; slug: string }) => {
+/**
+ * One case study, two presentations.
+ *
+ * `page` is the canonical server-rendered route (direct visits, refresh, search
+ * engines, sharing): full interior chrome, breadcrumbs, own `<title>` and metadata.
+ *
+ * `overlay` is the same content rendered by the intercepted route into the home
+ * page's overlay slot, opened from a canvas tile. It keeps the reading content
+ * identical and moves Share/Close into the overlay's own bar, so the two cannot drift
+ * apart — there is one template and one data path, with the presentation passed in.
+ */
+export const CaseStudyView = async ({ locale, section, slug, variant = 'page' }: { locale: Locale; section: PortfolioSection; slug: string; variant?: 'overlay' | 'page' }) => {
   const path = detailPath(section, slug)
   const outcome = await loadPageContext(locale, path)
   if (!outcome.ok) return <StateView locale={locale} outcome={outcome} />
@@ -75,15 +88,9 @@ export const CaseStudyView = async ({ locale, section, slug }: { locale: Locale;
   const contactFormId = ctx.site.themeRuntime?.bindings?.contactForm?.id ?? null
   const contactForm = contactFormId ? await getFormById(contactFormId, locale, ctx.draft) : null
   const shareUrl = `${ctx.canonicalOrigin}${path}`
+  const shareLabels = { copied: t.copied, copyLink: t.copyLink, done: t.shareDone, failed: t.shareFailed, share: t.share }
 
-  return (
-    <InteriorPage
-      context={ctx}
-      crumbs={crumbs}
-      currentPath={path}
-      label={t.breadcrumb}
-      switchDoc={{ id: post.id, kind: 'post', pathFor: (s) => detailPath(section, s) }}
-    >
+  const content = (
       <ContentContainer>
         <h1 className="bang-case__title">{post.title}</h1>
         <p aria-hidden="true" className="bang-case__repeat">{post.title} — {post.title}</p>
@@ -102,9 +109,11 @@ export const CaseStudyView = async ({ locale, section, slug }: { locale: Locale;
           </section>
         ) : null}
         <div className="mt-12 flex flex-wrap gap-4">
-          <ShareButton labels={{ copied: t.copied, copyLink: t.copyLink, done: t.shareDone, failed: t.shareFailed, share: t.share }} title={post.title} url={shareUrl} />
-          <Link className="bang-btn" href={`/${locale === ctx.site.defaultLocale ? '' : locale + '/'}contact`.replace('//', '/')}>{t.inquiry}</Link>
-          <Link className="bang-btn bang-btn--ghost" href={section === 'projects' ? '/projects' : '/objects'}>{t.close}</Link>
+          {variant === 'page' ? <ShareButton labels={shareLabels} title={post.title} url={shareUrl} /> : null}
+          <Link className="bang-btn" data-cursor="control" href={href(THEME_ROUTES.contact, locale, ctx.site)}>{t.inquiry}</Link>
+          {variant === 'page' ? (
+            <Link className="bang-btn bang-btn--ghost" data-cursor="control" href={section === 'projects' ? '/projects' : '/objects'}>{t.close}</Link>
+          ) : null}
         </div>
         {related.length > 0 ? (
           <section aria-label={t.relatedWork} className="mt-16">
@@ -125,6 +134,25 @@ export const CaseStudyView = async ({ locale, section, slug }: { locale: Locale;
           </section>
         ) : null}
       </ContentContainer>
+  )
+
+  if (variant === 'overlay') {
+    return (
+      <CaseStudyShell closeLabel={t.close} dir={ctx.dir} labels={shareLabels} shareUrl={shareUrl} title={post.title}>
+        {content}
+      </CaseStudyShell>
+    )
+  }
+
+  return (
+    <InteriorPage
+      context={ctx}
+      crumbs={crumbs}
+      currentPath={path}
+      label={t.breadcrumb}
+      switchDoc={{ id: post.id, kind: 'post', pathFor: (s) => detailPath(section, s) }}
+    >
+      {content}
     </InteriorPage>
   )
 }

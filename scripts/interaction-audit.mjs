@@ -7,10 +7,11 @@ import puppeteer from 'puppeteer-core'
 /**
  * Interaction audit — the behaviours a screenshot cannot prove.
  *
- * The brief asks for specific *behaviour*: a visible Browse action, dots that switch
- * the featured work with no repeated links, a pause control, a drawer that traps focus,
- * closes on Escape, restores focus, unlocks scrolling and closes on navigation, and a
- * form that cannot be submitted twice.
+ * The brief asks for specific *behaviour*: a canvas whose works are all reachable
+ * without a pointer, a drag that pans instead of opening a work and a click that opens
+ * the one under the pointer, a drawer that traps focus, closes on Escape, restores
+ * focus, unlocks scrolling and closes on navigation, and a form that cannot be
+ * submitted twice.
  *
  * It also pins the behaviours a structural a11y pass cannot see: the language link must
  * stay reachable from the canvas, English archive links and breadcrumbs must remain
@@ -112,55 +113,100 @@ const main = async () => {
   }
 
   // ------------------------------------------------------------------ home canvas
-  await check('home: the Browse Projects action is visible before any interaction', async (page) => {
+  /**
+   * The home page is a canvas now, not a slider: no dots, no rotating featured work, no
+   * pause control. What this audit still owns here is the *accessible* half of the
+   * experience — the canonical list of works, the walk from the canvas into the
+   * archives, the language switch, the separation of a drag from a click, and the fact
+   * that all of it is reached with a keyboard. The endless field itself (coverage,
+   * wrapping, no teleports, momentum, the custom cursor, reduced motion, no-JS) is
+   * audited in `home-canvas-audit.mjs`, and its motion is recorded by
+   * `home-canvas-motion.mjs`; a screenshot-free audit is not the place to duplicate it.
+   */
+  await check('home: the canvas serves the works themselves — no carousel left over', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
     await loaded(page, '.bang-canvas')
-    const box = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getBoundingClientRect().height)
-    if (box < 24) throw new Error(`Browse action is only ${Math.round(box)}px tall`)
-    return `Browse action ${Math.round(box)}px tall`
+    const state = await page.evaluate(() => ({
+      dots: document.querySelectorAll('.bang-dot, .bang-canvas__dots').length,
+      pressed: document.querySelectorAll('.bang-canvas__actions button[aria-pressed]').length,
+      tiles: document.querySelectorAll('.bang-canvas__tile').length,
+      visible: [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => {
+        const rect = tile.getBoundingClientRect()
+        return rect.width > 0 && rect.right > 0 && rect.bottom > 0 && rect.left < innerWidth && rect.top < innerHeight
+      }).length,
+    }))
+    if (state.dots > 0 || state.pressed > 0) throw new Error('a carousel control survived the rewrite')
+    if (state.tiles === 0 || state.visible < 2) throw new Error(`a canvas with ${state.tiles} tiles, ${state.visible} on screen, is not a field`)
+    return `${state.tiles} tiles, ${state.visible} on screen, no carousel controls`
   })
 
-  await check('home: dots switch the featured work', async (page) => {
-    await page.setViewport({ width: 1440, height: 900 })
-    await page.goto(`${BASE}/`, { waitUntil: 'load' })
-    await loaded(page, '.bang-canvas__dots')
-    const before = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getAttribute('href'))
-    const dots = await page.$$('.bang-canvas__dots .bang-dot')
-    if (dots.length < 2) throw new Error('fewer than two featured works to switch between')
-    await dots[1].click()
-    await sleep(600)
-    const after = await page.$eval('.bang-canvas__actions .bang-btn', (el) => el.getAttribute('href'))
-    if (before === after) throw new Error('the featured work did not change')
-    return `${dots.length} works, ${before} → ${after}`
-  })
-
-  await check('home: one accessible destination per work (visual copies are decorative)', async (page) => {
+  await check('home: every work is reachable without a pointer, from the served HTML', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
     await loaded(page, '.bang-canvas')
     const state = await page.evaluate(() => {
-      const hrefs = [...document.querySelectorAll('.bang-canvas a[href]')].map((a) => a.getAttribute('href'))
-      const dupes = hrefs.filter((href, index) => hrefs.indexOf(href) !== index)
-      const hidden = [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => !tile.hasAttribute('aria-hidden')).length
-      return { dupes, hrefs: hrefs.length, unlabelledTiles: hidden }
+      const field = document.querySelector('.bang-canvas')
+      const links = [...document.querySelectorAll('.bang-index__link')]
+      return {
+        fieldHidden: field?.getAttribute('aria-hidden') === 'true',
+        focusableTiles: [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => tile.getAttribute('tabindex') !== '-1').length,
+        hrefs: links.map((link) => link.getAttribute('href')),
+      }
     })
-    if (state.dupes.length > 0) throw new Error(`repeated canvas links: ${state.dupes.join(', ')}`)
-    if (state.unlabelledTiles > 0) throw new Error(`${state.unlabelledTiles} canvas tiles miss aria-hidden`)
-    return `${state.hrefs} canvas links, no repeats`
+    const unique = new Set(state.hrefs)
+    if (!state.fieldHidden) throw new Error('the repeated visual field is exposed to assistive technology')
+    if (state.focusableTiles > 0) throw new Error(`${state.focusableTiles} duplicated tiles are in the tab order`)
+    if (state.hrefs.length === 0 || unique.size !== state.hrefs.length) throw new Error(`the work list is missing or repeats: ${state.hrefs.join(', ')}`)
+    // Keyboard: the first tab stop after the skip link is the work list itself.
+    await page.keyboard.press('Tab')
+    const restored = await page.evaluate(() => document.activeElement?.getAttribute('href'))
+    if (restored !== '#bang-works') throw new Error(`the first tab stop is ${restored}, not the work list`)
+    return `${state.hrefs.length} works, one destination each, first tab stop is the list`
   })
 
-  await check('home: the pause control stops the rotation', async (page) => {
+  await check('home: a drag pans and a click opens the work under the pointer', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
     await loaded(page, '.bang-canvas')
-    const pause = await page.$('.bang-canvas__actions button[aria-pressed]')
-    if (!pause) return 'no pause control (reduced-motion static composition)'
-    await pause.click()
-    await sleep(300)
-    const pressed = await page.evaluate(() => document.querySelector('.bang-canvas__actions button[aria-pressed]')?.getAttribute('aria-pressed'))
-    if (pressed !== 'true') throw new Error('pause did not engage')
-    return 'rotation paused'
+    const target = await page.evaluate(() => {
+      for (const node of document.querySelectorAll('.bang-canvas__tile')) {
+        const rect = node.getBoundingClientRect()
+        if (rect.width < 140 || rect.height < 90) continue
+        const x = rect.left + rect.width / 2
+        const y = rect.top + rect.height / 2
+        if (document.elementFromPoint(x, y)?.closest('.bang-canvas__tile') !== node) continue
+        return { href: node.getAttribute('href'), x, y }
+      }
+      return null
+    })
+    if (!target) throw new Error('no tile of the field is reachable to click')
+    // Drag the same tile: the field moves, nothing opens.
+    await page.mouse.move(target.x, target.y)
+    await page.mouse.down()
+    await page.mouse.move(target.x - 90, target.y - 50, { steps: 10 })
+    await page.mouse.up()
+    await sleep(400)
+    if (await page.evaluate(() => location.pathname) !== '/') throw new Error('a drag opened a work')
+    // Then click it: that work opens, over the canvas.
+    const moved = await page.evaluate((href) => {
+      for (const node of document.querySelectorAll('.bang-canvas__tile')) {
+        if (node.getAttribute('href') !== href) continue
+        const rect = node.getBoundingClientRect()
+        if (rect.width < 140 || rect.height < 90) continue
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+      }
+      return null
+    }, target.href)
+    if (!moved) throw new Error('the work that was dragged is no longer on screen to click')
+    await page.mouse.click(moved.x, moved.y)
+    await page.waitForSelector('.bang-overlay', { timeout: 15000 })
+    const opened = await page.evaluate(() => location.pathname)
+    const expected = new URL(target.href, BASE).pathname
+    if (opened !== expected) throw new Error(`clicking opened ${opened} instead of ${expected}`)
+    await page.keyboard.press('Escape')
+    await page.waitForFunction(() => !document.querySelector('.bang-overlay'), { timeout: 15000 })
+    return `drag stayed on /, click opened ${opened}, Escape closed it`
   })
 
   // --------------------------------------------------------------------- drawer

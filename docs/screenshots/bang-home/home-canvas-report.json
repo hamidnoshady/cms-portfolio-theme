@@ -1,0 +1,158 @@
+{
+  "base": "http://127.0.0.1:3200",
+  "results": [
+    {
+      "detail": "data-bang-canvas=pan after 7ms",
+      "name": "canvas mode engages on a fine pointer",
+      "ok": true
+    },
+    {
+      "detail": "12 tiles, 4 on screen",
+      "name": "field is bounded and populated",
+      "ok": true
+    },
+    {
+      "detail": "31 samples",
+      "name": "tile count never changes while panning",
+      "ok": true
+    },
+    {
+      "detail": "minimum 2 tiles on screen",
+      "name": "coverage never goes blank (no end, no seam)",
+      "ok": true
+    },
+    {
+      "detail": "translate3d(0px, 0px, 0px) → translate3d(0px, -7650.02px, 0px)",
+      "name": "the plane actually moves",
+      "ok": true
+    },
+    {
+      "name": "a tile keeps its destination across wrapping",
+      "ok": true
+    },
+    {
+      "detail": "checked 31 samples",
+      "name": "no tile teleports while it is on screen",
+      "ok": true
+    },
+    {
+      "detail": "travelled 7650px for 7800px of wheel (largest step 260.2px)",
+      "name": "the plane follows the wheel, never runs ahead of it and never reverses",
+      "ok": true
+    },
+    {
+      "detail": "plane 2850x1800, viewport 1440x900, largest tile 541x414",
+      "name": "the wrapping period holds the viewport and two of the largest tile",
+      "ok": true
+    },
+    {
+      "detail": "enabled=on mode=work label=“خانه‌ای در نور — نمونه” expected “خانه‌ای در نور — نمونه”",
+      "name": "cursor is the studio one over a work and names it",
+      "ok": true
+    },
+    {
+      "detail": "none",
+      "name": "cursor never intercepts the pointer",
+      "ok": true
+    },
+    {
+      "detail": "centre 973,477 vs pointer 974,477 (0.8px), size 26px",
+      "name": "the cursor is drawn at the pointer",
+      "ok": true
+    },
+    {
+      "detail": "after an 85px move it settles 0.8px from the pointer",
+      "name": "the cursor follows the pointer instead of stopping",
+      "ok": true
+    },
+    {
+      "detail": "mode=default",
+      "name": "cursor changes state away from a work",
+      "ok": true
+    },
+    {
+      "detail": "/",
+      "name": "a drag pans without opening a work",
+      "ok": true
+    },
+    {
+      "detail": "translate3d(0px, -7800px, 0px) → translate3d(183.271px, -7738.91px, 0px)",
+      "name": "a drag moves the field one-to-one with the pointer",
+      "ok": true
+    },
+    {
+      "detail": "/projects/khaneye-noor “خانه‌ای در نور — نمونه”",
+      "name": "clicking a tile opens that work",
+      "ok": true
+    },
+    {
+      "detail": "خانه‌ای در نور — نمونه",
+      "name": "the overlay is a real modal, and the title follows it",
+      "ok": true
+    },
+    {
+      "detail": "translate3d(205.309px, -7731.56px, 0px) → translate3d(205.309px, -7731.56px, 0px)",
+      "name": "the canvas holds still while a work is open over it",
+      "ok": true
+    },
+    {
+      "detail": "translate3d(205.309px, -7731.56px, 0px) → translate3d(205.309px, -7731.56px, 0px)",
+      "name": "closing restores the canvas position exactly",
+      "ok": true
+    },
+    {
+      "name": "closing returns the URL to the home page",
+      "ok": true
+    },
+    {
+      "detail": "200 h1=خانه‌ای در نور — نمونه",
+      "name": "a direct visit renders the server page, not an overlay",
+      "ok": true
+    },
+    {
+      "detail": "12 tiles, 4 on screen",
+      "name": "the phone gets the same bounded field",
+      "ok": true
+    },
+    {
+      "detail": "-15px",
+      "name": "the phone canvas does not overflow sideways",
+      "ok": true
+    },
+    {
+      "detail": "data-bang-canvas=null",
+      "name": "reduced motion serves the static field",
+      "ok": true
+    },
+    {
+      "detail": "scrollable=675px links=5 toggle=false",
+      "name": "reduced motion leaves the page scrollable, with the work list visible",
+      "ok": true
+    },
+    {
+      "detail": "off",
+      "name": "reduced motion keeps the system cursor",
+      "ok": true
+    },
+    {
+      "detail": "12 tiles, 5 links",
+      "name": "without scripting the composition and the work list are both served",
+      "ok": true
+    },
+    {
+      "detail": "0 tiles visible — see docs/LIMITATIONS.md",
+      "name": "without scripting the page paints the theme’s loading state (pre-existing boundary)",
+      "ok": true
+    },
+    {
+      "detail": "archive: 7 rows served, 0 visible, 27 skeletons",
+      "name": "the untouched archives paint the same loading state without scripting",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "no console errors",
+      "ok": true
+    }
+  ]
+}

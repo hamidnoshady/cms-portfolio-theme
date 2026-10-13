@@ -16,8 +16,14 @@
   --ink-faint: rgba(0, 0, 0, 0.45);
   --ink-disabled: rgba(0, 0, 0, 0.35);
 
-  /* --- geometry: every corner square --- */
+  /* --- geometry: every corner square ---
+     `--radius` is the *platform* token: the CMS writes it on `body` from the site's
+     theme settings (see `themeCss` in `@eshobe/site-runtime`). This design needs
+     square corners, so the theme also owns a private token that the injection cannot
+     name, and re-asserts the platform token from it below the `:root` block. A
+     customer theme can change the brand colour — it cannot round this design. */
   --radius: 0px;
+  --radius-square: 0px;
   --content-max: 1440px;
   --gutter: 16px;             /* mobile */
   --grid-gap: 12px;           /* mobile: 2 project cards @390px = 173px each */
@@ -137,6 +143,15 @@
   /* --- focus: visible, square, never only a line colour --- */
   --focus-width: 2px;
   --focus-offset: 2px;
+}
+
+/* Tenant theme CSS lands in a `<style>` element in the head and is **unlayered**, so
+   `body{--radius:1rem}` would beat both `:root` here and anything inside Tailwind's
+   `@layer base` for every element in the document. This rule is therefore unlayered as
+   well and at a higher specificity than `body`, which is what makes the geometry
+   decision above hold on a configured site and not only on a bare one. */
+html body {
+  --radius: var(--radius-square);
 }
 
 @media (min-width: 30rem) {

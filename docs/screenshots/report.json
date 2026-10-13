@@ -4,34 +4,53 @@
     {
       "consoleErrors": [],
       "expectOk": true,
-      "name": "01-home-entrance-1440",
+      "name": "01-home-canvas-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
       "documentScrollWidth": 1425,
       "innerWidth": 1440,
-      "offenders": []
+      "offenders": [
+        "div.bang-canvas__world",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image"
+      ]
     },
     {
       "consoleErrors": [],
       "expectOk": true,
-      "name": "02-home-menu-1440",
+      "name": "02-home-canvas-index-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
       "documentScrollWidth": 1425,
       "innerWidth": 1440,
-      "offenders": []
+      "offenders": [
+        "div.bang-canvas__world",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image"
+      ]
     },
     {
       "consoleErrors": [],
-      "name": "03-home-entrance-390",
+      "expectOk": true,
+      "name": "03-home-canvas-390",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 375,
       "documentScrollWidth": 375,
       "innerWidth": 390,
-      "offenders": []
+      "offenders": [
+        "div.bang-canvas__world",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image"
+      ]
     },
     {
       "consoleErrors": [],
@@ -105,7 +124,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "11-education-1440",
+      "name": "11-objects-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -115,7 +134,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "12-blog-1440",
+      "name": "12-careers-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -125,7 +144,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "13-article-1440",
+      "name": "13-object-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -165,7 +184,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "17-search-1440",
+      "name": "17-legal-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -175,7 +194,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "18-en-blog-1440",
+      "name": "18-en-objects-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -262,7 +281,7 @@
     {
       "consoleErrors": [],
       "expectOk": true,
-      "name": "26-empty-blog-1440",
+      "name": "26-empty-objects-1440",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 1425,
@@ -290,7 +309,13 @@
       "bodyScrollWidth": 1425,
       "documentScrollWidth": 1425,
       "innerWidth": 1440,
-      "offenders": []
+      "offenders": [
+        "div.bang-canvas__world",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image"
+      ]
     },
     {
       "consoleErrors": [],
@@ -333,7 +358,13 @@
       "bodyScrollWidth": 705,
       "documentScrollWidth": 705,
       "innerWidth": 720,
-      "offenders": []
+      "offenders": [
+        "div.bang-canvas__world",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image",
+        "a.bang-canvas__tile",
+        "img.bang-canvas__image"
+      ]
     },
     {
       "consoleErrors": [],
@@ -347,6 +378,7 @@
     },
     {
       "consoleErrors": [],
+      "expectOk": true,
       "name": "33-reduced-motion-home-1440",
       "overflowOk": true,
       "status": 200,
@@ -357,7 +389,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "34-education-390",
+      "name": "34-objects-390",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 375,
@@ -367,7 +399,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "35-article-390",
+      "name": "35-object-390",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 375,
@@ -397,7 +429,7 @@
     },
     {
       "consoleErrors": [],
-      "name": "38-en-education-390",
+      "name": "38-en-objects-390",
       "overflowOk": true,
       "status": 200,
       "bodyScrollWidth": 375,
