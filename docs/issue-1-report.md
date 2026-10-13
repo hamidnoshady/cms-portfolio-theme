@@ -151,6 +151,15 @@ added for the freeze/title behaviour and the disclosure).
 | `node scripts/home-canvas-audit.mjs --base http://127.0.0.1:3200` | **31/31 checks pass** |
 | `node scripts/home-canvas-motion.mjs --base http://127.0.0.1:3200` | **13/13 checks pass**, 22 frames + GIF + 2 contact sheets |
 
+**CI (`CI / Browser audits`, PR #2):** all three jobs pass on the GitHub runner —
+`Typecheck, lint, tests, build`, `Image build (no push)`, and
+`Serve the audit pairs and run every browser audit` (a11y 17/17, interaction 20/20,
+canvas 31/31, motion 13/13). Two CI-only problems were found and fixed along the way: the
+motion audit crashed assembling its contact sheets on a runner without ImageMagick (now
+optional, with an HTML sheet as the fallback), and two audit assertions were timing
+assumptions that hold on a warm machine but not on a cold runner (now waits for the state
+they actually assert — `docs/QA.md` §6, items 56–57).
+
 All runs are against the production standalone build
 (`npm run build && ARCH2_INCLUDE_QA=1 npm run prepare:standalone` + `.next/standalone/server.js`)
 with the mock CMS, i.e. the same topology CI uses. The new audits are wired into
@@ -180,7 +189,9 @@ disabled or re-baselined, and no budget was raised.
 5. **Hover/focus parity on the field is asserted, not photographed.** Keyboard navigation
    reaches every work through the index (audited), but the canvas' hover scale is only
    covered by the CSS contract.
-6. **The other public sections were not re-photographed against the reference.** Archives,
+6. **Touch behaviour is not recorded** (above) and the recorded sequences are keyboard-less:
+   the audit drives the arrow-key pan path only through the DOM contract, not as a video.
+7. **The other public sections were not re-photographed against the reference.** Archives,
    case studies, about, contact, careers, legal, the mobile drawer and the language switch
    are green in the a11y/interaction/screenshot suites, but that is their *own* contract —
    comparing them scene by scene with `bybang.co` needs a browser that can reach it.

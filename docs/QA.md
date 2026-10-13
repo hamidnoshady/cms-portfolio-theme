@@ -189,9 +189,9 @@ Both scripts run against the production standalone build in a real browser.
 | Tile count is constant while panning (a bounded DOM, not an accumulating one) | 12 tiles, 31 samples |
 | A tile is on screen in every sampled frame (no end, no seam, no reset) | minimum 2 |
 | No tile is corrected while any part of it is on screen (a wrap is never visible) | 31 samples |
-| The plane follows the wheel instead of jumping | ≤ 291px per step |
+| The plane follows the wheel, never runs ahead of it, never reverses | travelled 7650px for 7800px of wheel |
 | The wrapping period holds the viewport plus two of the largest tile | plane 2850×1800, viewport 1440×900, largest 541×414 |
-| The cursor is the studio's own over a work, names it, and sits *at* the pointer | mode `work`, label matches, < 1.5px off, 26px mark |
+| The cursor is the studio's own over a work, names it, and sits *at* the pointer | mode `work`, label matches, < 1.5px off after it converges, 26px mark |
 | The cursor never intercepts the pointer and changes state away from a work | `pointer-events: none`; mode `default` |
 | A drag pans without opening a work; a click opens *that* work in a real modal | `/` stays `/`, then `/projects/khaneye-noor` with `aria-modal="true"` |
 | The canvas holds still behind the open work and closing restores the position exactly | world transform unchanged, then identical |
@@ -212,6 +212,13 @@ comes to rest and *stays* there, and closing returns to the same place on the fi
 Both scripts stand in for the pointer device headless Chromium does not have
 (`pointer: fine` / `hover: hover`) and script nothing else: every other media query,
 including the emulated `prefers-reduced-motion`, is the browser's own answer.
+
+They also wait for what they measure instead of assuming a delay — the canvas taking over,
+the cursor reaching the pointer, the plane coming to rest — and a failed check is emitted as
+a workflow annotation (a job's raw log can be unreadable from outside the run, and an audit
+whose failure cannot be read is not evidence). Composite sheets and the GIF need
+ImageMagick; without it the frames, the JSON report and an HTML sheet are still written, so
+a host without it cannot fail the audit for a reason that is not about the theme.
 
 ### How the hard cases were made observable
 
@@ -487,6 +494,20 @@ Each was reproduced in a browser or by a failing test before being fixed (37 ite
     for `[aria-live="polite"]` and the first match on the page is a copy-link control (the
     submission's live region is a `role="status"` further down), so a working submission read
     as a failure. Scoped to `[role="status"]`; the shot now captures the real success state.
+
+56. **The motion audit crashed on a host without ImageMagick.** Assembling the contact
+    sheets and the GIF ran *after* every check had passed, and `spawnSync montage ENOENT`
+    turned a green run red on the CI runner (nothing on a GitHub runner guarantees
+    ImageMagick). The sheets are a convenience now: the frames, the JSON report and an HTML
+    sheet are always written, the composites only when the binaries exist, and CI installs
+    them so the run still carries the animation.
+57. **Two audit assertions were about the machine, not the theme.** "The canvas is
+    interactive 1.2s after load" and "the plane moves < 900px per sample" both pass on a
+    warm developer machine and can fail on a cold runner under load. The first is now a
+    wait for the canvas to take over (the assertion is *that* it becomes interactive, not
+    when), and the second asserts what actually matters: the plane never travels further
+    than the wheel asked for and never reverses direction. The cursor checks likewise wait
+    for the mark to reach the pointer rather than sleeping a fixed 400ms.
 
 ## 7. What is *not* verified
 
