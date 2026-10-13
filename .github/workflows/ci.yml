@@ -102,12 +102,24 @@ jobs:
             --base http://127.0.0.1:3200 \
             --slow-base http://127.0.0.1:3300 \
             --out docs/screenshots/live-cms
+      - name: Home canvas behaviour and motion
+        env:
+          ARCH2_CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          # The infinite canvas is a *behaviour*, so it is audited the way the other
+          # surfaces are — against the production standalone build, in a real browser —
+          # and with sequences, not only stills (a screenshot cannot show that the field
+          # never ends, never blanks and comes to rest).
+          node scripts/home-canvas-audit.mjs --base http://127.0.0.1:3200
+          node scripts/home-canvas-motion.mjs --base http://127.0.0.1:3200
       - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: audit-reports
-          path: docs/screenshots/live-cms/*.json
+          path: |
+            docs/screenshots/live-cms/*.json
+            docs/screenshots/bang-home/**/*.json
           if-no-files-found: ignore
 
   image:

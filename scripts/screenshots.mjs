@@ -46,10 +46,14 @@ const smallPhone = { deviceScaleFactor: scale, height: 640, width: 320 }
 const zoomed = { deviceScaleFactor: scale * 2, height: 450, width: 720 }
 
 const shots = [
-  { name: '01-home-entrance-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__actions .bang-btn', text: 'دیدن پروژه‌ها' } },
-  // The menu only exists after a client interaction, so this shot is also the hydration proof.
-  { name: '02-home-canvas-dots-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__dots .bang-dot' } },
-  { name: '03-home-entrance-390', path: '/', viewport: phone, waitMs: 2400 },
+  // The home page is a canvas: several works scattered around the wordmark, no carousel.
+  // The two shots below are stills at two viewports; the *behaviour* of the field (no end,
+  // no blank frame, no visible wrap, momentum, the custom cursor, open/close) is audited
+  // by `scripts/home-canvas-audit.mjs` and recorded as frame sequences by
+  // `scripts/home-canvas-motion.mjs`, under `docs/screenshots/bang-home/`.
+  { name: '01-home-canvas-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__tile' } },
+  { name: '02-home-canvas-index-1440', path: '/', viewport: desktop, waitMs: 2400, action: 'open-work-index', expect: { selector: '.bang-index__link' } },
+  { name: '03-home-canvas-390', path: '/', viewport: phone, waitMs: 2400, expect: { selector: '.bang-canvas__tile' } },
   { name: '04-projects-1920', path: '/projects', viewport: wide, fullPage: true },
   { name: '05-projects-1440', path: '/projects', viewport: desktop, fullPage: true },
   { name: '06-projects-1024', path: '/projects', viewport: laptop, fullPage: true },
@@ -87,7 +91,10 @@ const shots = [
   { name: '28-missing-logo-1440', path: '/', viewport: desktop, base: 'NOLOGO', waitMs: 2400, expect: { absent: '[data-logo="mark"]', selector: '[data-logo="wordmark"]', text: 'استودیوی نمونه' } },
   { name: '29-long-labels-nav-1440', path: '/projects', viewport: desktop, base: 'LONG', fullPage: true, expect: { selector: 'main' } },
   { name: '30-invalid-form-390', path: '/contact', viewport: phone, action: 'submit-empty-form', expect: { selector: '[aria-invalid="true"]' } },
-  { name: '39-form-success-1440', path: '/contact', viewport: desktop, action: 'submit-valid-form', expect: { selector: '[aria-live="polite"]', text: 'ثبت شد' } },
+  // The live region belongs to the form (`role="status"`), not to any other component that
+  // happens to announce something on this page — the copy-link controls are `aria-live`
+  // too, and an unscoped selector matches one of those instead of the submission.
+  { name: '39-form-success-1440', path: '/contact', viewport: desktop, action: 'submit-valid-form', expect: { selector: '[role="status"]', text: 'ثبت شد' } },
   { name: '31-zoom200-home-1440', path: '/', viewport: zoomed, waitMs: 2400 },
   { name: '32-zoom200-projects-1440', path: '/projects', viewport: zoomed, fullPage: true },
   { name: '33-reduced-motion-home-1440', path: '/', viewport: desktop, emulate: { reducedMotion: 'reduce' }, waitMs: 1200, expect: { selector: '.bang-canvas' } },
@@ -96,11 +103,12 @@ const shots = [
   { name: '36-about-390', path: '/about', viewport: phone, fullPage: true },
   { name: '37-contact-390', path: '/contact', viewport: phone, fullPage: true },
   { name: '38-en-objects-390', path: '/en/objects', viewport: phone, fullPage: true },
-  // Progressive enhancement: with scripting off the entrance cannot run, so the home
-  // page must still offer the CMS menu. Chromium parses `<noscript>` children into the
-  // DOM exactly when scripting is disabled, so a menu that `:has()` the no-JS caption
-  // *and* a real link to the archive is proof the fallback rendered (the links are
-  // siblings of the `<noscript>`, not inside it).
+  // Progressive enhancement, with scripting off: the canvas is served as a static
+  // composition (no client state to lose) and the selected-work list is an open section
+  // with a real link per work. The assertion is on the served markup — every tile and
+  // every link is in the HTML — because the theme's Suspense loading boundaries mean a
+  // JS-less browser paints the loading state on every route (see `docs/LIMITATIONS.md`
+  // §10); the canvas' own no-JS behaviour is pinned in `home-canvas-audit.mjs`.
   {
     name: '40-no-js-home-1440',
     javaScriptEnabled: false,
@@ -108,7 +116,7 @@ const shots = [
     viewport: desktop,
     waitMs: 600,
     fullPage: true,
-    expect: { selector: '.bang-canvas__actions a[href="/projects"]', text: 'دیدن پروژه‌ها' },
+    expect: { selector: '.bang-index__link[href^="/projects/"]' },
   },
   // The unified lightbox (issue #9): a gallery-block thumbnail opens the dialog over its
   // own backdrop. In Persian the *next* control (second step button) points left, in
@@ -230,6 +238,13 @@ const main = async () => {
         buttons.at(-1)?.click()
       })
       await new Promise((resolve) => setTimeout(resolve, 900))
+    }
+    if (shot.action === 'open-work-index') {
+      // On the canvas the selected-work list is a disclosure; open it so the shot shows
+      // the canonical links. Where the canvas is not running (no fine pointer, reduced
+      // motion) the list is already an open section and there is no control to click.
+      await page.evaluate(() => document.querySelector('.bang-index__toggle')?.click())
+      await new Promise((resolve) => setTimeout(resolve, 300))
     }
     if (shot.action === 'open-lightbox') {
       // The second trigger on the page is the gallery block's first thumbnail (the first

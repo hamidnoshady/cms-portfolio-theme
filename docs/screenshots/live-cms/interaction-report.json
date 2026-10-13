@@ -2,23 +2,18 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "detail": "Browse action 44px tall",
-      "name": "home: the Browse Projects action is visible before any interaction",
+      "detail": "12 tiles, 4 on screen, no carousel controls",
+      "name": "home: the canvas serves the works themselves — no carousel left over",
       "ok": true
     },
     {
-      "detail": "6 works, /projects/villa-398 → /projects/khaneye-noor",
-      "name": "home: dots switch the featured work",
+      "detail": "5 works, one destination each, first tab stop is the list",
+      "name": "home: every work is reachable without a pointer, from the served HTML",
       "ok": true
     },
     {
-      "detail": "3 canvas links, no repeats",
-      "name": "home: one accessible destination per work (visual copies are decorative)",
-      "ok": true
-    },
-    {
-      "detail": "rotation paused",
-      "name": "home: the pause control stops the rotation",
+      "detail": "drag stayed on /, click opened /projects/villa-398, Escape closed it",
+      "name": "home: a drag pans and a click opens the work under the pointer",
       "ok": true
     },
     {

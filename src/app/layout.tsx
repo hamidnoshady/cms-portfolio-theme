@@ -46,7 +46,19 @@ export const generateMetadata = async (): Promise<Metadata> => {
   }
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * `overlay` is the intercepted case study opened from the home canvas
+ * (`src/app/@overlay`). It renders *in addition to* `children`, which is what keeps the
+ * canvas mounted — and therefore in the same place — while a work is open. On every
+ * other URL the slot renders `@overlay/default.tsx`, which is empty.
+ */
+export default async function RootLayout({
+  children,
+  overlay,
+}: {
+  children: React.ReactNode
+  overlay: React.ReactNode
+}) {
   const headerList = await headers()
   const locale = headerList.get('x-arch-locale') === 'en' ? 'en' : 'fa'
   const site = await getSiteOrNull()
@@ -70,6 +82,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <DocumentLocale config={documentLocaleConfig()} />
         <SmoothScroll />
         {children}
+        {overlay}
       </body>
     </html>
   )

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -70,14 +70,123 @@ describe('media grid: 2 columns on phones and tablets, 3 on desktop', () => {
   })
 })
 
-describe('homepage menu labels', () => {
-  it('carry no permanent underline and signal the current page by weight instead', () => {
-    const [label] = blocks(components, '.home-row__label')
-    expect(label).toContain('text-decoration: none')
-    expect(label).not.toMatch(/underline/u)
+describe('homepage chrome', () => {
+  it('styles the shell the home page actually renders', () => {
+    // The confirmed bug this guards: `.bang-top` shipped in the markup with no rule
+    // anywhere, so the bar had no layout at all.
+    for (const selector of ['.bang-top', '.bang-footer', '.bang-stage', '.bang-canvas', '.bang-wordmark', '.bang-index']) {
+      const [rule] = blocks(components, selector)
+      expect(rule, `${selector} has no style rule`).toBeTruthy()
+    }
+    const [top] = blocks(components, '.bang-top')
+    expect(top).toMatch(/display:\s*flex/u)
+    expect(top).toMatch(/min-block-size:\s*var\(--bang-chrome\)/u)
+    const [footer] = blocks(components, '.bang-footer')
+    expect(footer).toMatch(/justify-content:\s*space-between/u)
+  })
+
+  it('takes every tile box from the composition variables', () => {
+    const [tile] = blocks(components, '.bang-canvas__tile')
+    for (const variable of ['--tile-x', '--tile-y', '--tile-w', '--tile-ratio']) {
+      expect(tile, `${variable} is not applied`).toContain(variable)
+    }
+    // The height cap is a *viewport* proportion, expressed against the plane the tile
+    // is measured in (46% desktop, 38% on phones) — not a percentage of the plane.
+    expect(tile).toMatch(/max-block-size:\s*calc\(46%\s*\/\s*var\(--bang-plane/u)
+    const phone = mediaQueries(components).get('(max-width: 47.99rem)')?.join('\n') ?? ''
+    expect(phone).toMatch(/max-block-size:\s*calc\(38%\s*\/\s*var\(--bang-plane/u)
+    // The field is bounded by its box, so a wrapped tile can never escape the page.
+    const [field] = blocks(components, '.bang-canvas')
+    expect(field).toMatch(/overflow:\s*hidden/u)
+  })
+
+  it('lays the tiles out in a plane larger than the viewport, and wraps by exactly that plane', () => {
+    // The plane is what makes an endless field possible: a composition that only filled
+    // one screen leaves an empty frame the moment the visitor pans, and a period that
+    // is not the plane would repeat the composition at the wrong distance.
+    const [world] = blocks(components, '.bang-canvas__world')
+    expect(world).toMatch(/inline-size:\s*calc\(var\(--bang-plane[^)]*\)\s*\*\s*100%\)/u)
+    expect(world).toMatch(/block-size:\s*calc\(var\(--bang-plane[^)]*\)\s*\*\s*100%\)/u)
+    // Physical offsets on purpose: the composition and the wrapping math share one
+    // coordinate system, which the logical properties would mirror in RTL.
+    expect(world).toMatch(/left:\s*0/u)
+    expect(world).not.toMatch(/inset-inline-start/u)
+    const [home] = blocks(components, '.bang-home')
+    expect(home).toMatch(/--bang-plane:\s*2/u)
+    // The static presentation fits the whole plane in the box instead of clipping it.
+    // (Read the raw source: this selector is a compound one the helper's simple
+    // pattern is not built for.)
+    const staticRule = components.match(/html:not\(\[data-bang-canvas='pan'\]\)\s*\.bang-canvas__world\s*\{([^}]*)\}/u)
+    expect(staticRule?.[1], 'the static presentation has no plane rule').toBeTruthy()
+    expect(staticRule?.[1]).toMatch(/scale:\s*calc\(1\s*\/\s*var\(--bang-plane/u)
+  })
+
+  it('carries no permanent underline on navigation, and marks the current page by weight', () => {
+    const [link] = blocks(components, '.bang-nav__link')
+    expect(link).toContain('text-decoration: none')
     expect(components).not.toMatch(/text-decoration-line:\s*underline/u)
-    const current = blocks(components, ".home-row__link[aria-current='page'] .home-row__label")
+    const current = blocks(components, ".bang-nav__link[aria-current='page']")
     expect(current[0]).toMatch(/font-weight/u)
+  })
+
+  it('has no rules left for the removed home entrance', () => {
+    for (const selector of ['.home-row', '.home-menu', '.home-logo', '.home-cue', '.home-bar', '.home-intro', '.menu-row']) {
+      expect(components, `${selector} survived the rewrite`).not.toContain(`${selector} `)
+    }
+    for (const file of ['src/components/home/HomeStage.tsx', 'src/components/portfolio/CanvasStage.tsx']) {
+      expect(() => read(file)).toThrow()
+    }
+  })
+
+  it('keeps the custom cursor out of the hit-testing path and only on capable pointers', () => {
+    const [cursor] = blocks(components, '.bang-cursor')
+    expect(cursor).toMatch(/pointer-events:\s*none/u)
+    expect(cursor).toMatch(/position:\s*fixed/u)
+    // Hidden by default; shown only while the client has decided it may run.
+    expect(cursor).toContain('display: none')
+    expect(components).toContain("html[data-bang-cursor='on'] .bang-cursor { display: block; }")
+    // And never over an open case study.
+    expect(components).toMatch(/html\[data-bang-overlay='open'\] \.bang-cursor \{ display: none !important; \}/u)
+  })
+
+  it('gives the case-study overlay the whole viewport above the canvas, and locks the page behind it', () => {
+    const [overlay] = blocks(components, '.bang-overlay')
+    expect(overlay).toContain('position: fixed')
+    expect(overlay).toContain('inset: 0')
+    expect(overlay).toMatch(/overflow-y:\s*auto/u)
+    const z = Number(overlay!.match(/z-index:\s*(\d+)/u)?.[1])
+    const field = Number(blocks(components, '.bang-canvas')[0]!.match(/z-index:\s*(\d+)/u)?.[1] ?? 0)
+    expect(z).toBeGreaterThan(field)
+    expect(components).toMatch(/html\[data-bang-overlay='open'\],\s*\n\s*html\[data-bang-overlay='open'\] body \{ overflow: hidden; \}/u)
+  })
+})
+
+describe('theme tokens the CMS also writes', () => {
+  it('keeps the design’s square corners when a tenant theme sets a radius', () => {
+    // `themeCss` writes `body{--radius:…}` from the site's settings and is unlayered,
+    // which beats `:root` for every element in the document.
+    expect(tokens).toMatch(/--radius-square:\s*0px/u)
+    const rule = tokens.match(/html body \{\s*--radius: var\(--radius-square\);\s*\}/u)
+    expect(rule, 'the radius re-assertion is missing').toBeTruthy()
+    // Unlayered: a rule inside `@layer base` would lose to the injected one, whatever
+    // its specificity. Comments are stripped so the prose above cannot vouch for the
+    // code below.
+    const code = tokens.replace(/\/\*[\s\S]*?\*\//gu, '')
+    expect(code).not.toMatch(/@layer/u)
+    expect(code).toMatch(/html body \{\s*--radius: var\(--radius-square\);\s*\}/u)
+  })
+
+  it('ships no hardcoded reference identity in production source', () => {
+    const offenders: string[] = []
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = `${dir}/${entry.name}`
+        if (entry.isDirectory()) walk(full)
+        else if (/\.(?:ts|tsx|css)$/u.test(entry.name) && /estudiobang/iu.test(read(full))) offenders.push(full)
+      }
+    }
+    walk('src')
+    expect(offenders).toEqual([])
   })
 })
 

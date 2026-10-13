@@ -24,7 +24,9 @@
     "a11y": "node scripts/a11y-audit.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "vendor:build": "tsc -p vendor/site-runtime/tsconfig.json",
-    "audit": "node scripts/a11y-audit.mjs && node scripts/interaction-audit.mjs"
+    "audit": "node scripts/a11y-audit.mjs && node scripts/interaction-audit.mjs",
+    "audit:home": "node scripts/home-canvas-audit.mjs",
+    "audit:home:motion": "node scripts/home-canvas-motion.mjs"
   },
   "dependencies": {
     "@eshobe/site-runtime": "file:vendor/site-runtime",

@@ -210,7 +210,46 @@ Kept here because each one looks like an omission until you know it was a decisi
   `/api/footer`, `/api/form-submissions` and `/api/revalidate` are called. Projects,
   education and notes are all categorised posts, as the contract prescribes.
 
-## 10. Unverified by environment, summarised
+## 10. The home canvas — reference fidelity, and what is measured instead
+
+**The reference's own geometry could not be observed from this environment.** `bybang.co`
+is client-rendered, the sandbox shell has no egress (a text fetch returns chrome only, and
+the archive's CDX API answered 500), and `docs/screenshots/*` are captures of an earlier
+Persian-RTL build of *this* theme. An image search for the site was also tried and returned
+unrelated pages — nothing in this repository depicts the reference, so no measurement of it
+is possible here. The home canvas is therefore a
+reconstruction from the reference audit in
+[`docs/bang-eshobe-rebuild-plan.md`](./bang-eshobe-rebuild-plan.md) plus the chrome text
+that is observable (language switch, `BCN`/`BUE` clocks, footer copyright line, `/about`,
+`/projects/<slug>`, `/legal`).
+
+What that means concretely:
+
+- **No pixel-fidelity claim is made.** Composition, tile sizing, depth order, cursor
+  geometry, wheel speed, momentum and ease are *this theme's* numbers, chosen to satisfy
+  the properties the reference's behaviour is described by (several works at once, no end,
+  no blank seam, no visible wrap, a cursor that names the work under it, a click that opens
+  it). They are pinned by tests and audits, not by measurement of the reference.
+- **Nothing about the reference was invented as a "gesture".** Wheel and trackpad pan;
+  drag and touch pan with a released flick; a pinch still zooms the page. There is no
+  keyboard-initiated zoom, rotation, orbit or inertia on the composition itself, because
+  none of that could be observed on the reference.
+- **The field's arithmetic is the contract.** `src/components/home/canvasPlan.ts` and
+  `panEngine.ts` are pure and unit-tested; `scripts/home-canvas-audit.mjs` (31 checks) and
+  `scripts/home-canvas-motion.mjs` (13 checks, with frame sequences) exercise the built
+  theme in a real browser. Those are the evidence; a still image is not.
+
+**Without JavaScript the page shows the loading state, on every route.** The theme's
+routing is built on Suspense boundaries — `src/app/loading.tsx` and a `loading.tsx` per
+segment — so a JS-less browser stays in the fallback and never sees the streamed swap.
+This predates the canvas (the old entrance had the same property, see `docs/QA.md` §25) and
+applies equally to the untouched archives: the audit asserts both that the canvas' markup —
+every tile, every index link — *is* in the served HTML, and that the untouched archives
+paint the same frame under the same conditions. Closing this properly means redesigning the
+loading boundaries so the shell and content are server-rendered into the first paint, which
+is a routing change with its own risk profile and is not part of this work.
+
+## 11. Unverified by environment, summarised
 
 | Claim | Status |
 | --- | --- |
@@ -218,6 +257,8 @@ Kept here because each one looks like an omission until you know it was a decisi
 | Real CMS content | **re-verified live on 2026-10-04** (routes, a11y 11/11, interactions 9/9 at the time, manifest parsed) — see `docs/QA.md` §8; the interaction harness now runs 21 checks (§2) |
 | Dev-mode hydration | not observable in the original sandbox; **exercised live on 2026-10-04** (form validation and interaction audit against `next dev`) — see `docs/QA.md` §8 |
 | Real media CDN | not available; same-origin placeholders used |
+| Reference fidelity of the home canvas (`bybang.co`) | **not observable** — no egress, client-rendered reference; behaviour is pinned by tests and browser audits instead, see §10 |
+| No-JavaScript presentation | every route paints the Suspense loading state without a script (pre-existing boundary), see §10 |
 | Deployment (Coolify / GHCR) | **not performed** — no deployment was requested; tag-driven GHCR publishing now exists (`.github/workflows/publish-image.yml`), the image was built and smoke-tested locally against the mock CMS, but nothing has been pushed and the manifest still declares no `deployment` block |
 | Real preview token from the CMS | not available; the HMAC path is unit-tested |
 | Legal / accessibility audit by a third party | not performed |

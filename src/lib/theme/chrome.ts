@@ -13,7 +13,8 @@ import { switchTargetsForPath, switchTargets, type SwitchTarget, type Translated
 export type Chrome = {
   footerLinks: NavLink[]
   headerLinks: NavLink[]
-  logo: { compact: null | string; primary: null | string }
+  /** `home` is the dedicated home mark when the customer uploaded one (`brandLogo`). */
+  logo: { compact: null | string; home: null | string; primary: null | string }
   switchTargets: SwitchTarget[]
 }
 
