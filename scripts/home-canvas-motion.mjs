@@ -143,10 +143,18 @@ const summarise = async (results) => {
   await appendFile(path, `${body}\n`, 'utf8').catch(() => null)
 }
 
+const ANNOTATION_TITLE = 'home canvas motion'
+
 const results = []
+/**
+ * A failed check is also emitted as a workflow annotation, because a job's raw log can be
+ * unreachable from outside the run (forks, large logs) while annotations are readable
+ * through the API — an audit nobody can read is not evidence.
+ */
 const record = (name, ok, detail) => {
   results.push({ detail, name, ok })
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`)
+  if (!ok) console.log(`::error title=${ANNOTATION_TITLE}: ${name}::${String(detail ?? '').slice(0, 500).replace(/\n/gu, ' ')}`)
 }
 
 const main = async () => {
@@ -347,5 +355,6 @@ const main = async () => {
 
 main().catch((error) => {
   console.error(error)
+  console.log(`::error title=home canvas motion audit crashed::${String(error).slice(0, 500).replace(/\n/gu, ' ')}`)
   process.exit(1)
 })

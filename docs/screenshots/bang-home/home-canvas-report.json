@@ -2,7 +2,7 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "detail": "data-bang-canvas=pan",
+      "detail": "data-bang-canvas=pan after 7ms",
       "name": "canvas mode engages on a fine pointer",
       "ok": true
     },
@@ -22,7 +22,7 @@
       "ok": true
     },
     {
-      "detail": "translate3d(0px, 0px, 0px) → translate3d(0px, -7649.88px, 0px)",
+      "detail": "translate3d(0px, 0px, 0px) → translate3d(0px, -7650.02px, 0px)",
       "name": "the plane actually moves",
       "ok": true
     },
@@ -36,7 +36,7 @@
       "ok": true
     },
     {
-      "detail": "travelled 7650px for 7800px of wheel (largest step 260.1px)",
+      "detail": "travelled 7650px for 7800px of wheel (largest step 260.2px)",
       "name": "the plane follows the wheel, never runs ahead of it and never reverses",
       "ok": true
     },
@@ -56,7 +56,7 @@
       "ok": true
     },
     {
-      "detail": "centre 973,488 vs pointer 974,489 (0.8px), size 26px",
+      "detail": "centre 973,477 vs pointer 974,477 (0.8px), size 26px",
       "name": "the cursor is drawn at the pointer",
       "ok": true
     },
@@ -76,7 +76,7 @@
       "ok": true
     },
     {
-      "detail": "translate3d(0px, -7800px, 0px) → translate3d(188.355px, -7737.21px, 0px)",
+      "detail": "translate3d(0px, -7800px, 0px) → translate3d(183.271px, -7738.91px, 0px)",
       "name": "a drag moves the field one-to-one with the pointer",
       "ok": true
     },
@@ -91,12 +91,12 @@
       "ok": true
     },
     {
-      "detail": "translate3d(206.59px, -7731.14px, 0px) → translate3d(206.59px, -7731.14px, 0px)",
+      "detail": "translate3d(205.309px, -7731.56px, 0px) → translate3d(205.309px, -7731.56px, 0px)",
       "name": "the canvas holds still while a work is open over it",
       "ok": true
     },
     {
-      "detail": "translate3d(206.59px, -7731.14px, 0px) → translate3d(206.59px, -7731.14px, 0px)",
+      "detail": "translate3d(205.309px, -7731.56px, 0px) → translate3d(205.309px, -7731.56px, 0px)",
       "name": "closing restores the canvas position exactly",
       "ok": true
     },

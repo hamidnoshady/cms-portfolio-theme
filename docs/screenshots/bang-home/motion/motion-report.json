@@ -11,8 +11,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -381.009,
-          "y": -3067.82
+          "x": -380.061,
+          "y": -3067.31
         },
         "visible": 6
       }
@@ -27,8 +27,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -378.941,
-          "y": -3066.7
+          "x": -378.012,
+          "y": -3066.19
         },
         "visible": 6
       },
@@ -41,8 +41,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -380.903,
-          "y": -3067.77
+          "x": -379.943,
+          "y": -3067.24
         },
         "visible": 6
       },
@@ -55,8 +55,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -381.009,
-          "y": -3067.82
+          "x": -380.061,
+          "y": -3067.31
         },
         "visible": 6
       }
@@ -143,8 +143,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -381.009,
-          "y": -3067.82
+          "x": -380.061,
+          "y": -3067.31
         },
         "visible": 6
       },
@@ -157,8 +157,8 @@
         "hrefs": "/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor|/projects/ofogh-office|/objects/raw-lamp|/projects/bagh-va-divar|/projects/villa-398|/projects/khaneye-noor",
         "tiles": 12,
         "transform": {
-          "x": -381.009,
-          "y": -3067.82
+          "x": -380.061,
+          "y": -3067.31
         },
         "visible": 6
       }
@@ -202,7 +202,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -414.764
+          "y": -416.747
         },
         "visible": 5
       },
@@ -216,7 +216,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -672.342
+          "y": -672.584
         },
         "visible": 4
       },
@@ -230,7 +230,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -931.945
+          "y": -929.135
         },
         "visible": 4
       },
@@ -244,7 +244,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1191.78
+          "y": -1194.05
         },
         "visible": 4
       },
@@ -258,7 +258,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1451.87
+          "y": -1452.21
         },
         "visible": 4
       },
@@ -272,9 +272,9 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1714.34
+          "y": -1711.84
         },
-        "visible": 3
+        "visible": 2
       },
       {
         "cursor": {
@@ -286,7 +286,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -1969.55
+          "y": -1971.86
         },
         "visible": 4
       },
@@ -300,7 +300,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2231.47
+          "y": -2234.35
         },
         "visible": 4
       },
@@ -314,7 +314,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2491.8
+          "y": -2492.18
         },
         "visible": 4
       },
@@ -328,7 +328,7 @@
         "tiles": 12,
         "transform": {
           "x": 0,
-          "y": -2751.78
+          "y": -2751.84
         },
         "visible": 5
       }
@@ -336,12 +336,12 @@
   },
   "results": [
     {
-      "detail": "y 0 → -2751.78",
+      "detail": "y 0 → -2751.84",
       "name": "the wheel pans the field without ever resetting it",
       "ok": true
     },
     {
-      "detail": "steps 170, 245, 258, 260, 260, 260, 262, 255, 262, 260, 260",
+      "detail": "steps 170, 247, 256, 257, 265, 258, 260, 260, 262, 258, 260",
       "name": "every step moves the plane forward, none of them jumps a seam",
       "ok": true
     },
@@ -351,7 +351,7 @@
       "ok": true
     },
     {
-      "detail": "minimum 3 tiles",
+      "detail": "minimum 2 tiles",
       "name": "a tile is on screen in every frame (no blank, no seam)",
       "ok": true
     },
@@ -370,7 +370,7 @@
       "ok": true
     },
     {
-      "detail": "x -275 → -364 (89px of momentum)",
+      "detail": "x -275 → -363 (88px of momentum)",
       "name": "the released flick keeps travelling in the same direction, then stops",
       "ok": true
     },
@@ -384,12 +384,12 @@
       "ok": true
     },
     {
-      "detail": "y -3067.82 → -3067.82",
+      "detail": "y -3067.31 → -3067.31",
       "name": "the canvas is frozen, not reset, behind the open work",
       "ok": true
     },
     {
-      "detail": "-381.009,-3067.82 → -381.009,-3067.82",
+      "detail": "-380.061,-3067.31 → -380.061,-3067.31",
       "name": "closing returns to the same place on the field",
       "ok": true
     },
