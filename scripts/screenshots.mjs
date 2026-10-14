@@ -52,7 +52,7 @@ const shots = [
   // by `scripts/home-canvas-audit.mjs` and recorded as frame sequences by
   // `scripts/home-canvas-motion.mjs`, under `docs/screenshots/bang-home/`.
   { name: '01-home-canvas-1440', path: '/', viewport: desktop, waitMs: 2400, expect: { selector: '.bang-canvas__tile' } },
-  { name: '02-home-canvas-index-1440', path: '/', viewport: desktop, waitMs: 2400, action: 'open-work-index', expect: { selector: '.bang-index__link' } },
+  { name: '02-home-canvas-index-1440', path: '/', viewport: desktop, waitMs: 2400, action: 'open-work-index', expect: { selector: '.bang-canvas__tile[data-primary-tile="true"]' } },
   { name: '03-home-canvas-390', path: '/', viewport: phone, waitMs: 2400, expect: { selector: '.bang-canvas__tile' } },
   { name: '04-projects-1920', path: '/projects', viewport: wide, fullPage: true },
   { name: '05-projects-1440', path: '/projects', viewport: desktop, fullPage: true },
@@ -116,7 +116,7 @@ const shots = [
     viewport: desktop,
     waitMs: 600,
     fullPage: true,
-    expect: { selector: '.bang-index__link[href^="/projects/"]' },
+    expect: { selector: '.bang-canvas__tile[data-primary-tile="true"][href^="/projects/"]' },
   },
   // The unified lightbox (issue #9): a gallery-block thumbnail opens the dialog over its
   // own backdrop. In Persian the *next* control (second step button) points left, in
@@ -240,10 +240,8 @@ const main = async () => {
       await new Promise((resolve) => setTimeout(resolve, 900))
     }
     if (shot.action === 'open-work-index') {
-      // On the canvas the selected-work list is a disclosure; open it so the shot shows
-      // the canonical links. Where the canvas is not running (no fine pointer, reduced
-      // motion) the list is already an open section and there is no control to click.
-      await page.evaluate(() => document.querySelector('.bang-index__toggle')?.click())
+      // Focus the first primary work tile so keyboard discovery and caption reveal are shown.
+      await page.evaluate(() => document.querySelector('.bang-canvas__tile[data-primary-tile="true"]')?.focus())
       await new Promise((resolve) => setTimeout(resolve, 300))
     }
     if (shot.action === 'open-lightbox') {
