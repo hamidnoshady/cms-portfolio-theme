@@ -1,16 +1,17 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
+import { CopyButton } from '@/components/contact/CopyButton'
+import { MapFrame } from '@/components/contact/MapFrame'
 import { ContentContainer } from '@/components/design/Container'
 import { DecorativeMark, type MarkVariant } from '@/components/design/DecorativeMark'
 import { Rule } from '@/components/design/Rule'
 import { Type } from '@/components/design/Type'
-import { CopyButton } from '@/components/contact/CopyButton'
-import { MapFrame } from '@/components/contact/MapFrame'
 import { CmsForm } from '@/components/forms/CmsForm'
 import { CmsImage, FramedMedia } from '@/components/media/CmsImage'
 import { Gallery, galleryColumns, type GalleryItem } from '@/components/media/Gallery'
 import { LightboxScope } from '@/components/media/Lightbox'
+import { TeamBiography } from '@/components/portfolio/TeamBiography'
 import {
   Accordion,
   AccordionContent,
@@ -18,36 +19,46 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import { toTeamMember } from '@/domain/portfolio'
+import { localizedPostHref } from '@/lib/cms/content'
 import type { SiteContext } from '@/lib/cms/context'
 import { getFormById, getPosts, getPostsByIds } from '@/lib/cms/endpoints'
 import type { BlockRow, CmsLink, FormDoc, Media, PostDoc } from '@/lib/cms/types'
-import { centerFromFields, parseCenter, mapSource } from '@/lib/maps/mapSource'
-import { formatNumber, toLocaleDigits } from '@/lib/runtime'
-import { localizedPostHref } from '@/lib/cms/content'
+import { centerFromFields, mapSource, parseCenter } from '@/lib/maps/mapSource'
 import { resolveCmsLink, type LinkInput, type ResolvedLink } from '@/lib/routing/links'
+import { formatNumber, toLocaleDigits } from '@/lib/runtime'
+import { labels as dictionary } from '@/lib/theme/labels'
 import { cn } from '@/lib/utils/cn'
 import { dateText } from '@/lib/utils/dates'
-import { isMedia, lightboxItem, mediaPresentation, mediaUrl } from '@/lib/utils/media'
 import { lightboxItems } from '@/lib/utils/lexical'
-import { labels as dictionary } from '@/lib/theme/labels'
-import { TeamBiography } from '@/components/portfolio/TeamBiography'
-import { toTeamMember } from '@/domain/portfolio'
+import { isMedia, lightboxItem, mediaPresentation, mediaUrl } from '@/lib/utils/media'
 import { warnUnknown } from './node'
 import { RichText } from './RichText'
 
-/**
- * Page-layout block registry.
- *
- * Rules applied to every block:
- * - The page renders only blocks the **site's own allowlist** permits; anything else
- *   is skipped with a diagnostic (`warnUnknown`), never a crash.
- * - Block order and ids come from the CMS row order; nothing is re-sorted.
- * - Rich text is rendered through `<RichText>`, which keeps each field's own direction.
- * - No block introduces colour, shadows or rounded surfaces; the palette stays
- *   white/black and the line system carries the structure.
- */
+const normalizeHeading = (value: null | string | undefined): string =>
+  String(value ?? '')
+    .replace(/\s*[—–-]\s*نمونه|\s*\(نمونه\)|\s*\(sample\)/giu, '')
+    .trim()
+    .toLowerCase()
 
-export const Blocks = async ({ blocks, context }: { blocks: BlockRow[] | null | undefined; context: SiteContext }) => {
+export const isDuplicatePageHeading = (
+  blockHeading: null | string | undefined,
+  pageTitle: null | string | undefined,
+): boolean => {
+  const a = normalizeHeading(blockHeading)
+  const b = normalizeHeading(pageTitle)
+  return Boolean(a && b && a === b)
+}
+
+export const Blocks = async ({
+  blocks,
+  context,
+  pageTitle,
+}: {
+  blocks: BlockRow[] | null | undefined
+  context: SiteContext
+  pageTitle?: null | string
+}) => {
   const allowed = new Set(context.site.blocks)
   const rows = (blocks ?? []).filter((block) => block?.blockType)
 
@@ -58,8 +69,14 @@ export const Blocks = async ({ blocks, context }: { blocks: BlockRow[] | null | 
       warnUnknown(`${blockType} (not in the site's block allowlist)`)
       continue
     }
+    const rawHeading = typeof block.heading === 'string' ? block.heading : null
+    const sanitizedRow =
+      index === 0 && isDuplicatePageHeading(rawHeading, pageTitle)
+        ? { ...block, heading: null }
+        : block
+
     rendered.push(
-      <Block context={context} key={block.id ?? `${blockType}-${index}`} row={block} />,
+      <Block context={context} key={block.id ?? `${blockType}-${index}`} row={sanitizedRow} />,
     )
   }
   return <>{rendered}</>
@@ -94,8 +111,6 @@ const Block = async ({ context, row }: { context: SiteContext; row: BlockRow }) 
     case 'archive':
       return <ArchiveBlock context={context} row={row} />
     default:
-      // Includes `productGrid`: this theme does not claim store support, so a grid of
-      // products is skipped rather than half-rendered.
       warnUnknown(row.blockType ?? 'unknown')
       return null
   }
@@ -133,11 +148,6 @@ const BlockShell = ({
   </ContentContainer>
 )
 
-/**
- * Anchor scope for a rich-text field inside a block: the row id the CMS assigned
- * (unique within the page and stable across renders), plus the field's place in the
- * row. Without a row id the field falls back to its content hash (see `RichText`).
- */
 const rowScope = (row: BlockRow, part = ''): string | undefined =>
   typeof row.id === 'string' && row.id ? `${row.id}${part ? `-${part}` : ''}` : undefined
 
@@ -145,10 +155,6 @@ const asMedia = (value: unknown): Media | null => (isMedia(value as never) ? (va
 
 /* --- blocks --------------------------------------------------------------- */
 
-/**
- * Column widths are the editor's: each column spans part of a 12-track grid on wide
- * screens and stacks on phones. Written out in full so Tailwind generates every class.
- */
 const COLUMN_SPAN: Record<string, string> = {
   full: 'lg:col-span-12',
   half: 'lg:col-span-6',
@@ -195,10 +201,6 @@ const ContentBlock = async ({ context, row }: { context: SiteContext; row: Block
   )
 }
 
-/**
- * A standalone photograph is content too, so it opens in the same lightbox as a
- * gallery — a scope of one, with no previous/next controls.
- */
 const MediaBlock = ({ context, row }: { context: SiteContext; row: BlockRow }) => {
   const media = asMedia(row.media)
   if (!media) {
@@ -243,8 +245,6 @@ const CtaBlock = async ({ context, row }: { context: SiteContext; row: BlockRow 
       entries.map(async (entry) => {
         const link = entry.link as (LinkInput & Record<string, unknown>) | undefined
         const resolved = link ? await resolveCmsLink(link, context) : null
-        // A button whose destination does not resolve is left out rather than shown
-        // as a control that goes nowhere.
         return link && resolved ? { link, resolved } : null
       }),
     )
@@ -339,10 +339,6 @@ const ContactBlock = ({ context, row }: { context: SiteContext; row: BlockRow })
   const mapUrl = typeof row.mapUrl === 'string' && /^https:\/\//u.test(row.mapUrl) ? row.mapUrl : null
   const blockCenter = centerFromFields(row.latitude, row.longitude)
 
-  // The map is opt-in per site through runtime settings (provider, public key, centre);
-  // with none set it is OpenStreetMap, which is free and needs no key. Coordinates come
-  // from the site setting, else the block's own latitude/longitude, else its map link.
-  // A block that has no usable coordinates keeps the plain link, as before.
   const settings = context.site.themeRuntime?.settings ?? {}
   const map = mapSource({
     address,
@@ -354,8 +350,6 @@ const ContactBlock = ({ context, row }: { context: SiteContext; row: BlockRow })
   })
 
   if (!email && phones.length === 0 && !address && !hours && !mapUrl && !blockCenter) {
-    // A `contact` block whose CMS fields are all empty is a content problem, not a
-    // rendering one — say so rather than leaving a silently blank column.
     warnUnknown('contact block with no address, email, phones, hours, coordinates or map link')
     return null
   }
@@ -377,8 +371,6 @@ const ContactBlock = ({ context, row }: { context: SiteContext; row: BlockRow })
 
   return (
     <BlockShell heading={heading} introText={introText} mark="offset-l">
-      {/* Email and phone are why most visitors come: set large, one per row, with a
-          copy control beside the link. Numbers keep their own left-to-right order. */}
       {email || phones.length > 0 ? (
         <dl className="reach">
           {email ? (
@@ -448,12 +440,6 @@ const FormBlock = async ({ context, row }: { context: SiteContext; row: BlockRow
   )
 }
 
-/**
- * A gallery row's medium. The contract documents `images` as populated media
- * (`[<Media>…]`); a Payload *array* field delivers rows instead (`[{ image: <Media> }]`).
- * Both are real shapes a site can send, so both are read — an id-only entry (depth 0)
- * is skipped rather than guessed at.
- */
 const galleryMedia = (entry: unknown): Media | null => {
   if (!entry || typeof entry === 'string') return null
   const direct = asMedia(entry)
@@ -618,12 +604,9 @@ const ArchiveRow = async ({ context, post }: { context: SiteContext; post: PostD
   )
 }
 
-/* --- link helpers (blocks store `link` groups like navigation) ------------ */
-
 const linkLabel = (link: Record<string, unknown>, resolved: ResolvedLink): string =>
   (typeof link.label === 'string' && link.label.trim()) || resolved.href
 
-/** A resolved CMS link: client navigation inside the site, a plain anchor outside it. */
 const CmsLinkAnchor = ({
   children,
   className,

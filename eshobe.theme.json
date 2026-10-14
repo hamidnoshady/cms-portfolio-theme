@@ -1,8 +1,8 @@
 {
-  "name": "Bang Portfolio",
-  "nameFa": "پوسته نمونه‌کار بنگ",
-  "key": "bang-portfolio",
   "contractVersion": 1,
+  "key": "bang-portfolio",
+  "name": "BANG — Architectural Portfolio",
+  "nameFa": "بنگ — قالب портفولیو معماری",
   "siteTypes": ["portfolio"],
   "locales": ["fa", "en"],
   "proxiesApi": true,
@@ -14,61 +14,138 @@
     "team": true,
     "featuredWork": true
   },
-  "design": {
-    "accent": "#000000",
-    "background": "#ffffff",
-    "foreground": "#000000",
-    "lineHeight": 1.6,
-    "primary": "#000000",
-    "radius": "none"
-  },
   "build": {
-    "baseDirectory": "/",
-    "buildCommand": "npm run build",
     "buildPack": "dockerfile",
     "dockerfileLocation": "Dockerfile",
-    "healthCheckPath": "/api/health",
     "installCommand": "npm ci",
-    "isStatic": false,
+    "buildCommand": "npm run build",
+    "startCommand": "npm run start:standalone",
     "port": 3000,
-    "startCommand": "npm run start:standalone"
+    "healthCheckPath": "/api/health"
   },
-  "env": [
-    {"key": "ESHOBE_CMS_URL", "labelFa": "نشانی سامانهٔ محتوا", "help": "مقدار را سکو می‌نویسد؛ پوسته فقط اعلام می‌کند که آن را می‌خواند.", "required": true, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_SITE_DOMAIN", "labelFa": "دامنهٔ سایت", "help": "برای ساخت نشانی‌های canonical و نقشهٔ سایت.", "required": false, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_PUBLIC_ORIGIN", "labelFa": "نشانی عمومی این استقرار", "help": "در حالت پیش‌نمایش با دامنهٔ اصلی تفاوت دارد.", "required": false, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_SITE_ID", "labelFa": "شناسهٔ سایت", "required": false, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_API_KEY", "labelFa": "کلید دسترسی سایت", "help": "فقط روی سرور خوانده می‌شود و هرگز به بستهٔ مرورگر راه نمی‌یابد.", "required": false, "secret": true, "source": "platform"},
-    {"key": "ESHOBE_DEFAULT_LOCALE", "labelFa": "زبان پیش‌فرض", "required": false, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_LOCALES", "labelFa": "زبان‌های پشتیبانی‌شده", "required": false, "secret": false, "source": "platform"},
-    {"key": "ESHOBE_REVALIDATE_SECRET", "labelFa": "کلید بازاعتبارسنجی", "help": "برای بررسی HMAC روی بدنهٔ خام درخواست.", "required": false, "secret": true, "source": "platform"},
-    {"key": "ESHOBE_PREVIEW_SECRET", "labelFa": "کلید پیش‌نمایش", "help": "تا وقتی خالی باشد، پیش‌نمایش غیرفعال است.", "required": false, "secret": true, "source": "platform"},
-    {"key": "ESHOBE_ALLOW_HOST_TENANT", "labelFa": "تشخیص مستأجر از Host", "help": "روشن یا خاموش؛ به‌صورت پیش‌فرض هنگام وجود کلید سایت غیرفعال است.", "required": false, "secret": false, "source": "platform"}
-  ],
-  "settings": {
-    "canvasMotion": {"type": "boolean", "default": true, "labelFa": "حرکت کانوس خانه", "labelEn": "Home canvas motion", "help": "Respects prefers-reduced-motion; shows static composition when reduced."},
-    "canvasDensity": {"type": "number", "default": 5, "min": 3, "max": 8, "labelFa": "تراکم کانوس", "labelEn": "Canvas density"},
-    "archiveLayout": {"type": "select", "default": "auto", "labelFa": "چیدمان بایگانی", "labelEn": "Archive layout", "options": [{"value": "auto", "labelFa": "خودکار", "labelEn": "Auto"}, {"value": "list", "labelFa": "فهرست", "labelEn": "List"}, {"value": "cards", "labelFa": "کارت‌ها", "labelEn": "Cards"}]},
-    "clockZoneA": {"type": "text", "default": "America/Argentina/Buenos_Aires", "labelFa": "ناحیه زمانی اول", "labelEn": "First clock IANA zone"},
-    "clockLabelA": {"type": "text", "default": "BUE", "labelFa": "برچسب ساعت اول", "labelEn": "First clock label"},
-    "clockZoneB": {"type": "text", "default": "Europe/Madrid", "labelFa": "ناحیه زمانی دوم", "labelEn": "Second clock IANA zone"},
-    "clockLabelB": {"type": "text", "default": "BCN", "labelFa": "برچسب ساعت دوم", "labelEn": "Second clock label"}
-  },
-  "contentSlots": [
-    {"key": "home", "type": "page", "required": false, "labelFa": "صفحهٔ خانه", "labelEn": "Home page"},
-    {"key": "about", "type": "page", "required": false, "labelFa": "صفحهٔ درباره", "labelEn": "About page"},
-    {"key": "contact", "type": "page", "required": false, "labelFa": "صفحهٔ تماس", "labelEn": "Contact page"},
-    {"key": "careers", "type": "page", "required": false, "labelFa": "صفحهٔ همکاری", "labelEn": "Careers page"},
-    {"key": "legal", "type": "page", "required": false, "labelFa": "صفحهٔ حقوقی", "labelEn": "Legal page"},
-    {"key": "projectsCategory", "type": "category", "required": false, "labelFa": "دستهٔ پروژه‌ها", "labelEn": "Projects category"},
-    {"key": "objectsCategory", "type": "category", "required": false, "labelFa": "دستهٔ آبژه‌ها", "labelEn": "Objects category"},
-    {"key": "contactForm", "type": "form", "required": false, "labelFa": "فرم تماس", "labelEn": "Contact form", "help": "فیلدها از خود فرم خوانده می‌شوند؛ پوسته فهرست فیلد نمی‌سازد."},
-    {"key": "careersForm", "type": "form", "required": false, "labelFa": "فرم همکاری", "labelEn": "Careers form"}
-  ],
   "deployment": {
     "strategy": "registry_image",
     "registryProvider": "ghcr",
     "registryImageRepository": "ghcr.io/hamidnoshady/cms-portfolio-theme",
     "registryVisibility": "public"
-  }
+  },
+  "env": [
+    { "key": "ESHOBE_CMS_URL", "source": "platform", "secret": false },
+    { "key": "ESHOBE_API_KEY", "source": "platform", "secret": true },
+    { "key": "ESHOBE_SITE_ID", "source": "platform", "secret": false },
+    { "key": "ESHOBE_SITE_DOMAIN", "source": "platform", "secret": false },
+    { "key": "ESHOBE_PUBLIC_ORIGIN", "source": "platform", "secret": false },
+    { "key": "ESHOBE_DEFAULT_LOCALE", "source": "platform", "secret": false },
+    { "key": "ESHOBE_LOCALES", "source": "platform", "secret": false },
+    { "key": "ESHOBE_PREVIEW_SECRET", "source": "platform", "secret": true },
+    { "key": "ESHOBE_REVALIDATE_SECRET", "source": "platform", "secret": true },
+    { "key": "ESHOBE_ALLOW_HOST_TENANT", "source": "platform", "secret": false }
+  ],
+  "design": {
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "primary": "#000000",
+    "accent": "#000000",
+    "radius": "none",
+    "lineHeight": 1.65
+  },
+  "settings": {
+    "canvasMotion": {
+      "type": "boolean",
+      "label": "Homepage canvas motion",
+      "labelFa": "حرکت بوم صفحهٔ اول",
+      "default": true
+    },
+    "canvasDensity": {
+      "type": "number",
+      "label": "Homepage featured work count",
+      "labelFa": "تعداد آثار منتخب در بوم صفحهٔ اول",
+      "default": 6,
+      "min": 2,
+      "max": 12
+    },
+    "archiveLayout": {
+      "type": "select",
+      "label": "Archive default layout",
+      "labelFa": "چیدمان پیش‌فرض آرشیو",
+      "default": "auto",
+      "options": [
+        { "label": "Auto (index on desktop, cards on mobile)", "labelFa": "خودکار (فهرست در دسکتاپ، کارت در موبایل)", "value": "auto" },
+        { "label": "Index list", "labelFa": "فهرست شماره‌دار", "value": "index" },
+        { "label": "Editorial grid", "labelFa": "شبکهٔ تصویری", "value": "grid" }
+      ]
+    }
+  },
+  "contentSlots": [
+    {
+      "key": "home",
+      "label": "Homepage",
+      "labelFa": "صفحهٔ اول",
+      "type": "page",
+      "required": false,
+      "hintSlug": "home"
+    },
+    {
+      "key": "about",
+      "label": "About page",
+      "labelFa": "صفحهٔ درباره ما",
+      "type": "page",
+      "required": false,
+      "hintSlug": "about"
+    },
+    {
+      "key": "contact",
+      "label": "Contact page",
+      "labelFa": "صفحهٔ تماس",
+      "type": "page",
+      "required": false,
+      "hintSlug": "contact"
+    },
+    {
+      "key": "careers",
+      "label": "Careers page",
+      "labelFa": "صفحهٔ همکاری",
+      "type": "page",
+      "required": false,
+      "hintSlug": "careers"
+    },
+    {
+      "key": "legal",
+      "label": "Legal / Privacy page",
+      "labelFa": "صفحهٔ حقوقی و حریم خصوصی",
+      "type": "page",
+      "required": false,
+      "hintSlug": "legal"
+    },
+    {
+      "key": "projectsCategory",
+      "label": "Projects root category",
+      "labelFa": "دسته‌بندی ریشهٔ پروژه‌ها",
+      "type": "category",
+      "required": false,
+      "hintSlug": "projects"
+    },
+    {
+      "key": "objectsCategory",
+      "label": "Objects root category",
+      "labelFa": "دسته‌بندی ریشهٔ آبژه‌ها",
+      "type": "category",
+      "required": false,
+      "hintSlug": "objects"
+    },
+    {
+      "key": "contactForm",
+      "label": "Contact form",
+      "labelFa": "فرم تماس",
+      "type": "form",
+      "required": false
+    },
+    {
+      "key": "careersForm",
+      "label": "Careers application form",
+      "labelFa": "فرم درخواست همکاری",
+      "type": "form",
+      "required": false
+    }
+  ]
 }

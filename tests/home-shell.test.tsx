@@ -1,20 +1,14 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { BrandWordmark } from '@/components/home/BrandWordmark'
 import { CanvasField } from '@/components/home/CanvasField'
 import { planCanvas, type CanvasWork } from '@/components/home/canvasPlan'
 import { CustomCursor } from '@/components/home/CustomCursor'
-import { WorkIndex } from '@/components/home/WorkIndex'
+import { classifyHomeArchiveOutcome } from '@/views/HomeView'
 
-/**
- * The home canvas in the DOM: bounded tiles, correct click targets, one canonical
- * destination per work, and a cursor that states what it is doing without intercepting
- * input. The geometry and the wrapping arithmetic are covered in `home-canvas.test.ts`;
- * what matters here is what a browser (and a keyboard) would find.
- */
-
-const works: CanvasWork[] = Array.from({ length: 4 }, (_, index) => ({
+const works: CanvasWork[] = Array.from({ length: 5 }, (_, index) => ({
   href: `/projects/work-${index}`,
   id: `work-${index}`,
   media: { height: 1200, id: `m${index}`, url: `https://media.example.test/${index}.jpg`, width: 1600 },
@@ -38,9 +32,8 @@ const stubMatchMedia = (matches: Record<string, boolean>) => {
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: matchMedia, writable: true })
 }
 
-/** jsdom has no `matchMedia`; the canvas asks it for reduced motion on mount. */
 beforeEach(() => {
-  stubMatchMedia({ '(pointer: fine)': true })
+  stubMatchMedia({ '(hover: hover)': true, '(pointer: fine)': true })
   delete document.documentElement.dataset.bangCanvas
   delete document.documentElement.dataset.bangCursor
   delete document.documentElement.dataset.bangIndex
@@ -48,35 +41,60 @@ beforeEach(() => {
 })
 
 const renderField = (motionEnabled = true) =>
-  render(<CanvasField mediaOrigin={mediaOrigin} motionEnabled={motionEnabled} plan={planCanvas(works)} works={works} />)
+  render(
+    <CanvasField
+      brand="Portfolio1"
+      mediaOrigin={mediaOrigin}
+      motionEnabled={motionEnabled}
+      plan={planCanvas(works)}
+      works={works}
+    />,
+  )
 
-describe('canvas field', () => {
-  it('renders one bounded link per slot, keyed to the work the slot owns', () => {
+describe('canvas field & accessible project discovery (without WorkIndex)', () => {
+  it('renders one bounded link per slot with 0deg settled rotation, and exposes exactly one keyboard-focusable primary tile per distinct work', () => {
     const { container } = renderField()
     const tiles = [...container.querySelectorAll<HTMLAnchorElement>('.bang-canvas__tile')]
     expect(tiles.length).toBe(planCanvas(works).tiles.length)
     expect(tiles.length).toBeLessThanOrEqual(20)
+
+    const primaryTiles = tiles.filter((tile) => tile.dataset.primaryTile === 'true')
+    const duplicateTiles = tiles.filter((tile) => tile.dataset.primaryTile !== 'true')
+
+    expect(primaryTiles.length).toBe(works.length)
+    expect(primaryTiles.map((tile) => tile.getAttribute('href'))).toEqual(works.map((w) => w.href))
+    for (const primary of primaryTiles) {
+      expect(primary.getAttribute('tabindex')).toBeNull()
+      expect(primary.getAttribute('aria-hidden')).toBeNull()
+      expect(primary.getAttribute('aria-label')).toBeTruthy()
+      const img = primary.querySelector('img')
+      expect(img?.getAttribute('alt')).toBeTruthy()
+    }
+
+    for (const dup of duplicateTiles) {
+      expect(dup.getAttribute('tabindex')).toBe('-1')
+      expect(dup.getAttribute('aria-hidden')).toBe('true')
+    }
+
     tiles.forEach((tile, slot) => {
       expect(tile.getAttribute('href')).toBe(works[slot % works.length]!.href)
-      // The link is decorative by design: the canonical list is the tab stop.
-      expect(tile.getAttribute('tabindex')).toBe('-1')
       expect(tile.style.getPropertyValue('--tile-x')).not.toBe('')
       expect(tile.style.getPropertyValue('--tile-y')).not.toBe('')
       expect(tile.style.getPropertyValue('--tile-w')).not.toBe('')
       expect(tile.style.getPropertyValue('--tile-ratio')).not.toBe('')
+      expect(tile.style.getPropertyValue('--tile-rotate')).toBe('0')
     })
   })
 
-  it('is hidden from assistive technology and offers no carousel controls', () => {
+  it('separates pan/wrap outer wrapper from GSAP intro wrapper and hover grain layer', () => {
     const { container } = renderField()
-    const field = container.querySelector('[data-canvas-field]')
-    expect(field?.getAttribute('aria-hidden')).toBe('true')
-    // No dots, no numbered slider, no slide role — the field is a surface, not a widget.
+    const firstTile = container.querySelector('.bang-canvas__tile')!
+    expect(firstTile.querySelector('[data-tile-intro]')).not.toBeNull()
+    expect(firstTile.querySelector('[data-tile-media]')).not.toBeNull()
+    expect(firstTile.querySelector('[data-tile-grain]')).not.toBeNull()
+    expect(container.querySelector('#bang-grain-filter')).not.toBeNull()
     expect(container.querySelectorAll('button').length).toBe(0)
     expect(container.querySelectorAll('[aria-roledescription]').length).toBe(0)
-    expect(container.querySelectorAll('img').length).toBeGreaterThan(0)
-    // Every photograph is decorative here (the index carries the titles).
-    for (const image of container.querySelectorAll('img')) expect(image.getAttribute('alt')).toBe('')
   })
 
   it('annotates each tile with the context the cursor shows', () => {
@@ -92,8 +110,6 @@ describe('canvas field', () => {
     const animated = renderField(false)
     const tiles = [...animated.container.querySelectorAll<HTMLAnchorElement>('.bang-canvas__tile')]
     expect(tiles.length).toBe(planCanvas(works).tiles.length)
-    // Motion off means no document mode attribute and no transform: the composition is
-    // the served one and the page scrolls normally.
     expect(document.documentElement.dataset.bangCanvas).toBeUndefined()
     expect(document.querySelector<HTMLElement>('.bang-canvas__world')?.style.transform).toBe('')
   })
@@ -104,50 +120,46 @@ describe('canvas field', () => {
   })
 })
 
-describe('selected work index', () => {
-  const renderIndex = () =>
-    render(<WorkIndex browseHref="/projects" browseLabel="Browse projects" labels={{ count: '4 works', index: 'Selected work' }} works={works} />)
+describe('central BrandWordmark & mask compositing', () => {
+  it('renders a single semantic h1 plus aria-hidden difference-blend layers for text wordmarks', () => {
+    const { container } = render(<BrandWordmark brand="Portfolio1" />)
+    const headings = container.querySelectorAll('h1')
+    expect(headings.length).toBe(1)
+    expect(headings[0]?.textContent).toBe('Portfolio1')
+    expect(headings[0]?.dataset.wordmarkLayer).toBe('base')
 
-  it('carries exactly one canonical destination per work, in publishing order', () => {
-    renderIndex()
-    const links = [...document.querySelectorAll<HTMLAnchorElement>('.bang-index__link')]
-    expect(links.map((link) => link.getAttribute('href'))).toEqual(works.map((work) => work.href))
-    expect(links[0]!.textContent).toContain('Work 0')
-    expect(links[0]!.textContent).toContain('2024 · Housing')
-    expect(screen.getByText('Selected work')).toBeTruthy()
+    const prep = container.querySelector('[data-wordmark-layer="prep"]')
+    const blend = container.querySelector('[data-wordmark-layer="blend"]')
+    expect(prep?.getAttribute('aria-hidden')).toBe('true')
+    expect(blend?.getAttribute('aria-hidden')).toBe('true')
+    expect(prep?.getAttribute('data-wordmark')).toBe('Portfolio1')
+    expect(blend?.getAttribute('data-wordmark')).toBe('Portfolio1')
   })
 
-  it('is a plain, open section while the canvas is not running', () => {
-    renderIndex()
-    expect(document.querySelector('.bang-index')?.tagName).toBe('SECTION')
-    expect(document.querySelector('.bang-index__label')).not.toBeNull()
-    // Nothing to press: without a live canvas there is no control that would do nothing.
-    expect(document.querySelector('.bang-index__toggle')).toBeNull()
-    expect(document.documentElement.dataset.bangIndex).toBeUndefined()
-  })
-
-  it('becomes a disclosure once the canvas owns the page, and records the choice', () => {
-    document.documentElement.dataset.bangCanvas = 'pan'
-    renderIndex()
-    const toggle = document.querySelector<HTMLButtonElement>('.bang-index__toggle')
-    expect(toggle).not.toBeNull()
-    expect(toggle!.getAttribute('aria-expanded')).toBe('false')
-    expect(toggle!.getAttribute('aria-controls')).toBe('bang-works-list')
-    fireEvent.click(toggle!)
-    expect(document.documentElement.dataset.bangIndex).toBe('open')
-    expect(document.querySelector('.bang-index__toggle')!.getAttribute('aria-expanded')).toBe('true')
-    fireEvent.click(document.querySelector('.bang-index__toggle')!)
-    expect(document.documentElement.dataset.bangIndex).toBeUndefined()
-    expect(document.querySelector('.bang-index__toggle')!.getAttribute('aria-expanded')).toBe('false')
+  it('renders uploaded logo artwork as a single semantic h1 image without difference-blend inversion', () => {
+    const { container } = render(<BrandWordmark brand="Portfolio1" markUrl="https://media.example.test/logo.svg" />)
+    expect(container.querySelectorAll('h1').length).toBe(1)
+    expect(container.querySelector('h1 img')?.getAttribute('alt')).toBe('Portfolio1')
+    expect(container.querySelector('[data-wordmark-layer="blend"]')).toBeNull()
   })
 })
 
-describe('custom cursor', () => {
-  it('follows the pointer, states the hovered work and never sits in the hit path', () => {
-    stubMatchMedia({ '(pointer: fine)': true })
+describe('home archive error vs empty classification', () => {
+  it('distinguishes upstream archive fetch failure from genuinely empty archive', () => {
+    expect(classifyHomeArchiveOutcome({ objectsError: false, projectsError: false, worksCount: 5 })).toBe('ready')
+    expect(classifyHomeArchiveOutcome({ objectsError: false, projectsError: false, worksCount: 0 })).toBe('empty')
+    expect(classifyHomeArchiveOutcome({ objectsError: true, projectsError: false, worksCount: 0 })).toBe('empty')
+    expect(classifyHomeArchiveOutcome({ objectsError: true, projectsError: true, worksCount: 0 })).toBe('error')
+  })
+})
+
+describe('custom cursor (site-wide filled black square)', () => {
+  it('follows the pointer, expands on controls/work, yields to text inputs, and never sits in the hit path', () => {
+    stubMatchMedia({ '(hover: hover)': true, '(pointer: fine)': true })
     const { container } = render(<CustomCursor />)
     const cursor = container.querySelector<HTMLElement>('.bang-cursor')!
     expect(cursor.getAttribute('aria-hidden')).toBe('true')
+    expect(cursor.querySelector('[data-cursor-square]')).not.toBeNull()
     expect(document.documentElement.dataset.bangCursor).toBe('on')
 
     const tile = document.createElement('a')
@@ -164,30 +176,36 @@ describe('custom cursor', () => {
     expect(cursor.dataset.mode).toBe('control')
     expect(cursor.textContent).toBe('')
 
+    const input = document.createElement('input')
+    input.type = 'text'
+    document.body.append(input)
+    fireEvent.pointerOver(input)
+    expect(cursor.getAttribute('data-hidden')).toBe('true')
+
     fireEvent.pointerMove(window, { clientX: 120, clientY: 90 })
     expect(cursor.style.transform).toContain('translate3d')
-    // A pointer leaving the window parks it rather than leaving a square behind.
     fireEvent.pointerOut(window, { relatedTarget: null })
     expect(cursor.hasAttribute('data-hidden')).toBe(true)
     tile.remove()
     control.remove()
+    input.remove()
   })
 
   it('keeps the system cursor on coarse pointers', () => {
-    stubMatchMedia({ '(pointer: fine)': false })
+    stubMatchMedia({ '(hover: hover)': false, '(pointer: fine)': false })
     const { container } = render(<CustomCursor />)
     expect(container.querySelector<HTMLElement>('.bang-cursor')!.dataset.enabled).toBeUndefined()
     expect(document.documentElement.dataset.bangCursor).toBe('off')
   })
 
   it('keeps the system cursor under prefers-reduced-motion', () => {
-    stubMatchMedia({ '(pointer: fine)': true, '(prefers-reduced-motion: reduce)': true })
+    stubMatchMedia({ '(hover: hover)': true, '(pointer: fine)': true, '(prefers-reduced-motion: reduce)': true })
     render(<CustomCursor />)
     expect(document.documentElement.dataset.bangCursor).toBe('off')
   })
 
-  it('hands the system cursor back while a case study is open', () => {
-    stubMatchMedia({ '(pointer: fine)': true })
+  it('hands the system cursor back while a case study overlay is open', () => {
+    stubMatchMedia({ '(hover: hover)': true, '(pointer: fine)': true })
     render(<CustomCursor />)
     expect(document.documentElement.dataset.bangCursor).toBe('on')
     document.documentElement.dataset.bangOverlay = 'open'

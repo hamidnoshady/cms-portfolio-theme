@@ -2,12 +2,12 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "detail": "20 tiles, 7 on screen, no carousel controls",
+      "detail": "14 tiles, 5 on screen, no carousel controls",
       "name": "home: the canvas serves the works themselves — no carousel left over",
       "ok": true
     },
     {
-      "detail": "5 works, one destination each, first tab stop is the list",
+      "detail": "5 distinct works, one focusable primary tile each, repeats hidden",
       "name": "home: every work is reachable without a pointer, from the served HTML",
       "ok": true
     },
@@ -77,7 +77,7 @@
       "ok": true
     },
     {
-      "detail": "title 343px in a 343px card, no overflow",
+      "detail": "title 318px in a 343px card, no overflow",
       "name": "archives: long card metadata stays readable at 390px",
       "ok": true
     },
@@ -97,7 +97,7 @@
       "ok": true
     },
     {
-      "detail": "objects header + 8 cards; en projects header + 8 cards",
+      "detail": "skipped — no slow-CMS theme at http://127.0.0.1:3300",
       "name": "loading: slow archive navigation keeps the real header and its own composition",
       "ok": true
     }

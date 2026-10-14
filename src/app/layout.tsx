@@ -1,31 +1,24 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
+import type { ReactNode } from 'react'
 
+import { CustomCursor } from '@/components/home/CustomCursor'
 import { DocumentLocale } from '@/components/layout/DocumentLocale'
 import { SmoothScroll } from '@/components/motion/SmoothScroll'
 import { getSiteOrNull } from '@/lib/cms/endpoints'
-import { labels } from '@/lib/theme/labels'
-import { fontFaceCss, fontReport } from '@/lib/theme/fonts'
-import { themeCss } from '@/lib/runtime'
-import { dirFor } from '@/lib/runtime'
 import { documentLocaleConfig } from '@/lib/routing/documentLocale'
+import { dirFor, themeCss } from '@/lib/runtime'
+import { brandName } from '@/lib/theme/brand'
+import { fontFaceCss, fontReport } from '@/lib/theme/fonts'
+import { labels } from '@/lib/theme/labels'
 
 import './globals.css'
-import { brandName } from '@/lib/theme/brand'
-
-/**
- * Root document.
- *
- * `lang`/`dir` come from the proxy header, never from a hardcoded default, so the
- * Persian tree is genuinely RTL and the English tree genuinely LTR from the first
- * byte. Client navigations do not re-render this layout, so `<DocumentLocale>` keeps
- * the attributes in step with the URL afterwards (FA ⇄ EN without a reload). Per-site design tokens (`themeCss(site.theme)`) and the font faces are emitted
- * here, after the design system, so a tenant's brand colour can only override the raw
- * variables — never the line system, spacing or type scale.
- */
 
 export const viewport: Viewport = {
+  colorScheme: 'light',
+  initialScale: 1,
   themeColor: '#ffffff',
+  viewportFit: 'cover',
   width: 'device-width',
 }
 
@@ -39,25 +32,16 @@ export const generateMetadata = async (): Promise<Metadata> => {
     metadataBase: origin ? new URL(origin) : undefined,
     description: site?.branding?.tagline ?? undefined,
     icons: favicon ? { icon: favicon } : undefined,
-    // A document without any `<title>` is a defect: an unreachable descriptor is the
-    // only case where no customer name is known, and it always renders the same
-    // "not connected" state, so that state's own wording is the honest fallback.
     title: site ? brandName(site) : labels(locale).unreachableTitle,
   }
 }
 
-/**
- * `overlay` is the intercepted case study opened from the home canvas
- * (`src/app/@overlay`). It renders *in addition to* `children`, which is what keeps the
- * canvas mounted — and therefore in the same place — while a work is open. On every
- * other URL the slot renders `@overlay/default.tsx`, which is empty.
- */
 export default async function RootLayout({
   children,
   overlay,
 }: {
-  children: React.ReactNode
-  overlay: React.ReactNode
+  children: ReactNode
+  overlay: ReactNode
 }) {
   const headerList = await headers()
   const locale = headerList.get('x-arch-locale') === 'en' ? 'en' : 'fa'
@@ -76,13 +60,14 @@ export default async function RootLayout({
           <link as="font" crossOrigin="anonymous" href={href} key={href} rel="preload" type="font/woff2" />
         ))}
         <style dangerouslySetInnerHTML={{ __html: fontFaceCss() }} />
-        {site?.theme ? <style dangerouslySetInnerHTML={{ __html: themeCss(site.theme) }} /> : null}
+        {site?.theme ? <style dangerouslySetInnerHTML={{ __html: themeCss(site.theme) }} id="eshobe-theme-vars" /> : null}
       </head>
-      <body>
+      <body className="flex min-h-svh flex-col bg-surface-page text-ink-primary antialiased">
         <DocumentLocale config={documentLocaleConfig()} />
         <SmoothScroll />
         {children}
         {overlay}
+        <CustomCursor />
       </body>
     </html>
   )

@@ -1,29 +1,24 @@
-import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { Blocks } from '@/components/blocks/Blocks'
 import { RichText } from '@/components/blocks/RichText'
 import { ContentContainer } from '@/components/design/Container'
+import { Rule } from '@/components/design/Rule'
 import { FramedMedia } from '@/components/media/CmsImage'
 import { getPageBySlug } from '@/lib/cms/endpoints'
 import { loadPageContext } from '@/lib/cms/pageContext'
-import { pagePath } from '@/lib/runtime'
+import type { Locale } from '@/lib/cms/types'
 import { breadcrumbsFor } from '@/lib/routing/breadcrumbs'
 import { resolveLocaleRoute } from '@/lib/routing/resolve'
+import { pagePath } from '@/lib/runtime'
 import { metadataFor } from '@/lib/seo/metadata'
+import { documentLanguages } from '@/lib/seo/translations'
 import { labels as dictionary } from '@/lib/theme/labels'
 import { isMedia } from '@/lib/utils/media'
 import { InteriorPage } from '@/views/InteriorPage'
 import { StateView } from '@/views/StateView'
-import type { Locale } from '@/lib/cms/types'
-import { documentLanguages } from '@/lib/seo/translations'
 
-/**
- * Generic CMS page (the catch-all). One canonical URL per document: a page whose slug
- * is a theme section (`about`, `contact`, `projects`…) is served by that section's
- * route, so reaching it through its own slug would be a second URL for the same
- * content — the route layer redirects those before this view runs.
- */
 export const pageMetadata = async (locale: Locale, slug: string): Promise<Metadata> => {
   const outcome = await loadPageContext(locale, pagePath(slug))
   if (!outcome.ok) return { robots: { follow: false, index: false } }
@@ -58,21 +53,30 @@ export const PageView = async ({ locale, slug }: { locale: Locale; slug: string 
       crumbs={crumbs}
       currentPath={pagePath(page.slug)}
       label={t.breadcrumb}
-     
       switchDoc={{ id: page.id, kind: 'page', pathFor: pagePath }}
     >
-      <ContentContainer>
-        <h1 className="type-title max-w-[30ch]">{page.title}</h1>
-        {page.hero?.richText ? (
-          <div className="mt-6">
-            <RichText anchorScope="hero" content={page.hero.richText} context={ctx} fallbackDir={ctx.dir} />
-          </div>
-        ) : null}
+      <ContentContainer className="py-10">
+        <header className="mb-8 max-w-[46ch]">
+          <h1 className="type-title" dir="auto">{page.title}</h1>
+          <Rule className="mt-4 max-w-[5rem]" />
+          {page.hero?.richText ? (
+            <div className="mt-5">
+              <RichText anchorScope="hero" content={page.hero.richText} context={ctx} fallbackDir={ctx.dir} />
+            </div>
+          ) : null}
+        </header>
         {showHero && heroMedia ? (
-          <FramedMedia cap={76} className="mt-10" media={heroMedia} origin={ctx.site.media.origin} priority size="wide" />
+          <FramedMedia
+            cap={76}
+            className="mt-8"
+            media={heroMedia}
+            origin={ctx.site.media.origin}
+            priority
+            size="wide"
+          />
         ) : null}
       </ContentContainer>
-      <Blocks blocks={page.layout} context={ctx} />
+      <Blocks blocks={page.layout} context={ctx} pageTitle={page.title} />
     </InteriorPage>
   )
 }

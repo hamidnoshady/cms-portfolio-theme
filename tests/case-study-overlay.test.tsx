@@ -56,10 +56,27 @@ describe('case study overlay shell', () => {
     expect(screen.getByRole('button', { name: 'Share' })).toBeTruthy()
   })
 
-  it('makes the canvas behind it inert, so keyboard and AT users cannot wander into it', () => {
-    const { home } = renderShell()
+  it('makes the canvas and any interior page root behind it inert, and traps Tab focus inside the modal', () => {
+    const archiveRoot = document.createElement('div')
+    archiveRoot.className = 'bang-shell'
+    archiveRoot.innerHTML = '<a href="/projects/b">archive link</a>'
+    document.body.append(archiveRoot)
+
+    const { home, view } = renderShell()
     expect(home.hasAttribute('inert')).toBe(true)
+    expect(archiveRoot.hasAttribute('inert')).toBe(true)
     expect(home.querySelector('a')?.getAttribute('tabindex')).toBeNull()
+
+    const shareBtn = screen.getByRole('button', { name: 'Share' })
+    const closeBtn = screen.getByRole('button', { name: 'Close' })
+    closeBtn.focus()
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(document.activeElement).toBe(shareBtn)
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(closeBtn)
+
+    view.unmount()
+    expect(archiveRoot.hasAttribute('inert')).toBe(false)
   })
 
   it('closes on the control, on Escape, and unwinds the history entry it pushed', () => {
@@ -133,7 +150,13 @@ describe('intercepted case-study routes', () => {
     expect(view).toContain("variant = 'page'")
     expect(view).toContain('<CaseStudyShell')
     expect(view).toContain('<InteriorPage')
-    // Share/Close belong to the page; the overlay's own bar carries them there.
     expect(view.match(/<CaseStudyShell/gu)?.length).toBe(1)
+  })
+
+  it('checks the objects archive route locale wiring so /objects is fa and /en/objects is en', () => {
+    expect(source('src/app/objects/page.tsx')).toContain('locale="fa"')
+    expect(source('src/app/en/objects/page.tsx')).toContain('locale="en"')
+    expect(source('src/app/projects/page.tsx')).toContain('locale="fa"')
+    expect(source('src/app/en/projects/page.tsx')).toContain('locale="en"')
   })
 })

@@ -123,6 +123,7 @@ const snapshot = (page) =>
         href: tile.getAttribute('href'),
         key: tile.dataset.tile,
         label: tile.dataset.cursorLabel,
+        primary: tile.dataset.primaryTile === 'true',
         transform: tile.style.transform,
         visible: rect.right > 0 && rect.bottom > 0 && rect.left < window.innerWidth && rect.top < window.innerHeight,
         width: rect.width,
@@ -130,15 +131,34 @@ const snapshot = (page) =>
         y: rect.top,
       }
     })
+    const visibleTiles = tiles.filter((tile) => tile.visible)
+    let minGap = Infinity
+    for (let i = 0; i < visibleTiles.length; i += 1) {
+      for (let j = i + 1; j < visibleTiles.length; j += 1) {
+        const a = visibleTiles[i]
+        const b = visibleTiles[j]
+        const dx = Math.max(0, a.x - (b.x + b.width), b.x - (a.x + a.width))
+        const dy = Math.max(0, a.y - (b.y + b.height), b.y - (a.y + a.height))
+        const overlapX = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)
+        const overlapY = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)
+        const gap = overlapX > 0 && overlapY > 0 ? -Math.min(overlapX, overlapY) : Math.hypot(dx, dy)
+        if (gap < minGap) minGap = gap
+      }
+    }
     return {
       canvasMode: document.documentElement.dataset.bangCanvas ?? null,
+      clocks: document.querySelectorAll('.bang-clock').length,
       count: tiles.length,
-      indexLinks: [...document.querySelectorAll('.bang-index__link')].filter((link) => link.getBoundingClientRect().height > 0).length,
+      footers: document.querySelectorAll('footer').length,
+      indexLinks: [...document.querySelectorAll('.bang-canvas__tile[data-primary-tile="true"]')].filter((link) => link.getBoundingClientRect().height > 0).length,
       indexToggle: Boolean(document.querySelector('.bang-index__toggle')),
+      minGap: Number.isFinite(minGap) ? minGap : 0,
       plane: { height: world?.offsetHeight ?? 0, width: world?.offsetWidth ?? 0 },
       scrollable: document.documentElement.scrollHeight - window.innerHeight,
       tiles,
-      visible: tiles.filter((tile) => tile.visible).length,
+      visible: visibleTiles.length,
+      wordmarkBase: document.querySelectorAll('h1.bang-wordmark').length,
+      wordmarkBlend: document.querySelectorAll('.bang-wordmark[aria-hidden="true"]').length,
       world: world?.style.transform ?? '',
     }
   })
@@ -237,6 +257,16 @@ const main = async () => {
 
   const start = await snapshot(page)
   record('field is bounded and populated', start.count > 0 && start.count <= 20 && start.visible >= 2, `${start.count} tiles, ${start.visible} on screen`)
+  record(
+    'settled project frames are separated and upright (0deg rotation, >= 32px gap on desktop)',
+    start.minGap >= 32 && start.visible >= 4 && start.visible <= 7,
+    `visible=${start.visible}, minPairwiseGap=${start.minGap.toFixed(1)}px`,
+  )
+  record(
+    'no floating WorkIndex, clock, or footer menu on home, and BrandWordmark has 1 semantic h1',
+    !start.indexToggle && start.clocks === 0 && start.footers === 0 && start.wordmarkBase === 1,
+    `indexToggle=${start.indexToggle} clocks=${start.clocks} footers=${start.footers} h1=${start.wordmarkBase} blendLayers=${start.wordmarkBlend}`,
+  )
 
   await page.screenshot({ path: join(OUT, '01-canvas-1440.png') })
 
@@ -532,7 +562,7 @@ const main = async () => {
    * is served, and what a JS-less visitor sees is the same loading state as elsewhere.
    */
   const noJsState = await noJs.evaluate(() => ({
-    links: [...document.querySelectorAll('.bang-index__link')].map((node) => node.getAttribute('href')),
+    links: [...document.querySelectorAll('.bang-canvas__tile[data-primary-tile="true"]')].map((node) => node.getAttribute('href')),
     tiles: document.querySelectorAll('.bang-canvas__tile').length,
     tilesVisible: [...document.querySelectorAll('.bang-canvas__tile')].filter((node) => {
       const rect = node.getBoundingClientRect()

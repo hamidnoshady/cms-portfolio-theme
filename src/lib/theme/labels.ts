@@ -42,6 +42,12 @@ type Dictionary = {
   relatedWork: string
   gallery: string
   projectFacts: string
+  factDate: string
+  factLocation: string
+  factArea: string
+  factStatus: string
+  factClient: string
+  factCollaborators: string
   photo: string
   share: string
   shareDone: string
@@ -114,6 +120,12 @@ const fa: Dictionary = {
   relatedWork: 'آثار مرتبط',
   gallery: 'تصاویر',
   projectFacts: 'مشخصات اثر',
+  factDate: 'تاریخ',
+  factLocation: 'مکان',
+  factArea: 'مساحت',
+  factStatus: 'وضعیت',
+  factClient: 'کارفرما',
+  factCollaborators: 'همکاران',
   photo: 'تصویر',
   share: 'اشتراک‌گذاری',
   shareDone: 'پیوند کپی شد.',
@@ -186,6 +198,12 @@ const en: Dictionary = {
   relatedWork: 'Related work',
   gallery: 'Gallery',
   projectFacts: 'Work facts',
+  factDate: 'Date',
+  factLocation: 'Location',
+  factArea: 'Area',
+  factStatus: 'Status',
+  factClient: 'Client',
+  factCollaborators: 'Collaborators',
   photo: 'Photograph',
   share: 'Share',
   shareDone: 'Link copied.',

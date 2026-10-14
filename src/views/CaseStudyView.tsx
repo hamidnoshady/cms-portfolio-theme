@@ -1,32 +1,100 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+
 import { RichText } from '@/components/blocks/RichText'
 import { ContentContainer } from '@/components/design/Container'
-import { CmsImage } from '@/components/media/CmsImage'
-import { Gallery } from '@/components/media/Gallery'
-import { MetadataTable } from '@/components/portfolio/MetadataTable'
-import { CaseStudyShell } from '@/components/portfolio/CaseStudyShell'
-import { ShareButton } from '@/components/portfolio/ShareButton'
 import { CmsForm } from '@/components/forms/CmsForm'
-import { loadPageContext } from '@/lib/cms/pageContext'
+import { CmsImage } from '@/components/media/CmsImage'
+import { CaseStudyShell } from '@/components/portfolio/CaseStudyShell'
+import { MetadataTable } from '@/components/portfolio/MetadataTable'
+import { ShareButton } from '@/components/portfolio/ShareButton'
+import { toCaseStudy, type CaseStudy } from '@/domain/portfolio'
 import { getPostContext, localizedPostHref } from '@/lib/cms/content'
 import { getFormById } from '@/lib/cms/endpoints'
+import { loadPageContext } from '@/lib/cms/pageContext'
+import type { Locale, ProjectMetadata, SiteDescriptor } from '@/lib/cms/types'
 import { breadcrumbsFor } from '@/lib/routing/breadcrumbs'
 import { href } from '@/lib/routing/locale'
 import { detailPath, THEME_ROUTES, type PortfolioSection } from '@/lib/routing/paths'
 import { resolveLocaleRoute } from '@/lib/routing/resolve'
+import { toLocaleDigits } from '@/lib/runtime'
 import { metadataFor } from '@/lib/seo/metadata'
+import { documentLanguages } from '@/lib/seo/translations'
 import { labels as dictionary } from '@/lib/theme/labels'
-import { toCaseStudy } from '@/domain/portfolio'
+import { yearOrText } from '@/lib/utils/dates'
+import { isMedia } from '@/lib/utils/media'
 import { InteriorPage } from '@/views/InteriorPage'
 import { StateView } from '@/views/StateView'
-import { documentLanguages } from '@/lib/seo/translations'
-import type { Locale } from '@/lib/cms/types'
-import { collectMedia } from '@/lib/utils/lexical'
-import { isMedia, lightboxItem } from '@/lib/utils/media'
 
-export const caseMetadata = async (locale: Locale, section: PortfolioSection, slug: string): Promise<Metadata> => {
+export const closeHrefForCaseStudy = (
+  section: PortfolioSection,
+  locale: Locale,
+  site: Pick<SiteDescriptor, 'defaultLocale'>,
+): string => href(section === 'projects' ? THEME_ROUTES.projects : THEME_ROUTES.objects, locale, site)
+
+const FACT_SYNONYMS: Record<string, string> = {
+  area: 'area',
+  client: 'client',
+  collaborator: 'collaborators',
+  collaborators: 'collaborators',
+  date: 'date',
+  location: 'location',
+  status: 'status',
+  type: 'status',
+  typology: 'status',
+  year: 'date',
+  تاریخ: 'date',
+  سال: 'date',
+  مکان: 'location',
+  مساحت: 'area',
+  وضعیت: 'status',
+  گونه: 'status',
+  کارفرما: 'client',
+  همکاران: 'collaborators',
+}
+
+const canonicalFactKey = (label: string): string => {
+  const normalized = label.trim().toLowerCase()
+  return FACT_SYNONYMS[normalized] ?? normalized
+}
+
+export const buildCaseStudyFacts = (
+  cs: CaseStudy,
+  meta: null | ProjectMetadata | undefined,
+  locale: Locale,
+): { label: string; value: string }[] => {
+  const t = dictionary(locale)
+  const out: { label: string; value: string }[] = []
+  const seenKeys = new Set<string>()
+
+  const pushFact = (key: string, label: string, rawValue: null | string | undefined) => {
+    const value = rawValue?.trim()
+    if (!value || seenKeys.has(key)) return
+    seenKeys.add(key)
+    out.push({ label, value })
+  }
+
+  pushFact('location', t.factLocation, cs.location ?? meta?.location)
+  pushFact('status', t.factStatus, cs.type ?? meta?.status)
+  pushFact('area', t.factArea, meta?.area)
+  pushFact('collaborators', t.factCollaborators, cs.collaborators ?? meta?.client)
+  const rawYear = yearOrText(cs.year ?? meta?.date, locale)
+  pushFact('date', t.factDate, rawYear ? toLocaleDigits(rawYear, locale) : null)
+
+  for (const extra of cs.facts) {
+    const key = canonicalFactKey(extra.label)
+    pushFact(key, extra.label.trim(), extra.value)
+  }
+
+  return out
+}
+
+export const caseMetadata = async (
+  locale: Locale,
+  section: PortfolioSection,
+  slug: string,
+): Promise<Metadata> => {
   const outcome = await loadPageContext(locale, detailPath(section, slug))
   if (!outcome.ok) return { robots: { follow: false, index: false } }
   const data = await getPostContext(slug, outcome.ctx)
@@ -36,25 +104,28 @@ export const caseMetadata = async (locale: Locale, section: PortfolioSection, sl
     context: outcome.ctx,
     description: post.meta?.description ?? null,
     image: isMedia(post.meta?.image) ? post.meta.image : isMedia(post.heroImage) ? post.heroImage : null,
-    languages: await documentLanguages(outcome.ctx, { id: post.id, kind: 'post', pathFor: (s) => detailPath(section, s) }),
+    languages: await documentLanguages(outcome.ctx, {
+      id: post.id,
+      kind: 'post',
+      pathFor: (s) => detailPath(section, s),
+    }),
     path: detailPath(section, slug),
     title: post.title,
     type: 'article',
   })
 }
 
-/**
- * One case study, two presentations.
- *
- * `page` is the canonical server-rendered route (direct visits, refresh, search
- * engines, sharing): full interior chrome, breadcrumbs, own `<title>` and metadata.
- *
- * `overlay` is the same content rendered by the intercepted route into the home
- * page's overlay slot, opened from a canvas tile. It keeps the reading content
- * identical and moves Share/Close into the overlay's own bar, so the two cannot drift
- * apart — there is one template and one data path, with the presentation passed in.
- */
-export const CaseStudyView = async ({ locale, section, slug, variant = 'page' }: { locale: Locale; section: PortfolioSection; slug: string; variant?: 'overlay' | 'page' }) => {
+export const CaseStudyView = async ({
+  locale,
+  section,
+  slug,
+  variant = 'page',
+}: {
+  locale: Locale
+  section: PortfolioSection
+  slug: string
+  variant?: 'overlay' | 'page'
+}) => {
   const path = detailPath(section, slug)
   const outcome = await loadPageContext(locale, path)
   if (!outcome.ok) return <StateView locale={locale} outcome={outcome} />
@@ -63,7 +134,7 @@ export const CaseStudyView = async ({ locale, section, slug, variant = 'page' }:
   const data = await getPostContext(slug, ctx)
   if (!data) notFound()
   const { post, related } = data
-  // Section membership: wrong section redirects to canonical; orphan 404s.
+
   if (!ctx.draft && data.section && data.section !== section) {
     redirect(await localizedPostHref(post, ctx))
   }
@@ -73,72 +144,122 @@ export const CaseStudyView = async ({ locale, section, slug, variant = 'page' }:
   const route = resolveLocaleRoute([section, slug], locale, ctx.site)
   const crumbs = breadcrumbsFor(route, ctx.site, post.title)
   const hero = isMedia(post.heroImage) ? post.heroImage : null
-  const galleryMedia = collectMedia(post.content as never).filter(isMedia)
-  const galleryItems = galleryMedia
-    .map((m, i) => lightboxItem(m, ctx.site.media.origin, `${t.photo} ${i + 1}`))
-    .filter((item): item is NonNullable<typeof item> => Boolean(item))
-  const yearRow = cs.year ? [{ label: 'Year', value: cs.year }] : []
-  const baseFacts = [
-    ...(cs.location ? [{ label: 'Location', value: cs.location }] : []),
-    ...(cs.type ? [{ label: 'Type', value: cs.type }] : []),
-    ...(cs.collaborators ? [{ label: 'Collaborators', value: cs.collaborators }] : []),
-    ...yearRow,
-    ...cs.facts,
-  ]
+  const facts = buildCaseStudyFacts(cs, post.projectMetadata, locale)
+  const closeHref = closeHrefForCaseStudy(section, locale, ctx.site)
   const contactFormId = ctx.site.themeRuntime?.bindings?.contactForm?.id ?? null
   const contactForm = contactFormId ? await getFormById(contactFormId, locale, ctx.draft) : null
-  const shareUrl = `${ctx.canonicalOrigin}${path}`
-  const shareLabels = { copied: t.copied, copyLink: t.copyLink, done: t.shareDone, failed: t.shareFailed, share: t.share }
+  const shareUrl = `${ctx.canonicalOrigin}${href(path, locale, ctx.site)}`
+  const shareLabels = {
+    copied: t.copied,
+    copyLink: t.copyLink,
+    done: t.shareDone,
+    failed: t.shareFailed,
+    share: t.share,
+  }
 
   const content = (
-      <ContentContainer>
-        <h1 className="bang-case__title">{post.title}</h1>
-        <p aria-hidden="true" className="bang-case__repeat">{post.title} — {post.title}</p>
-        <MetadataTable facts={baseFacts} />
-        {hero ? (
-          <CmsImage media={hero} origin={ctx.site.media.origin} priority ratio="16 / 9" sizes="(min-width:1280px) 70vw, 100vw" alt={post.title} />
-        ) : null}
-        {post.content ? (
-          <div className="mt-10 max-w-[70ch]">
-            <RichText anchorScope="content" content={post.content} context={ctx} fallbackDir={ctx.dir} />
+    <ContentContainer className="bang-case py-10">
+      <div className="bang-case__head">
+        {variant === 'page' ? (
+          <div className="bang-case__bar">
+            <ShareButton labels={shareLabels} title={post.title} url={shareUrl} />
+            <Link
+              className="bang-case__action target-standalone"
+              data-cursor="control"
+              href={closeHref}
+            >
+              {t.close}
+            </Link>
           </div>
         ) : null}
-        {galleryItems.length > 0 ? (
-          <section aria-label={t.gallery} className="mt-12">
-            <Gallery items={galleryItems} locale={locale} labels={{ close: t.close, next: t.next, previous: t.previous, title: t.gallery }} />
-          </section>
-        ) : null}
-        <div className="mt-12 flex flex-wrap gap-4">
-          {variant === 'page' ? <ShareButton labels={shareLabels} title={post.title} url={shareUrl} /> : null}
-          <Link className="bang-btn" data-cursor="control" href={href(THEME_ROUTES.contact, locale, ctx.site)}>{t.inquiry}</Link>
-          {variant === 'page' ? (
-            <Link className="bang-btn bang-btn--ghost" data-cursor="control" href={section === 'projects' ? '/projects' : '/objects'}>{t.close}</Link>
+
+        <div className="bang-case__marquee" dir="auto">
+          <h1 className="bang-case__title" dir="auto">{post.title}</h1>
+          <p aria-hidden="true" className="bang-case__repeat" data-marquee>
+            <span className="bang-case__marquee-track">
+              <span>{post.title} — </span>
+              <span>{post.title} — </span>
+              <span>{post.title} — </span>
+              <span>{post.title} — </span>
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {hero ? (
+        <div className="bang-case__hero">
+          <CmsImage
+            alt={post.title}
+            media={hero}
+            origin={ctx.site.media.origin}
+            priority
+            ratio="16 / 9"
+            sizes="(min-width:1280px) 70vw, 100vw"
+          />
+        </div>
+      ) : null}
+
+      <div className="bang-case__grid">
+        <div className="bang-case__meta">
+          <MetadataTable facts={facts} />
+          <div className="mt-6">
+            <Link
+              className="bang-case__inquiry target-standalone"
+              data-cursor="control"
+              href={href(THEME_ROUTES.contact, locale, ctx.site)}
+            >
+              {t.inquiry}
+            </Link>
+          </div>
+        </div>
+        <div className="bang-case__narrative">
+          {post.content ? (
+            <div className="max-w-[70ch]">
+              <RichText anchorScope="content" content={post.content} context={ctx} fallbackDir={ctx.dir} />
+            </div>
           ) : null}
         </div>
-        {related.length > 0 ? (
-          <section aria-label={t.relatedWork} className="mt-16">
-            <h2 className="type-heading">{t.relatedWork}</h2>
-            <ul className="mt-6 grid gap-6 md:grid-cols-3">
-              {await Promise.all(related.map(async (r) => (
+      </div>
+
+      {related.length > 0 ? (
+        <section aria-label={t.relatedWork} className="bang-case__related mt-16">
+          <h2 className="type-heading">{t.relatedWork}</h2>
+          <ul className="mt-6 grid gap-6 md:grid-cols-3">
+            {await Promise.all(
+              related.map(async (r) => (
                 <li key={r.id}>
-                  <Link className="link-inline type-ui target-standalone" href={await localizedPostHref(r, ctx)}>{r.title}</Link>
+                  <Link
+                    className="link-inline type-ui target-standalone"
+                    data-cursor="control"
+                    href={await localizedPostHref(r, ctx)}
+                  >
+                    {r.title}
+                  </Link>
                 </li>
-              )))}
-            </ul>
-          </section>
-        ) : null}
-        {contactForm ? (
-          <section aria-label={t.contact} className="mt-16 max-w-[40rem]">
-            <h2 className="type-heading">{t.inquiry}</h2>
-            <CmsForm form={contactForm} locale={locale} />
-          </section>
-        ) : null}
-      </ContentContainer>
+              )),
+            )}
+          </ul>
+        </section>
+      ) : null}
+
+      {contactForm ? (
+        <section aria-label={t.contact} className="mt-16 max-w-[40rem]">
+          <h2 className="type-heading">{t.inquiry}</h2>
+          <CmsForm form={contactForm} locale={locale} />
+        </section>
+      ) : null}
+    </ContentContainer>
   )
 
   if (variant === 'overlay') {
     return (
-      <CaseStudyShell closeLabel={t.close} dir={ctx.dir} labels={shareLabels} shareUrl={shareUrl} title={post.title}>
+      <CaseStudyShell
+        closeLabel={t.close}
+        dir={ctx.dir}
+        labels={shareLabels}
+        shareUrl={shareUrl}
+        title={post.title}
+      >
         {content}
       </CaseStudyShell>
     )

@@ -2,13 +2,23 @@
   "base": "http://127.0.0.1:3200",
   "results": [
     {
-      "detail": "data-bang-canvas=pan after 7ms",
+      "detail": "data-bang-canvas=pan after 669ms",
       "name": "canvas mode engages on a fine pointer",
       "ok": true
     },
     {
-      "detail": "20 tiles, 7 on screen",
+      "detail": "14 tiles, 5 on screen",
       "name": "field is bounded and populated",
+      "ok": true
+    },
+    {
+      "detail": "visible=5, minPairwiseGap=190.7px",
+      "name": "settled project frames are separated and upright (0deg rotation, >= 32px gap on desktop)",
+      "ok": true
+    },
+    {
+      "detail": "indexToggle=false clocks=0 footers=0 h1=1 blendLayers=2",
+      "name": "no floating WorkIndex, clock, or footer menu on home, and BrandWordmark has 1 semantic h1",
       "ok": true
     },
     {
@@ -17,7 +27,7 @@
       "ok": true
     },
     {
-      "detail": "minimum 6 tiles on screen",
+      "detail": "minimum 4 tiles on screen",
       "name": "coverage never goes blank (no end, no seam)",
       "ok": true
     },
@@ -27,7 +37,7 @@
       "ok": true
     },
     {
-      "detail": "translate3d(0px, 0px, 0px) → translate3d(0px, -7649.89px, 0px)",
+      "detail": "translate3d(0px, 0px, 0px) → translate3d(0px, -7649.99px, 0px)",
       "name": "the plane actually moves",
       "ok": true
     },
@@ -46,7 +56,7 @@
       "ok": true
     },
     {
-      "detail": "plane 2850x1800, viewport 1440x900, largest tile 459x414",
+      "detail": "plane 2850x1800, viewport 1440x900, largest tile 276x207",
       "name": "the wrapping period holds the viewport and two of the largest tile",
       "ok": true
     },
@@ -61,12 +71,12 @@
       "ok": true
     },
     {
-      "detail": "centre 922,434 vs pointer 923,434 (0.8px), size 26px",
+      "detail": "centre 257,356 vs pointer 256,356 (0.9px), size 17px",
       "name": "the cursor is drawn at the pointer",
       "ok": true
     },
     {
-      "detail": "after an 85px move it settles 0.8px from the pointer",
+      "detail": "after an 85px move it settles 0.9px from the pointer",
       "name": "the cursor follows the pointer instead of stopping",
       "ok": true
     },
@@ -81,7 +91,7 @@
       "ok": true
     },
     {
-      "detail": "translate3d(0px, -10680px, 0px) → translate3d(189.349px, -10616.9px, 0px)",
+      "detail": "translate3d(0px, -10680px, 0px) → translate3d(188.961px, -10617px, 0px)",
       "name": "a drag moves the field one-to-one with the pointer",
       "ok": true
     },
@@ -96,12 +106,12 @@
       "ok": true
     },
     {
-      "detail": "translate3d(213.524px, -10608.8px, 0px) → translate3d(213.524px, -10608.8px, 0px)",
+      "detail": "translate3d(188.961px, -10617px, 0px) → translate3d(188.961px, -10617px, 0px)",
       "name": "the canvas holds still while a work is open over it",
       "ok": true
     },
     {
-      "detail": "translate3d(213.524px, -10608.8px, 0px) → translate3d(213.524px, -10608.8px, 0px)",
+      "detail": "translate3d(188.961px, -10617px, 0px) → translate3d(188.961px, -10617px, 0px)",
       "name": "closing restores the canvas position exactly",
       "ok": true
     },
@@ -115,7 +125,7 @@
       "ok": true
     },
     {
-      "detail": "20 tiles, 6 on screen",
+      "detail": "14 tiles, 5 on screen",
       "name": "the phone gets the same bounded field",
       "ok": true
     },
@@ -130,7 +140,7 @@
       "ok": true
     },
     {
-      "detail": "scrollable=675px links=5 toggle=false",
+      "detail": "scrollable=360px links=5 toggle=false",
       "name": "reduced motion leaves the page scrollable, with the work list visible",
       "ok": true
     },
@@ -140,7 +150,7 @@
       "ok": true
     },
     {
-      "detail": "20 tiles, 5 links",
+      "detail": "14 tiles, 5 links",
       "name": "without scripting the composition and the work list are both served",
       "ok": true
     },

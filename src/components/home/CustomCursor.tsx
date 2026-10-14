@@ -1,181 +1,179 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+
 /**
- * The custom cursor.
+ * Shared custom cursor — a filled black square across Home and interior routes.
  *
- * A small square that replaces the system pointer on hover-capable devices, grows into
- * a hairline frame carrying the hovered work's own title, and shrinks to a solid dot
- * over controls. It is a *visual state of the same pointer*: the element is
- * `aria-hidden`, `pointer-events: none` and never moved into the hit-testing path, so
- * it cannot swallow a click, and the label it shows is CMS content (the work's title),
- * never invented interface copy.
- *
- * It is deliberately not offered everywhere:
- *
- *  - coarse pointers (`(pointer: coarse)`, no mouse) keep the system cursor — a custom
- *    cursor that lags a finger is worse than none;
- *  - `prefers-reduced-motion: reduce` keeps the system cursor, because the follow
- *    animation is exactly the kind of motion the preference asks us to drop
- *    (`halo` → the tile's hover state in CSS still marks a work as interactive);
- *  - while a case study is open (`html[data-bang-overlay='open']`) the reading surface
- *    gets the system cursor back, and the cursor is re-enabled on close.
- *
- * The loop follows the pointer by easing a fraction of the remaining distance per
- * frame and *stops* when it arrives, so an idle pointer costs nothing.
+ * - Default state: filled black square (`9px × 9px`, `#000000`, `0px` radius).
+ * - Control state (`a`, `button`, `[role="button"]`, `[data-cursor="control"]`):
+ *   larger filled black square (`17px × 17px`, `#000000`).
+ * - Work state (`[data-cursor="work"]`): larger filled black square (`17px × 17px`)
+ *   paired with the hovered work's title label, clamped inside the viewport.
+ * - Text input state (`input`, `textarea`, `select`, `[contenteditable]`): hides the
+ *   custom mark and yields to the native text caret.
+ * - Disabled on coarse pointers (`(pointer: fine)` false), under
+ *   `prefers-reduced-motion: reduce`, and while a case-study overlay dialog is open.
  */
-import { useEffect, useRef, useState } from 'react'
 
-export type CursorMode = 'control' | 'default' | 'work'
+const INTERACTIVE = 'a[href], button, summary, [role="button"], [data-cursor="control"]'
+const TEXT_INPUT = 'input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]), textarea, select, [contenteditable="true"]'
+const FOLLOW = 0.34
+const EPSILON = 0.2
 
-/** Elements that take the "control" state: anything a click activates. */
-const CONTROL_SELECTOR =
-  'a[href], button, summary, input, select, textarea, [role="button"], [role="link"], [role="tab"], [role="menuitem"]'
-const FOLLOW = 0.24
-const OVERLAY_STATE = 'bangOverlay'
-/** `data-cursor` values the field annotates tiles with. */
-const MODES = new Set<CursorMode>(['control', 'default', 'work'])
+type CursorMode = 'control' | 'default' | 'input' | 'work'
 
-const modeOf = (target: EventTarget | null): { label: string; mode: CursorMode } => {
+const contextFor = (target: EventTarget | null): { label: string; mode: CursorMode } => {
   if (!(target instanceof Element)) return { label: '', mode: 'default' }
-  const annotated = target.closest<HTMLElement>('[data-cursor]')
-  if (annotated) {
-    const value = annotated.dataset.cursor as CursorMode | undefined
-    return {
-      label: annotated.dataset.cursorLabel?.trim() ?? '',
-      mode: value && MODES.has(value) ? value : 'default',
-    }
-  }
-  return { label: '', mode: target.closest(CONTROL_SELECTOR) ? 'control' : 'default' }
+  if (target.closest(TEXT_INPUT)) return { label: '', mode: 'input' }
+  const work = target.closest<HTMLElement>('[data-cursor="work"]')
+  if (work) return { label: work.dataset.cursorLabel ?? '', mode: 'work' }
+  if (target.closest(INTERACTIVE)) return { label: '', mode: 'control' }
+  return { label: '', mode: 'default' }
 }
 
 export const CustomCursor = () => {
-  const [enabled, setEnabled] = useState(false)
-  const [state, setState] = useState<{ label: string; mode: CursorMode }>({ label: '', mode: 'default' })
-  const rootRef = useRef<HTMLDivElement>(null)
-  const pointRef = useRef({ x: -200, y: -200, tx: -200, ty: -200 })
-  const frameRef = useRef<null | number>(null)
-  const hiddenRef = useRef(true)
+  const ref = useRef<HTMLDivElement | null>(null)
+  const labelRef = useRef<HTMLSpanElement | null>(null)
 
   useEffect(() => {
-    const document_ = document.documentElement
-    const fine = window.matchMedia('(pointer: fine)')
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const node = ref.current
+    const label = labelRef.current
+    if (!node || !label) return
 
-    const apply = () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current)
-        frameRef.current = null
-      }
-      const point = pointRef.current
-      const element = rootRef.current
-      if (!element) return
-      element.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`
-    }
+    const finePointer = window.matchMedia('(pointer: fine)')
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const root = document.documentElement
+    let enabled: boolean | null = null
+    let frame = 0
+    let targetX = -100
+    let targetY = -100
+    let x = -100
+    let y = -100
+    let visible = false
 
-    const follow = () => {
-      frameRef.current = null
-      const point = pointRef.current
-      const dx = point.tx - point.x
-      const dy = point.ty - point.y
-      if (Math.abs(dx) < 0.2 && Math.abs(dy) < 0.2) {
-        point.x = point.tx
-        point.y = point.ty
-        apply()
+    const clampLabelShift = (px: number, py: number) => {
+      if (node.dataset.mode !== 'work' || !label.textContent) {
+        label.style.removeProperty('--cursor-label-x')
+        label.style.removeProperty('--cursor-label-y')
         return
       }
-      point.x += dx * FOLLOW
-      point.y += dy * FOLLOW
-      apply()
-      frameRef.current = requestAnimationFrame(follow)
-    }
-
-    const kick = () => {
-      if (frameRef.current === null) frameRef.current = requestAnimationFrame(follow)
-    }
-
-    /** The overlay marks the document itself, so the cursor can never be stale. */
-    const overlayOpen = () => document_.dataset[OVERLAY_STATE] === 'open'
-
-    const sync = () => {
-      const on = fine.matches && !motion.matches && !overlayOpen()
-      document_.dataset.bangCursor = on ? 'on' : 'off'
-      setEnabled((current) => (current === on ? current : on))
-      if (!on) apply()
-    }
-
-    const onPointerMove = (event: PointerEvent) => {
-      if (!fine.matches || motion.matches || overlayOpen()) return
-      const point = pointRef.current
-      point.tx = event.clientX
-      point.ty = event.clientY
-      if (hiddenRef.current) {
-        hiddenRef.current = false
-        point.x = event.clientX
-        point.y = event.clientY
-      }
-      kick()
-    }
-
-    const onPointerOver = (event: PointerEvent) => {
-      if (overlayOpen()) return
-      const next = modeOf(event.target)
-      setState((current) =>
-        current.mode === next.mode && current.label === next.label ? current : next,
+      const vw = window.innerWidth || 1440
+      const vh = window.innerHeight || 900
+      const labelWidth = Math.max(label.offsetWidth || 160, 120)
+      const labelHeight = Math.max(label.offsetHeight || 28, 24)
+      const flipX = px + 24 + labelWidth > vw - 12
+      const flipY = py + labelHeight / 2 > vh - 12 || py - labelHeight / 2 < 12
+      label.style.setProperty('--cursor-label-x', flipX ? 'calc(-100% - 16px)' : '16px')
+      label.style.setProperty(
+        '--cursor-label-y',
+        flipY ? `${Math.min(Math.max(12 - py, -24), 24)}px` : '-50%',
       )
     }
 
-    const onPointerOut = (event: PointerEvent) => {
-      if (event.relatedTarget !== null) return
-      hiddenRef.current = true
-      rootRef.current?.setAttribute('data-hidden', '')
+    const paint = () => {
+      frame = 0
+      x += (targetX - x) * FOLLOW
+      y += (targetY - y) * FOLLOW
+      if (Math.hypot(targetX - x, targetY - y) > EPSILON) {
+        frame = window.requestAnimationFrame(paint)
+      } else {
+        x = targetX
+        y = targetY
+      }
+      node.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`
+      clampLabelShift(x, y)
     }
 
-    const onPointerIn = () => {
-      rootRef.current?.removeAttribute('data-hidden')
+    const applyContext = (target: EventTarget | null) => {
+      const next = contextFor(target)
+      node.dataset.mode = next.mode
+      if (label.textContent !== next.label) label.textContent = next.label
+      if (next.mode === 'input') {
+        node.dataset.hidden = 'true'
+        root.dataset.bangCursor = 'input'
+      } else if (enabled) {
+        root.dataset.bangCursor = 'on'
+        if (visible) delete node.dataset.hidden
+      }
+      clampLabelShift(x, y)
     }
 
-    const onKeyDown = () => {
-      // A keyboard visitor is not pointing anywhere; park the cursor until they move
-      // the pointer again instead of leaving a stray square on the page.
-      hiddenRef.current = true
-      rootRef.current?.setAttribute('data-hidden', '')
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return
+      targetX = event.clientX
+      targetY = event.clientY
+      if (!visible) {
+        x = targetX
+        y = targetY
+        visible = true
+        node.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`
+      }
+      applyContext(event.target)
+      if (!frame) frame = window.requestAnimationFrame(paint)
     }
 
-    apply()
+    const onOver = (event: PointerEvent) => {
+      applyContext(event.target)
+    }
+
+    const onLeave = (event: MouseEvent | PointerEvent) => {
+      if ('relatedTarget' in event && event.relatedTarget !== null) return
+      visible = false
+      node.dataset.hidden = 'true'
+    }
+
+    const sync = () => {
+      const next =
+        finePointer.matches &&
+        !reducedMotion.matches &&
+        root.dataset.bangOverlay !== 'open'
+      if (next === enabled) return
+      enabled = next
+      if (enabled) {
+        node.dataset.enabled = 'true'
+        node.dataset.mode = 'default'
+        node.dataset.hidden = 'true'
+        root.dataset.bangCursor = 'on'
+        window.addEventListener('pointermove', onMove, { passive: true })
+        window.addEventListener('pointerover', onOver, { passive: true })
+        window.addEventListener('pointerout', onLeave, { passive: true })
+        document.addEventListener('mouseleave', onLeave)
+      } else {
+        if (frame) window.cancelAnimationFrame(frame)
+        frame = 0
+        visible = false
+        delete node.dataset.enabled
+        node.dataset.hidden = 'true'
+        root.dataset.bangCursor = 'off'
+        window.removeEventListener('pointermove', onMove)
+        window.removeEventListener('pointerover', onOver)
+        window.removeEventListener('pointerout', onLeave)
+        document.removeEventListener('mouseleave', onLeave)
+      }
+    }
+
     sync()
-    fine.addEventListener('change', sync)
-    motion.addEventListener('change', sync)
-    window.addEventListener('pointermove', onPointerMove, { passive: true })
-    window.addEventListener('pointerover', onPointerOver, { passive: true })
-    window.addEventListener('pointerout', onPointerOut, { passive: true })
-    window.addEventListener('pointerin', onPointerIn, { passive: true })
-    window.addEventListener('keydown', onKeyDown)
+    finePointer.addEventListener('change', sync)
+    reducedMotion.addEventListener('change', sync)
     window.addEventListener('bang:overlay', sync)
     return () => {
-      fine.removeEventListener('change', sync)
-      motion.removeEventListener('change', sync)
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerover', onPointerOver)
-      window.removeEventListener('pointerout', onPointerOut)
-      window.removeEventListener('pointerin', onPointerIn)
-      window.removeEventListener('keydown', onKeyDown)
+      if (frame) window.cancelAnimationFrame(frame)
+      finePointer.removeEventListener('change', sync)
+      reducedMotion.removeEventListener('change', sync)
       window.removeEventListener('bang:overlay', sync)
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
-      frameRef.current = null
-      delete document_.dataset.bangCursor
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerover', onOver)
+      window.removeEventListener('pointerout', onLeave)
+      document.removeEventListener('mouseleave', onLeave)
+      delete root.dataset.bangCursor
     }
   }, [])
 
   return (
-    <div
-      aria-hidden="true"
-      className="bang-cursor"
-      data-enabled={enabled ? '' : undefined}
-      data-mode={state.mode}
-      ref={rootRef}
-    >
-      <span className="bang-cursor__mark" />
-      {state.mode === 'work' && state.label ? <span className="bang-cursor__label">{state.label}</span> : null}
+    <div aria-hidden="true" className="bang-cursor" data-hidden="true" data-mode="default" ref={ref}>
+      <span className="bang-cursor__mark" data-cursor-square="true" />
+      <span className="bang-cursor__label" dir="auto" ref={labelRef} />
     </div>
   )
 }

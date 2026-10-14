@@ -5,12 +5,11 @@ import { ContentContainer } from '@/components/design/Container'
 import { InteriorShell } from '@/components/layout/InteriorShell'
 import type { SiteContext } from '@/lib/cms/context'
 import type { Crumb } from '@/lib/routing/breadcrumbs'
-import { getChrome } from '@/lib/theme/chrome'
 import type { TranslatedDoc } from '@/lib/seo/translations'
+import { getChrome } from '@/lib/theme/chrome'
 
 /**
- * Interior page wrapper: chrome + breadcrumbs + content. Every interior view uses it,
- * so the full-width navbar / 1440px content relationship is identical everywhere.
+ * Interior page wrapper: shared corner chrome + optional breadcrumbs + content.
  */
 export const InteriorPage = async ({
   children,
@@ -23,11 +22,11 @@ export const InteriorPage = async ({
 }: {
   children: ReactNode
   context: SiteContext
-  crumbs: Crumb[]
+  crumbs?: Crumb[]
   currentPath: string
-  label: string
+  label?: string
   switchDoc?: TranslatedDoc
-  /** Locale-neutral query carried by the language switch (`/search?q=…`). */
+  /** Locale-neutral query carried by the language switch (`/search?q=…` or `?page=…`). */
   switchQuery?: string
 }) => {
   const chrome = await getChrome(context, currentPath, switchDoc, switchQuery)
@@ -35,14 +34,15 @@ export const InteriorPage = async ({
   return (
     <InteriorShell
       context={context}
-      footerLinks={chrome.footerLinks}
       headerLinks={chrome.headerLinks}
       logo={chrome.logo}
       switchTargets={chrome.switchTargets}
     >
-      <ContentContainer>
-        <Breadcrumbs crumbs={crumbs} label={label} />
-      </ContentContainer>
+      {crumbs && crumbs.length > 0 && label ? (
+        <ContentContainer>
+          <Breadcrumbs crumbs={crumbs} label={label} />
+        </ContentContainer>
+      ) : null}
       {children}
     </InteriorShell>
   )
