@@ -1,8 +1,23 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { brotliDecompressSync } from 'node:zlib'
 
 import puppeteer from 'puppeteer-core'
+
+const require = createRequire(import.meta.url)
+const chromiumLibs = () => {
+  const packaged = join(require.resolve('@sparticuz/chromium'), '..', '..', 'bin', 'al2023.tar.br')
+  const dir = join(tmpdir(), 'arch2-chromium-libs')
+  if (existsSync(join(dir, 'lib')) || !existsSync(packaged)) return dir
+  mkdirSync(dir, { recursive: true })
+  const tarPath = join(tmpdir(), 'arch2-al2023.tar')
+  writeFileSync(tarPath, brotliDecompressSync(readFileSync(packaged)))
+  execFileSync('tar', ['-xf', tarPath, '-C', dir])
+  return dir
+}
 
 /**
  * Structural accessibility audit.
@@ -152,7 +167,8 @@ const main = async () => {
   if (!executablePath) {
     const { default: chromium } = await import('@sparticuz/chromium')
     executablePath = await chromium.executablePath()
-    env = { ...process.env, LD_LIBRARY_PATH: [join(tmpdir(), 'arch2-chromium-libs', 'lib'), process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') }
+    const libs = chromiumLibs()
+    env = { ...process.env, LD_LIBRARY_PATH: [join(libs, 'lib'), process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') }
   }
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],

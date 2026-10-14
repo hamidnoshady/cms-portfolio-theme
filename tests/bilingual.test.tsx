@@ -383,3 +383,68 @@ describe('brand name', () => {
     expect(brandName({ branding: null as never, name: 'arch' })).toBe('arch')
   })
 })
+
+describe('case study close href, localized facts, and block heading deduplication', () => {
+  it('localizes the case study Close link for both fa and en in projects and objects', async () => {
+    const { closeHrefForCaseStudy } = await import('@/views/CaseStudyView')
+    expect(closeHrefForCaseStudy('projects', 'fa', { defaultLocale: 'fa' })).toBe('/projects')
+    expect(closeHrefForCaseStudy('projects', 'en', { defaultLocale: 'fa' })).toBe('/en/projects')
+    expect(closeHrefForCaseStudy('objects', 'fa', { defaultLocale: 'fa' })).toBe('/objects')
+    expect(closeHrefForCaseStudy('objects', 'en', { defaultLocale: 'fa' })).toBe('/en/objects')
+  })
+
+  it('localizes canonical fact labels and deduplicates repeated additionalFacts', async () => {
+    const { buildCaseStudyFacts } = await import('@/views/CaseStudyView')
+    const { toCaseStudy } = await import('@/domain/portfolio')
+    const post = {
+      heroImage: null,
+      id: 'p1',
+      projectMetadata: {
+        additionalFacts: [
+          { label: 'Location', value: 'Dup Location' },
+          { label: 'مکان', value: 'تهران تکراری' },
+          { label: 'Year', value: '2024' },
+          { label: 'سازه', value: 'بتن نمایان' },
+        ],
+        area: '۴۵۰ متر مربع',
+        client: 'کارفرمای نمونه',
+        date: '2024-05-01',
+        location: 'تهران',
+        status: 'ساخته‌شده',
+      },
+      slug: 'sample',
+      title: 'نمونه',
+    }
+    const cs = toCaseStudy(post as never)
+    const faFacts = buildCaseStudyFacts(cs, post.projectMetadata, 'fa')
+    expect(faFacts).toEqual([
+      { label: 'مکان', value: 'تهران' },
+      { label: 'وضعیت', value: 'ساخته‌شده' },
+      { label: 'مساحت', value: '۴۵۰ متر مربع' },
+      { label: 'همکاران', value: 'کارفرمای نمونه' },
+      { label: 'تاریخ', value: '۲۰۲۴' },
+      { label: 'سازه', value: 'بتن نمایان' },
+    ])
+
+    const enFacts = buildCaseStudyFacts(cs, post.projectMetadata, 'en')
+    expect(enFacts[0]).toEqual({ label: 'Location', value: 'تهران' })
+    expect(enFacts[1]).toEqual({ label: 'Status', value: 'ساخته‌شده' })
+  })
+
+  it('suppresses duplicate first-block heading matching the page h1 title', async () => {
+    const { isDuplicatePageHeading } = await import('@/components/blocks/Blocks')
+    expect(isDuplicatePageHeading('تماس — نمونه', 'تماس')).toBe(true)
+    expect(isDuplicatePageHeading('Services (Sample)', 'Services')).toBe(true)
+    expect(isDuplicatePageHeading('Different Heading', 'Services')).toBe(false)
+  })
+
+  it('parses archive page query parameter safely', async () => {
+    const { parseArchivePage } = await import('@/views/PortfolioArchiveView')
+    expect(parseArchivePage(undefined)).toBe(1)
+    expect(parseArchivePage('2')).toBe(2)
+    expect(parseArchivePage(['3'])).toBe(3)
+    expect(parseArchivePage('-5')).toBe(1)
+    expect(parseArchivePage('abc')).toBe(1)
+  })
+})
+

@@ -2,8 +2,24 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
+export type ShareLabels = {
+  copied: string
+  copyLink: string
+  done: string
+  failed: string
+  share: string
+}
+
 /** Native share with clipboard fallback and explicit success/error feedback. */
-export const ShareButton = ({ labels, title, url }: { labels: { copied: string; copyLink: string; failed: string; done: string; share: string }; title: string; url: string }) => {
+export const ShareButton = ({
+  labels,
+  title,
+  url,
+}: {
+  labels: ShareLabels
+  title: string
+  url: string
+}) => {
   const [status, setStatus] = useState<null | string>(null)
   const onShare = async () => {
     setStatus(null)
@@ -26,8 +42,12 @@ export const ShareButton = ({ labels, title, url }: { labels: { copied: string; 
   }
   return (
     <div className="flex items-center gap-3">
-      <Button onClick={onShare} type="button" variant="default">{labels.share}</Button>
-      <span aria-live="polite" className="type-meta" role="status">{status}</span>
+      <Button data-cursor="control" onClick={onShare} type="button" variant="default">
+        {labels.share}
+      </Button>
+      <span aria-live="polite" className="type-meta" role="status">
+        {status}
+      </span>
     </div>
   )
 }

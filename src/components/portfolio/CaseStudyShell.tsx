@@ -1,28 +1,21 @@
 'use client'
 
-/**
- * A case study opened *over* the page it was opened from.
- *
- * Why this exists: the reference opens a work in place — the canvas stays where the
- * visitor left it, and closing returns to exactly that spot. In Next's App Router that
- * is an intercepted route rendered into a parallel slot (`src/app/@overlay`), so the
- * home route is never unmounted and the canvas keeps its position, its DOM and its
- * pan state; a direct visit or a refresh still renders the full server-rendered case
- * study page (`src/app/projects/[slug]/page.tsx`), which keeps URLs, metadata,
- * sitemap entries and sharing intact. Closing pops the history entry the open pushed,
- * so Back and Forward work without any bespoke state.
- *
- * The shell owns the things an overlay must not forget: `role="dialog"` +
- * `aria-modal`, focus moved into the panel, Escape to close, the page behind it marked
- * `inert` (so keyboard and assistive-technology users cannot wander into the canvas
- * underneath), the document scroll locked, and the custom cursor switched off for a
- * reading surface.
- */
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, type ReactNode } from 'react'
 
-import { ShareButton } from '@/components/portfolio/ShareButton'
+import { ShareButton, type ShareLabels } from './ShareButton'
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+/**
+ * Intercepted case-study overlay shell (`CaseStudyShell`).
+ *
+ * Isolates all background page roots (`#bang-home`, interior shell roots) with `inert`,
+ * locks background scroll (`data-bang-overlay="open"` + `data-scroll-locked="true"`),
+ * traps `Tab`/`Shift+Tab` inside the modal while yielding to any nested lightbox dialog,
+ * closes on `Escape` or the Close button, and restores focus and title on teardown.
+ */
 export const CaseStudyShell = ({
   children,
   closeLabel,
@@ -34,57 +27,96 @@ export const CaseStudyShell = ({
   children: ReactNode
   closeLabel: string
   dir: 'ltr' | 'rtl'
-  labels: { copied: string; copyLink: string; done: string; failed: string; share: string }
+  labels: ShareLabels
   shareUrl: string
   title: string
 }) => {
   const router = useRouter()
-  const panelRef = useRef<HTMLDivElement>(null)
-  const openerRef = useRef<Element | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const closeRef = useRef<HTMLButtonElement | null>(null)
 
   const close = useCallback(() => {
-    // `back()` unwinds the navigation that opened the overlay — including a chain of
-    // related works — and lands the visitor on the canvas they left, unchanged.
     router.back()
   }, [router])
 
   useEffect(() => {
-    openerRef.current = document.activeElement
-    const html = document.documentElement
-    const home = document.getElementById('bang-home')
-    html.dataset.bangOverlay = 'open'
-    home?.setAttribute('inert', '')
-    /**
-     * The tab follows the open work. Next applies the metadata of the page that matched
-     * the *primary* route, and this overlay is a parallel slot, so the server-rendered
-     * `<title>` under it is still the canvas' own — the one thing a visitor cannot see
-     * for themselves while a work fills the screen. Setting it here keeps the tab, the
-     * dialog's name and the direct visit's title the same string, and closing puts the
-     * canvas' title back.
-     */
+    const root = document.documentElement
+    const dialog = dialogRef.current
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const previousTitle = document.title
-    if (title) document.title = title
-    // Let the custom cursor hand the system cursor back (see `CustomCursor`).
+
+    root.dataset.bangOverlay = 'open'
+    document.body.setAttribute('data-scroll-locked', 'true')
+    document.title = title
     window.dispatchEvent(new Event('bang:overlay'))
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return
-      event.preventDefault()
-      close()
+    // Mark every background sibling container inert (works from Home and from archives).
+    const inerted: HTMLElement[] = []
+    const home = document.getElementById('bang-home')
+    if (home && (!dialog || !home.contains(dialog))) {
+      home.setAttribute('inert', '')
+      inerted.push(home)
     }
+    for (const child of Array.from(document.body.children)) {
+      if (!(child instanceof HTMLElement)) continue
+      if (dialog && (child === dialog || child.contains(dialog))) continue
+      if (child.classList.contains('bang-cursor')) continue
+      if (!child.hasAttribute('inert')) {
+        child.setAttribute('inert', '')
+        inerted.push(child)
+      }
+    }
+
+    closeRef.current?.focus()
+
+    const hasNestedOpenDialog = () => {
+      const dialogs = [...document.querySelectorAll('[role="dialog"]')]
+      return dialogs.some((node) => node !== dialog && !dialog?.contains(node))
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || hasNestedOpenDialog()) return
+
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        close()
+        return
+      }
+
+      if (event.key === 'Tab' && dialog) {
+        const focusables = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter(
+          (el) => !el.hasAttribute('disabled') && el.tabIndex !== -1,
+        )
+        if (focusables.length === 0) {
+          event.preventDefault()
+          return
+        }
+        const first = focusables[0]!
+        const last = focusables[focusables.length - 1]!
+        const active = document.activeElement as HTMLElement | null
+        if (event.shiftKey) {
+          if (!active || active === first || !dialog.contains(active)) {
+            event.preventDefault()
+            last.focus()
+          }
+        } else if (!active || active === last || !dialog.contains(active)) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
     document.addEventListener('keydown', onKeyDown)
-
-    // Move focus in without scrolling the panel's own content.
-    panelRef.current?.focus({ preventScroll: true })
-
     return () => {
       document.removeEventListener('keydown', onKeyDown)
+      delete root.dataset.bangOverlay
+      document.body.removeAttribute('data-scroll-locked')
+      for (const el of inerted) el.removeAttribute('inert')
       document.title = previousTitle
-      delete html.dataset.bangOverlay
-      home?.removeAttribute('inert')
       window.dispatchEvent(new Event('bang:overlay'))
-      const opener = openerRef.current
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true })
+      if (opener && document.contains(opener)) {
+        opener.focus()
+      }
     }
   }, [close, title])
 
@@ -93,17 +125,22 @@ export const CaseStudyShell = ({
       aria-label={title}
       aria-modal="true"
       className="bang-overlay"
-      data-overlay=""
+      data-lenis-prevent
       dir={dir}
-      ref={panelRef}
+      ref={dialogRef}
       role="dialog"
-      tabIndex={-1}
     >
       <div className="bang-overlay__bar">
-        <button className="bang-btn bang-btn--ghost" data-cursor="control" onClick={close} type="button">
+        <ShareButton labels={labels} title={title} url={shareUrl} />
+        <button
+          className="bang-case__action target-standalone"
+          data-cursor="control"
+          onClick={close}
+          ref={closeRef}
+          type="button"
+        >
           {closeLabel}
         </button>
-        <ShareButton labels={labels} title={title} url={shareUrl} />
       </div>
       <div className="bang-overlay__body">{children}</div>
     </div>

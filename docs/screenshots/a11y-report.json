@@ -62,8 +62,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/about",
@@ -74,8 +73,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/contact",
@@ -143,8 +141,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/en/about",
@@ -155,8 +152,7 @@
       "contrast": [],
       "h1": 1,
       "headings": [
-        1,
-        2
+        1
       ],
       "ok": true,
       "path": "/en/contact",

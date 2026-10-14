@@ -8,15 +8,15 @@ import {
   aspectRatio,
   frameRatio,
   frameRatioFor,
-  ratioNumber,
-  type FrameAspect,
-  type FrameSize,
   isSvg,
   mediaAlt,
   mediaOriginAllowed,
   mediaSrcSet,
   mediaUrl,
   objectPosition,
+  ratioNumber,
+  type FrameAspect,
+  type FrameSize,
 } from '@/lib/utils/media'
 
 /**
@@ -26,9 +26,9 @@ import {
  * produced the size ladder, so `srcset` + explicit `width`/`height` + CSS
  * `aspect-ratio` deliver the same result with no layout shift and no extra surface.
  *
- * The origin is validated against the descriptor's `media.origin` (plus the optional
- * `NEXT_PUBLIC_MEDIA_ORIGIN` override) — a document cannot make the page fetch from
- * an arbitrary host.
+ * When a media object is missing or its URL is outside the allowed origins, renders a
+ * quiet, non-pulsing `.media-missing` frame (`data-media-state="missing"`) instead of a
+ * permanent `.skeleton` pulse.
  */
 
 export const CmsImage = ({
@@ -59,7 +59,8 @@ export const CmsImage = ({
     return (
       <div
         aria-hidden="true"
-        className={cn('skeleton', className)}
+        className={cn('media-missing', className)}
+        data-media-state="missing"
         style={{ aspectRatio: ratio ?? frameRatioFor(media), ...style }}
       />
     )
@@ -108,16 +109,6 @@ export const MediaFrame = ({
   </span>
 )
 
-/**
- * The one way a page shows a standalone photograph (hero, media block, image in an
- * article): a ratio from the frame rule and a viewport-height cap, so a portrait never
- * outgrows the screen and frames stay a consistent family instead of every image's
- * exact pixel size. `size` sets how wide the figure may run inside its container.
- *
- * `lightbox` is the figure's index in the enclosing `LightboxScope`: when set, the
- * frame becomes a `LightboxTrigger` and the photograph opens in the same lightbox as
- * every other content image. Heroes leave it unset — they are composition, not content.
- */
 export const FramedMedia = ({
   aspect = 'auto',
   cap = 72,
@@ -156,7 +147,14 @@ export const FramedMedia = ({
         origin={origin}
         priority={priority}
         ratio={ratio}
-        sizes={sizes ?? (size === 'full' ? '100vw' : size === 'narrow' ? '(min-width: 768px) 36rem, 100vw' : '(min-width: 1440px) 1360px, 100vw')}
+        sizes={
+          sizes ??
+          (size === 'full'
+            ? '100vw'
+            : size === 'narrow'
+              ? '(min-width: 768px) 36rem, 100vw'
+              : '(min-width: 1440px) 1360px, 100vw')
+        }
       />
     </span>
   )

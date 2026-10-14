@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { DecorativeMark } from '@/components/design/DecorativeMark'
@@ -275,7 +275,9 @@ describe('ProjectCard', () => {
       unmount()
     }
     const { container } = card(null)
-    expect(container.querySelector('.skeleton')?.getAttribute('style')).toContain('aspect-ratio: 4 / 5')
+    expect(container.querySelector('.media-missing')?.getAttribute('data-media-state')).toBe('missing')
+    expect(container.querySelector('.media-missing')?.getAttribute('style')).toContain('aspect-ratio: 4 / 5')
+    expect(container.querySelector('.skeleton')).toBeNull()
   })
 
   it('is a title block: title and year on one line, the location beneath, one link', () => {
@@ -296,3 +298,83 @@ describe('ProjectCard', () => {
     expect(container.querySelector('.pcard__title')).not.toBeNull()
   })
 })
+
+describe('PortfolioArchive', () => {
+  const sampleEntries = [
+    {
+      collaborators: null,
+      href: '/en/projects/house-a',
+      location: 'Tehran',
+      media: { alt: 'House A photo', height: 1000, id: 'm1', url: '/media/a.jpg', width: 800 },
+      title: 'House A',
+      type: 'Built',
+      year: '2024',
+    },
+    {
+      collaborators: null,
+      href: '/en/projects/house-b',
+      location: 'Shiraz',
+      media: { alt: 'House B photo', height: 1000, id: 'm2', url: '/media/b.jpg', width: 800 },
+      title: 'House B',
+      type: 'Design',
+      year: '2025',
+    },
+  ]
+
+  it('highlights the active row, dims inactive rows, updates the preview on hover/focus, and persists selection in sessionStorage', async () => {
+    const { PortfolioArchive } = await import('@/components/portfolio/ArchiveViews')
+    window.sessionStorage.clear()
+    const { container } = render(
+      <PortfolioArchive
+        entries={sampleEntries}
+        layout="auto"
+        origin="https://example.test"
+        sectionKey="projects"
+      />,
+    )
+
+    const rows = container.querySelectorAll<HTMLAnchorElement>('.bang-row')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]!.dataset.active).toBe('true')
+    expect(rows[1]!.dataset.active).toBe('false')
+    expect(container.querySelector<HTMLImageElement>('.bang-preview img')?.getAttribute('src')).toContain(
+      'https://example.test/media/a.jpg',
+    )
+
+    fireEvent.mouseEnter(rows[1]!)
+    expect(rows[0]!.dataset.active).toBe('false')
+    expect(rows[1]!.dataset.active).toBe('true')
+    expect(container.querySelector<HTMLImageElement>('.bang-preview img')?.getAttribute('src')).toContain(
+      'https://example.test/media/b.jpg',
+    )
+    expect(window.sessionStorage.getItem('bang:archive:selected:projects')).toBe('/en/projects/house-b')
+  })
+
+  it('honors archiveLayout="grid" and archiveLayout="index" explicitly', async () => {
+    const { PortfolioArchive } = await import('@/components/portfolio/ArchiveViews')
+    const gridRender = render(
+      <PortfolioArchive
+        entries={sampleEntries}
+        layout="grid"
+        origin="https://example.test"
+        sectionKey="projects"
+      />,
+    )
+    expect(gridRender.container.querySelector('.bang-archive__desktop')).toBeNull()
+    expect(gridRender.container.querySelector('.bang-cards--grid')).not.toBeNull()
+    gridRender.unmount()
+
+    const indexRender = render(
+      <PortfolioArchive
+        entries={sampleEntries}
+        layout="index"
+        origin="https://example.test"
+        sectionKey="projects"
+      />,
+    )
+    expect(indexRender.container.querySelector('.bang-archive__desktop--always')).not.toBeNull()
+    expect(indexRender.container.querySelector('.bang-cards')).toBeNull()
+    indexRender.unmount()
+  })
+})
+

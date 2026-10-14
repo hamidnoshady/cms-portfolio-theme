@@ -1,8 +1,23 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { brotliDecompressSync } from 'node:zlib'
 
 import puppeteer from 'puppeteer-core'
+
+const require = createRequire(import.meta.url)
+const chromiumLibs = () => {
+  const packaged = join(require.resolve('@sparticuz/chromium'), '..', '..', 'bin', 'al2023.tar.br')
+  const dir = join(tmpdir(), 'arch2-chromium-libs')
+  if (existsSync(join(dir, 'lib')) || !existsSync(packaged)) return dir
+  mkdirSync(dir, { recursive: true })
+  const tarPath = join(tmpdir(), 'arch2-al2023.tar')
+  writeFileSync(tarPath, brotliDecompressSync(readFileSync(packaged)))
+  execFileSync('tar', ['-xf', tarPath, '-C', dir])
+  return dir
+}
 
 /**
  * Interaction audit — the behaviours a screenshot cannot prove.
@@ -86,7 +101,8 @@ const main = async () => {
   if (!executablePath) {
     const { default: chromium } = await import('@sparticuz/chromium')
     executablePath = await chromium.executablePath()
-    env = { ...process.env, LD_LIBRARY_PATH: [join(tmpdir(), 'arch2-chromium-libs', 'lib'), process.env.LIBRARY_PATH].filter(Boolean).join(':') }
+    const libs = chromiumLibs()
+    env = { ...process.env, LD_LIBRARY_PATH: [join(libs, 'lib'), process.env.LD_LIBRARY_PATH].filter(Boolean).join(':') }
   }
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
@@ -146,23 +162,28 @@ const main = async () => {
     await page.goto(`${BASE}/`, { waitUntil: 'load' })
     await loaded(page, '.bang-canvas')
     const state = await page.evaluate(() => {
-      const field = document.querySelector('.bang-canvas')
-      const links = [...document.querySelectorAll('.bang-index__link')]
+      const primaryTiles = [...document.querySelectorAll('.bang-canvas__tile[data-primary-tile="true"]')]
+      const focusableTiles = [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => tile.getAttribute('tabindex') !== '-1')
+      const repeatTiles = [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => tile.dataset.primaryTile !== 'true')
       return {
-        fieldHidden: field?.getAttribute('aria-hidden') === 'true',
-        focusableTiles: [...document.querySelectorAll('.bang-canvas__tile')].filter((tile) => tile.getAttribute('tabindex') !== '-1').length,
-        hrefs: links.map((link) => link.getAttribute('href')),
+        floatingIndexCount: document.querySelectorAll('.bang-index, .bang-index__toggle').length,
+        focusableCount: focusableTiles.length,
+        hrefs: focusableTiles.map((link) => link.getAttribute('href')),
+        primaryCount: primaryTiles.length,
+        repeatsHidden: repeatTiles.every((tile) => tile.getAttribute('aria-hidden') === 'true' && tile.getAttribute('tabindex') === '-1'),
       }
     })
     const unique = new Set(state.hrefs)
-    if (!state.fieldHidden) throw new Error('the repeated visual field is exposed to assistive technology')
-    if (state.focusableTiles > 0) throw new Error(`${state.focusableTiles} duplicated tiles are in the tab order`)
-    if (state.hrefs.length === 0 || unique.size !== state.hrefs.length) throw new Error(`the work list is missing or repeats: ${state.hrefs.join(', ')}`)
-    // Keyboard: the first tab stop after the skip link is the work list itself.
+    if (state.floatingIndexCount > 0) throw new Error('the floating WorkIndex disclosure still exists on home')
+    if (!state.repeatsHidden) throw new Error('repeated wrap tiles are exposed in tab order or assistive tech')
+    if (state.focusableCount === 0 || state.focusableCount !== state.primaryCount || unique.size !== state.hrefs.length) {
+      throw new Error(`focusable primary work tiles are missing or repeat: ${state.hrefs.join(', ')}`)
+    }
+    // Keyboard: the first tab stop is the skip link (#bang-works), followed by the header/primary tiles.
     await page.keyboard.press('Tab')
-    const restored = await page.evaluate(() => document.activeElement?.getAttribute('href'))
-    if (restored !== '#bang-works') throw new Error(`the first tab stop is ${restored}, not the work list`)
-    return `${state.hrefs.length} works, one destination each, first tab stop is the list`
+    const firstStop = await page.evaluate(() => document.activeElement?.getAttribute('href'))
+    if (firstStop !== '#bang-works') throw new Error(`the first tab stop is ${firstStop}, not #bang-works`)
+    return `${state.hrefs.length} distinct works, one focusable primary tile each, repeats hidden`
   })
 
   await check('home: a drag pans and a click opens the work under the pointer', async (page) => {
@@ -534,7 +555,7 @@ const main = async () => {
   await check('fonts: the licensed Shazde weights are installed and active', async (page) => {
     await page.setViewport({ width: 1440, height: 900 })
     await page.goto(`${BASE}/about`, { waitUntil: 'load' })
-    await loaded(page, '.pcard')
+    await loaded(page, '.bang-about')
     const fonts = await page.evaluate(async () => {
       await document.fonts.ready
       const faces = [...document.fonts].filter((face) => face.family.includes('Shazde')).map((face) => face.weight)
@@ -555,7 +576,7 @@ const main = async () => {
     const read = async (scale) => {
       await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: scale })
       await page.goto(`${BASE}/about`, { waitUntil: 'load' })
-      await loaded(page, '.pcard')
+      await loaded(page, '.bang-about')
       return page.evaluate(() => ({
         mark: getComputedStyle(document.querySelector('.mark svg')).strokeWidth,
         rule: getComputedStyle(document.querySelector('.rule-h')).blockSize,

@@ -1819,131 +1819,350 @@
 }
 
 /* ============================================================================
-   Bang portfolio — the reference's own vocabulary: monochrome, sharp, sparse.
-
-   Everything here is inside `@layer components` (the layer every other component
-   file uses), so a Tailwind utility on the same element still wins — an unlayered
-   block would silently outrank `md:hidden`, `md:flex` and friends.
-
-   Two presentations share one template and are switched by a document attribute the
-   canvas client component owns:
-
-     (no attribute)           → static: a full-height field in a normal, scrolling
-                                document; the selected-work index is an open section
-                                under it. This is what the server renders, so it is
-                                also the no-JavaScript presentation.
-     html[data-bang-canvas=pan] → canvas: the field is the viewport, wheel/touch/drag
-                                pan it forever, the chrome floats over it and the index
-                                is a corner disclosure.
-
-   The attribute is set from script *only* when a fine pointer is present and reduced
-   motion is not requested, and it is removed again on teardown.
+   Bang portfolio — separated frames, GSAP entrance, shared corner shell,
+   central wordmark mask, site-wide filled black square cursor, and inner pages.
    ========================================================================== */
 @layer components {
+  :root {
+    --bang-edge: clamp(1rem, 2.2vw, 2rem);
+    --bang-chrome: 3.5rem;
+  }
+
+  .media-missing {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-subtle, #f4f4f2);
+    border: var(--line-w) solid var(--line-structural-color);
+  }
 
   /* --- buttons ------------------------------------------------------------ */
   .bang-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-block-size: 44px; padding-inline: 1.25rem;
-    border: 1px solid var(--ink); background: var(--ink); color: var(--surface);
-    font-size: var(--text-ui); text-decoration: none; cursor: pointer;
-  }
-  .bang-btn:hover { background: var(--surface); color: var(--ink); }
-  .bang-btn--ghost { background: transparent; color: var(--ink); }
-  .bang-btn--ghost:hover { background: var(--ink); color: var(--surface); }
-  .bang-btn:focus-visible, .bang-row:focus-visible, .bang-card__link:focus-visible,
-  .bang-index__link:focus-visible, .bang-nav__link:focus-visible, .bang-footer__link:focus-visible {
-    outline: 2px solid currentColor; outline-offset: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 44px;
+    padding-inline: 1.25rem;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--surface);
+    font-size: var(--text-ui);
+    text-decoration: none;
+    cursor: pointer;
   }
 
-  /* --- home shell --------------------------------------------------------- */
+  .bang-btn:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .bang-btn--ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .bang-btn--ghost:hover {
+    background: var(--ink);
+    color: var(--surface);
+  }
+
+  .bang-btn:focus-visible,
+  .bang-row:focus-visible,
+  .bang-card__link:focus-visible,
+  .bang-index__link:focus-visible,
+  .bang-nav__link:focus-visible,
+  .bang-footer__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  /* --- home shell & shared corner chrome ---------------------------------- */
   .bang-home {
     --bang-chrome: 3.5rem;
-    /* The canvas plane, in viewports. The tiles are laid out in it and it is the field's
-       wrapping period; its value and the tile-size budget in `canvasPlan.ts` are one
-       decision (see `.bang-canvas__world`). */
     --bang-plane: 2;
     position: relative;
     display: flex;
     flex-direction: column;
     min-block-size: 100svh;
-    background: var(--surface);
+    background-color: #ffffff;
+    color: var(--ink);
   }
 
-  /* Compact corner logo + navigation, the language switch on the other edge. */
   .bang-top {
-    position: relative;
-    z-index: 20;
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 30;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-4) var(--space-6);
     min-block-size: var(--bang-chrome);
-    padding: var(--space-3) var(--gutter);
+    padding-inline: max(var(--bang-edge), env(safe-area-inset-left))
+      max(var(--bang-edge), env(safe-area-inset-right));
+    background-color: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
   }
 
-  .bang-nav { flex: 1 1 auto; min-inline-size: 0; }
+  .bang-top--floating {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    padding-block-start: env(safe-area-inset-top);
+    background-color: transparent;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  .bang-top__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    inline-size: 100%;
+    min-block-size: var(--bang-chrome);
+  }
+
+  .bang-top__brand,
+  .bang-top__controls,
+  .bang-top > * {
+    pointer-events: auto;
+  }
+
+  .bang-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
   .bang-nav__list {
     display: none;
     flex-wrap: wrap;
-    gap: var(--space-5);
-    align-items: baseline;
+    gap: 0.25rem;
+    align-items: center;
     margin: 0;
     padding: 0;
     list-style: none;
   }
+
+  @media (min-width: 48rem) {
+    .bang-nav__list {
+      display: flex;
+    }
+  }
+
   .bang-nav__link {
     display: inline-flex;
     align-items: center;
-    min-block-size: 1.5rem;
+    min-block-size: 26px;
+    min-inline-size: 26px;
+    padding-block: 0.2rem;
+    padding-inline: 0.55rem;
     color: var(--ink);
-    font-size: var(--text-ui);
+    background-color: rgba(255, 255, 255, 0.96);
+    font-size: var(--text-caption);
+    line-height: 1.2;
+    letter-spacing: var(--tracking-label);
     text-decoration: none;
-  }
-  /* The reference's chrome is text without decoration; the current page is marked by
-     weight and `aria-current`, and hover/focus draws the line. */
-  .bang-nav__link:hover, .bang-nav__link:focus-visible { text-decoration: underline; text-underline-offset: 0.3em; }
-  .bang-nav__link[aria-current='page'] { font-weight: var(--weight-semibold); }
-
-  .bang-top__utils { display: flex; align-items: center; gap: var(--space-4); margin-inline-start: auto; }
-  .bang-top__language { flex: 0 0 auto; }
-
-  @media (min-width: 48rem) {
-    .bang-nav__list { display: flex; }
+    border-radius: 0;
+    transition:
+      background-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
   }
 
-  /* --- the field ---------------------------------------------------------- */
+  .bang-nav__link:hover,
+  .bang-nav__link:focus-visible {
+    color: #ffffff;
+    background-color: #000000;
+  }
+
+  .bang-nav__link[aria-current='page'] {
+    color: #ffffff;
+    background-color: #000000;
+    font-weight: var(--weight-semibold);
+  }
+
+  .bang-corner-lang {
+    position: fixed;
+    inset-block-end: max(var(--bang-edge), env(safe-area-inset-bottom));
+    inset-inline-end: max(var(--bang-edge), env(safe-area-inset-right));
+    z-index: 30;
+    pointer-events: auto;
+  }
+
+  .bang-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.15rem 0.25rem;
+    background-color: rgba(255, 255, 255, 0.96);
+    font-size: var(--text-caption);
+    line-height: 1.2;
+    letter-spacing: var(--tracking-label);
+  }
+
+  .bang-lang__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 24px;
+    min-inline-size: 24px;
+    padding-inline: 0.4rem;
+    color: var(--ink-secondary);
+    text-decoration: none;
+    border-radius: 0;
+    transition:
+      background-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
+  }
+
+  .bang-lang__item[data-current='true'] {
+    color: #ffffff;
+    background-color: #000000;
+    font-weight: var(--weight-semibold);
+  }
+
+  .bang-lang__item[data-translation='missing'] {
+    color: var(--ink-faint);
+    opacity: 0.6;
+  }
+
+  .bang-lang__link:hover,
+  .bang-lang__link:focus-visible {
+    color: #ffffff;
+    background-color: #000000;
+  }
+
+  /* --- central stage & 3-layer difference wordmark ------------------------ */
   .bang-stage {
     position: relative;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    min-block-size: 0;
+    inline-size: 100%;
+    block-size: 100svh;
+    min-block-size: 32rem;
+    overflow: hidden;
+    background-color: #ffffff;
+    isolation: isolate;
   }
 
+  .bang-wordmark {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    block-size: 100svh;
+    margin: 0;
+    padding-inline: var(--bang-edge);
+    pointer-events: none;
+    user-select: none;
+    text-align: center;
+    font-family: var(--font-brand);
+    font-size: clamp(2.1rem, 5.8vw, 5.25rem);
+    font-weight: var(--weight-extrabold);
+    letter-spacing: 0.16em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: #000000;
+  }
+
+  [dir='rtl'] .bang-wordmark {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .bang-wordmark--base {
+    z-index: 1;
+    color: #000000;
+  }
+
+  .bang-wordmark__ink,
+  .bang-wordmark__text {
+    display: inline-block;
+    max-inline-size: 18ch;
+    overflow-wrap: anywhere;
+    color: #000000;
+  }
+
+  .bang-wordmark--prep {
+    z-index: 1;
+    color: #ffffff;
+    mix-blend-mode: difference;
+  }
+
+  .bang-wordmark--blend {
+    z-index: 6;
+    color: #ffffff;
+    mix-blend-mode: difference;
+  }
+
+  .bang-wordmark--prep::before,
+  .bang-wordmark--blend::before {
+    content: attr(data-wordmark);
+    display: inline-block;
+    max-inline-size: 18ch;
+    overflow-wrap: anywhere;
+  }
+
+  .bang-wordmark__mark {
+    inline-size: auto;
+    block-size: clamp(2.5rem, 9vw, 7rem);
+    max-inline-size: min(80vw, 42rem);
+    object-fit: contain;
+  }
+
+  .bang-home__state {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    place-items: center;
+    min-block-size: 100svh;
+    padding-inline: var(--bang-edge);
+  }
+
+  /* --- the field: separated periodic frames, GSAP intro & grain hover ----- */
   .bang-canvas {
     position: relative;
+    z-index: 2;
     display: block;
     block-size: 100svh;
     overflow: hidden;
-    /* One surface for the whole home page: a drag across a tile must pan, not scroll
-       the document, while a two-finger pinch still zooms. */
     touch-action: pinch-zoom;
     user-select: none;
   }
 
-  /* The plane the tiles are laid out in, and the field's wrapping period. It is
-     `--bang-plane` viewports wide *and* tall so that the composition can cover the
-     viewport in every direction while the period stays exactly one plane — the two are
-     the same number, which is what makes a wrap land on the tile's own copy.
+  .bang-canvas__svg-defs {
+    position: absolute;
+    inline-size: 0;
+    block-size: 0;
+    pointer-events: none;
+  }
 
-     Physical offsets, not logical ones: the composition, `place()` and
-     `getBoundingClientRect` share one coordinate system, which `inset-inline-start`
-     would mirror in RTL — and a mirrored plane would put every tile out of step with
-     the math that wraps it. The tile variables below are physical for the same reason.
+  .bang-loader {
+    position: absolute;
+    inset-block-start: calc(var(--bang-chrome) + 0.5rem);
+    inset-inline: 0;
+    z-index: 12;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
 
-     `--bang-plane` and `MAX_WIDTH`/`MOBILE_TILE_SCALE` in `canvasPlan.ts` are one
-     decision: `PLANE >= 1 + 2 * MAX_WIDTH * TILE_SCALE`. The unit test reads both files
-     and fails if the pair drifts apart. */
+  .bang-loader__mark {
+    display: inline-flex;
+    align-items: center;
+    padding-block: 0.2rem;
+    padding-inline: 0.6rem;
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    color: #ffffff;
+    background-color: #000000;
+  }
+
   .bang-canvas__world {
     --tile-fit: 1;
     --tile-scale: 1;
@@ -1959,235 +2178,203 @@
     position: absolute;
     top: calc(var(--tile-y, 0) * 100%);
     left: calc(var(--tile-x, 0) * 100%);
-    inline-size: calc(var(--tile-w, 0.2) * 100% * var(--tile-scale, 1) * var(--tile-fit, 1));
-    /* 46% of the *viewport* (the cap the reference's frames never exceed), expressed
-       against the plane the tile is measured in. */
+    z-index: var(--tile-z, 1);
+    inline-size: calc(var(--tile-w, 0.09) * 100% * var(--tile-scale, 1) * var(--tile-fit, 1));
+    max-inline-size: calc(42% / var(--bang-plane, 2));
     max-block-size: calc(46% / var(--bang-plane, 2));
-    aspect-ratio: var(--tile-ratio, 1.5);
+    aspect-ratio: var(--tile-ratio, 1.333);
     display: block;
-    overflow: hidden;
-    /* The frame's own angle, from the composition. The independent `rotate` property is
-       deliberate: `transform` is reserved for the whole period of wrapping correction
-       the pan engine writes, and the two must not fight over one property. */
+    color: inherit;
+    text-decoration: none;
     rotate: calc(var(--tile-rotate, 0) * 1deg);
     will-change: transform;
   }
 
-  /* A zone frame is height-capped here rather than in the composition, because a
-     frame's height follows its `aspect-ratio` and only the stylesheet can bound it. The
-     covering guarantee in `canvasPlan.ts` budgets that height in viewport fractions —
-     21% of the viewport, i.e. 10.5% of the plane — so the cap is stated against the
-     plane, like every other tile rule, and therefore holds at any width. Sized tiles
-     without it are free. */
   .bang-canvas__tile[data-zone] {
-    max-block-size: calc(21% / var(--bang-plane, 2));
+    max-block-size: calc(23% / var(--bang-plane, 2));
   }
 
-  .bang-canvas__image {
+  .bang-canvas__intro {
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    will-change: transform, clip-path, opacity;
+  }
+
+  .bang-canvas__frame {
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: hidden;
+    background-color: var(--surface-subtle, #f4f4f2);
+  }
+
+  .bang-canvas__img,
+  .bang-canvas__image,
+  .bang-canvas__placeholder {
+    display: block;
     inline-size: 100%;
     block-size: 100%;
     object-fit: cover;
+    transform-origin: center center;
     transition: scale var(--motion-slow) var(--ease-out);
   }
 
-  /* Hover/focus feedback that does not depend on the custom cursor existing. */
-  .bang-canvas__tile:hover .bang-canvas__image { scale: 1.04; }
+  .bang-canvas__tile:hover .bang-canvas__image {
+    scale: 1.04;
+  }
 
-  /* The static presentation — no JavaScript, `prefers-reduced-motion: reduce`, or the
-     CMS turning `canvasMotion` off — fits the *whole* plane into the box instead of
-     showing one window of it. Every work is therefore on screen at once and reachable
-     without a script, and the document scrolls normally. */
+  .bang-canvas__grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.28) 1px, transparent 0);
+    background-size: 3px 3px;
+    mix-blend-mode: overlay;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bang-canvas__tile:hover .bang-canvas__img {
+      filter: url(#bang-grain-filter) contrast(1.05);
+    }
+  }
+
+  .bang-canvas__caption {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-block: 0.4rem;
+    padding-inline: 0.55rem;
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.96);
+    opacity: 0;
+    transition: opacity var(--motion-fast) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .bang-canvas__tile:hover .bang-canvas__caption,
+  .bang-canvas__tile:focus-visible .bang-canvas__caption,
+  html:not([data-bang-canvas='pan']):not([data-bang-canvas='intro']) .bang-canvas__tile[data-primary-tile='true'] .bang-canvas__caption {
+    opacity: 1;
+  }
+
+  .bang-canvas__tile:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 3px;
+    z-index: 25;
+  }
+
+  .bang-canvas__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--text-caption);
+    font-weight: var(--weight-medium);
+    line-height: 1.25;
+    color: #ffffff;
+  }
+
+  .bang-canvas__meta {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.85);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html:not([data-bang-canvas='pan']):not([data-bang-canvas='intro']) .bang-stage,
+  html:not([data-bang-canvas='pan']):not([data-bang-canvas='intro']) .bang-canvas {
+    block-size: 140svh;
+  }
+
   html:not([data-bang-canvas='pan']) .bang-canvas__world {
     scale: calc(1 / var(--bang-plane, 2));
     transform-origin: 0 0;
   }
 
-  /* Phones get a coarser field: larger photographs, as the reference shows them. The
-     widths scale off the same plan values, so the composition is unchanged — and the
-     scale stays inside the wrapping budget (`MOBILE_TILE_SCALE` in `canvasPlan.ts`). */
+  html[data-bang-canvas='intro'] .bang-canvas__world {
+    scale: 1;
+  }
+
   @media (max-width: 47.99rem) {
-    .bang-canvas__world { --tile-scale: 1.2; }
+    .bang-canvas__world { --tile-scale: 1.05; }
     .bang-canvas__tile { max-block-size: calc(38% / var(--bang-plane, 2)); }
   }
 
-  /* The wordmark sits above the photographs and inverts over them: white type with a
-     `difference` blend is black on the white page and light over a dark frame — the
-     reference's central mark, without a second colour in the palette. */
-  .bang-wordmark {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline: 0;
-    z-index: 6;
-    display: grid;
-    place-items: center;
-    block-size: 100svh;
-    margin: 0;
-    pointer-events: none;
-    text-align: center;
-  }
-
-  .bang-wordmark__text {
-    font-family: var(--font-brand);
-    font-size: clamp(2.25rem, 11vw, 10rem);
-    font-weight: var(--weight-extrabold);
-    letter-spacing: -0.045em;
-    line-height: 1;
-    color: #ffffff;
-    mix-blend-mode: difference;
-  }
-
-  /* A mark is the studio's own artwork, and the size of a mark is part of that artwork:
-     a logo is not a hero image. The field therefore draws the uploaded mark at *logo*
-     scale — a wordmark-height band the mark fits itself into, whatever its own aspect
-     ratio — instead of stretching it to the stage. An SVG with no intrinsic size would
-     otherwise be painted at the size of whatever box it landed in, which is how a 64px
-     sample logo once filled the middle of the canvas. */
-  .bang-wordmark__mark {
-    inline-size: auto;
-    block-size: clamp(2.5rem, 9vw, 7rem);
-    max-inline-size: min(80vw, 42rem);
-    object-fit: contain;
-  }
-
-  /* --- selected work index (the canonical, accessible list) ---------------- */
+  /* --- legacy index selector kept for contract compatibility -------------- */
   .bang-index {
     padding: var(--space-6) var(--gutter) var(--space-12);
     border-block-start: 1px solid var(--line-structural-color);
   }
 
-  /* One row shape for the static label and the disclosure button: the server renders
-     the label (an open section is what a visitor without a script gets), the client
-     swaps in the button once it can actually toggle something. */
-  .bang-index__summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-block-size: 44px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: start;
-  }
-  .bang-index__toggle { cursor: pointer; }
-  .bang-index__summary::after {
-    content: '';
-    inline-size: 0.5rem;
-    block-size: 0.5rem;
-    border-inline-end: 1px solid var(--ink);
-    border-block-end: 1px solid var(--ink);
-    rotate: 45deg;
-    transition: rotate var(--motion-base) var(--ease-out);
-  }
-  .bang-index__summary[aria-expanded='true']::after { rotate: -135deg; }
-  .bang-index__label::after { display: none; }
-  .bang-index__count { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-
-  /* The list is content, not a popover: it is in the flow in every presentation. The
-     canvas presentation folds it behind the button, and `data-bang-index` on the root
-     records the visitor's explicit intent — the same attribute pattern the cursor and
-     the case-study overlay use, so the stylesheet never needs to know whether a script
-     has run. */
-  html[data-bang-index='closed'] .bang-index__body { display: none; }
-  html[data-bang-canvas='pan']:not([data-bang-index='open']) .bang-index__body { display: none; }
-
-  .bang-index__list {
-    display: grid;
-    gap: 0;
-    margin: var(--space-2) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .bang-index__link {
-    display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr);
-    gap: var(--space-2) var(--space-4);
-    align-items: baseline;
-    min-block-size: 44px;
-    padding-block: var(--space-2);
-    border-block-end: 1px solid var(--line-structural-color);
-    color: inherit;
-    text-decoration: none;
-  }
-  .bang-index__link:hover .bang-index__title, .bang-index__link:focus-visible .bang-index__title {
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
-  }
-  .bang-index__number { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-  .bang-index__title { font-size: var(--text-ui); overflow-wrap: anywhere; }
-  .bang-index__meta { grid-column: 2; color: var(--ink-secondary); }
-  .bang-index__actions { margin: var(--space-4) 0 0; }
-
-  /* --- custom cursor ------------------------------------------------------ */
+  /* --- custom cursor (site-wide filled black square) ---------------------- */
   .bang-cursor {
     position: fixed;
-    /* Physical, like the field: the cursor is placed from a pointer's `clientX/clientY`
-       and `inset-inline-start` would offset every position by the viewport width in
-       RTL. */
     top: 0;
     left: 0;
     z-index: 90;
     display: none;
-    translate: -50% -50%;
     pointer-events: none;
+    user-select: none;
     will-change: transform;
   }
 
   html[data-bang-cursor='on'] .bang-cursor { display: block; }
-  /* A stale cursor can never sit on top of an open case study, whatever the timing
-     of the overlay's own attribute. */
   html[data-bang-overlay='open'] .bang-cursor { display: none !important; }
   .bang-cursor[data-hidden] { opacity: 0; }
 
   .bang-cursor__mark {
     display: block;
-    inline-size: 10px;
-    block-size: 10px;
-    border: 1px solid var(--ink);
-    background: transparent;
-    transition: inline-size var(--motion-fast) var(--ease-out), block-size var(--motion-fast) var(--ease-out);
+    inline-size: 9px;
+    block-size: 9px;
+    border: 0;
+    border-radius: 0;
+    background-color: #000000;
+    transform: translate(-50%, -50%);
+    transition:
+      inline-size var(--motion-fast) var(--ease-out),
+      block-size var(--motion-fast) var(--ease-out);
   }
 
-  .bang-cursor[data-mode='control'] .bang-cursor__mark {
-    inline-size: 5px;
-    block-size: 5px;
-    background: var(--ink);
-    border-color: var(--ink);
-  }
-
+  .bang-cursor[data-mode='control'] .bang-cursor__mark,
   .bang-cursor[data-mode='work'] .bang-cursor__mark {
-    inline-size: 26px;
-    block-size: 26px;
-    border-color: var(--ink);
-    background: color-mix(in srgb, var(--surface) 30%, transparent);
+    inline-size: 17px;
+    block-size: 17px;
+    background-color: #000000;
   }
 
-  /* The label is CMS content (the work's own title), never invented copy. */
   .bang-cursor__label {
     position: absolute;
-    inset-block-start: calc(100% + 8px);
-    inset-inline-start: 50%;
-    translate: -50% 0;
-    max-inline-size: 16rem;
+    top: 0;
+    left: 0;
+    transform: translate(var(--cursor-label-x, 16px), var(--cursor-label-y, -50%));
+    max-inline-size: min(18rem, 68vw);
     padding: 0.2rem 0.5rem;
-    background: var(--ink);
-    color: var(--surface);
+    background-color: #000000;
+    color: #ffffff;
     font-size: var(--text-caption);
     line-height: var(--leading-ui);
-    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  /* Hiding the system pointer is only safe because the replacement is a fixed,
-     non-interactive element that is removed the moment any of the conditions above
-     stop holding. */
   html[data-bang-cursor='on'],
-  html[data-bang-cursor='on'] * { cursor: none; }
+  html[data-bang-cursor='on'] a,
+  html[data-bang-cursor='on'] button { cursor: none; }
+
+  html[data-bang-cursor='on'] input,
+  html[data-bang-cursor='on'] textarea,
+  html[data-bang-cursor='on'] select,
+  html[data-bang-cursor='on'] [contenteditable='true'] { cursor: text; }
 
   /* --- footer / utility controls ------------------------------------------ */
   .bang-footer {
@@ -2201,56 +2388,23 @@
     min-block-size: var(--bang-chrome);
     padding: var(--space-3) var(--gutter);
   }
-  .bang-footer__end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
-  .bang-footer__links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-  /* The same 44px target the rest of the theme's chrome uses (`.nav-link`): the footer
-     sits over the canvas, where a thin link is a link nobody can hit. */
-  .bang-footer__link {
-    display: inline-flex;
-    align-items: center;
-    min-block-size: 44px;
-    color: var(--ink-secondary);
-    text-decoration: none;
-  }
-  .bang-footer__link:hover, .bang-footer__link:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: 0.25em; }
 
   /* --- the canvas presentation ------------------------------------------- */
   html[data-bang-canvas='pan'],
-  html[data-bang-canvas='pan'] body { overflow: hidden; }
+  html[data-bang-canvas='pan'] body,
+  html[data-bang-canvas='intro'],
+  html[data-bang-canvas='intro'] body { overflow: hidden; }
 
-  html[data-bang-canvas='pan'] .bang-stage { position: fixed; inset: 0; display: block; }
-  html[data-bang-canvas='pan'] .bang-canvas { position: absolute; inset: 0; block-size: auto; }
-  html[data-bang-canvas='pan'] .bang-wordmark { position: fixed; }
+  html[data-bang-canvas='pan'] .bang-stage,
+  html[data-bang-canvas='intro'] .bang-stage { position: fixed; inset: 0; display: block; }
+  html[data-bang-canvas='pan'] .bang-canvas,
+  html[data-bang-canvas='intro'] .bang-canvas { position: absolute; inset: 0; block-size: auto; }
+  html[data-bang-canvas='pan'] .bang-wordmark,
+  html[data-bang-canvas='intro'] .bang-wordmark { position: fixed; }
 
-  html[data-bang-canvas='pan'] .bang-top { position: fixed; inset-block-start: 0; inset-inline: 0; }
+  html[data-bang-canvas='pan'] .bang-top,
+  html[data-bang-canvas='intro'] .bang-top { position: fixed; inset-block-start: 0; inset-inline: 0; }
   html[data-bang-canvas='pan'] .bang-footer { position: fixed; inset-block-end: 0; inset-inline: 0; }
-
-  html[data-bang-canvas='pan'] .bang-index {
-    position: fixed;
-    inset-block-end: calc(var(--bang-chrome) + var(--space-2));
-    inset-inline-start: var(--gutter);
-    z-index: 30;
-    max-inline-size: min(24rem, calc(100vw - 2 * var(--gutter)));
-    padding: 0;
-    border-block-start: 0;
-  }
-  /* Closed, the index is a corner control; open, it becomes a panel with its own
-     scroll — the wheel handler leaves it alone (see `CanvasField`). */
-  html[data-bang-canvas='pan'] .bang-index__summary {
-    padding-inline: var(--space-3);
-    border: 1px solid var(--line-structural-color);
-    background: color-mix(in srgb, var(--surface) 88%, transparent);
-    backdrop-filter: blur(6px);
-  }
-  html[data-bang-canvas='pan'] .bang-index__body {
-    max-block-size: min(60svh, 24rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: var(--space-3) var(--space-4) var(--space-2);
-    border: 1px solid var(--line-structural-color);
-    border-block-start: 0;
-    background: var(--surface);
-  }
 
   /* --- the case-study overlay ------------------------------------------- */
   .bang-overlay {
@@ -2289,41 +2443,501 @@
     to { opacity: 1; translate: 0 0; }
   }
 
-  /* --- archives, rows, facts, case studies, biographies ------------------- */
-  .bang-archive__desktop { display: none; }
-  @media (min-width: 900px) {
-    .bang-archive__desktop { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start; }
-    .bang-cards { display: none; }
+  /* --- About page: leading rail, central identity, editorial media -------- */
+  .bang-about {
+    padding-block: clamp(1.5rem, 4vh, 3.5rem) clamp(3rem, 7vh, 5rem);
+    padding-inline: max(var(--bang-edge), env(safe-area-inset-left))
+      max(var(--bang-edge), env(safe-area-inset-right));
   }
-  .bang-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
-  .bang-row { display: grid; grid-template-columns: 3.5rem 1fr auto; gap: 1rem; align-items: baseline; padding-block: 1rem; border-bottom: 1px solid var(--line-structural-color); color: inherit; text-decoration: none; }
-  .bang-row.is-selected .bang-row__title { text-decoration: underline; text-underline-offset: 4px; }
-  .bang-row__num { font-variant-numeric: tabular-nums; }
-  .bang-row__title { font-size: 1.25rem; font-weight: 650; }
-  .bang-row__meta { font-size: 0.85rem; opacity: 0.75; }
-  .bang-preview { position: sticky; top: 1rem; border: 1px solid var(--ink); }
-  .bang-preview__empty { aspect-ratio: 4 / 3; }
-  .bang-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 2rem; }
-  .bang-card__link { color: inherit; text-decoration: none; display: block; }
-  .bang-card__frame { display: block; border: 1px solid var(--ink); }
-  .bang-card__caption { display: block; padding-block: 0.75rem; }
-  .bang-card__title { display: block; font-size: 1.15rem; font-weight: 650; }
-  .bang-card__meta { display: block; font-size: 0.9rem; opacity: 0.8; }
-  .bang-facts { display: grid; border-top: 1px solid var(--ink); margin-block: 2rem; }
-  .bang-facts__row { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding-block: 0.75rem; border-bottom: 1px solid var(--line-structural-color); }
-  .bang-facts__row dt { font-weight: 650; }
-  .bang-case__title { font-size: clamp(2.2rem, 7vw, 5rem); line-height: 0.95; letter-spacing: -0.03em; font-weight: 800; }
-  .bang-case__repeat { font-size: clamp(2.2rem, 7vw, 5rem); font-weight: 800; opacity: 0.12; white-space: nowrap; overflow: hidden; user-select: none; }
-  .bang-bio__backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.6); display: grid; place-items: center; padding: 1rem; z-index: 60; }
-  .bang-bio { background: var(--surface); color: var(--ink); border: 1px solid var(--ink); max-inline-size: 34rem; inline-size: 100%; max-block-size: 90svh; overflow: auto; padding: 1.5rem; }
-  @media (max-width: 640px) { .bang-bio { min-block-size: 100svh; max-block-size: 100svh; } }
-  .bang-bio__head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-  .bang-bio__socials { list-style: none; display: flex; gap: 1rem; padding: 0; }
-  .bang-footer__utils { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; padding-block: 1rem; border-top: 1px solid var(--line-structural-color); }
 
-  /* Reduced motion keeps every state, drops the travel. */
+  .bang-about__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  @media (min-width: 64rem) {
+    .bang-about__stage {
+      grid-template-columns: minmax(17rem, 24rem) minmax(5rem, 1fr) minmax(22rem, 42vw);
+      min-block-size: calc(100svh - var(--navbar-block) - 5rem);
+      align-items: center;
+    }
+  }
+
+  .bang-about__rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-inline-size: 36ch;
+  }
+
+  .bang-about__title {
+    margin: 0;
+    font-size: var(--text-heading);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+  }
+
+  .bang-about__intro {
+    font-size: var(--text-ui);
+    line-height: var(--leading-body);
+    color: var(--ink-secondary);
+  }
+
+  .bang-about__identity {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: clamp(1.25rem, 2.2vw, 2rem);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    user-select: none;
+  }
+
+  [dir='rtl'] .bang-about__identity {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  @media (min-width: 64rem) {
+    .bang-about__identity {
+      display: flex;
+    }
+  }
+
+  .bang-about__media {
+    inline-size: 100%;
+    max-inline-size: 46rem;
+    justify-self: end;
+  }
+
+  .bang-team__heading {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-secondary);
+  }
+
+  .bang-team__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block-start: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .bang-team__item {
+    border-block-end: var(--line-w) solid var(--line-structural-color);
+  }
+
+  .bang-team__trigger {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    inline-size: 100%;
+    padding-block: 0.55rem;
+    padding-inline: 0.35rem;
+    background: transparent;
+    border: 0;
+    text-align: start;
+    cursor: pointer;
+    color: var(--ink);
+    transition:
+      background-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
+  }
+
+  .bang-team__trigger:hover,
+  .bang-team__trigger:focus-visible {
+    background-color: #000000;
+    color: #ffffff;
+  }
+
+  .bang-team__name {
+    font-size: var(--text-ui);
+    font-weight: var(--weight-medium);
+  }
+
+  .bang-team__role {
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+  }
+
+  .bang-team__trigger:hover .bang-team__role,
+  .bang-team__trigger:focus-visible .bang-team__role {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* --- archives (Projects & Objects): centered numbered list + preview ---- */
+  .bang-archive__desktop {
+    display: none;
+  }
+
+  .bang-archive__desktop--always {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 48rem) {
+    .bang-archive__desktop {
+      display: grid;
+      grid-template-columns: minmax(14rem, 19rem) minmax(20rem, 32rem);
+      gap: clamp(2rem, 5vw, 4.5rem);
+      align-items: center;
+      justify-content: center;
+      max-inline-size: 56rem;
+      min-block-size: calc(100svh - var(--navbar-block) - 6rem);
+      margin-inline: auto;
+    }
+
+    .bang-cards--auto {
+      display: none;
+    }
+  }
+
+  .bang-rows,
+  .bang-archive__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .bang-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.75rem;
+    padding-inline: 0.35rem;
+    border-block-end: 1px solid var(--line-structural-color);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .bang-row__num {
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+  }
+
+  .bang-row__title {
+    min-inline-size: 0;
+    font-size: var(--text-subheading);
+    font-weight: var(--weight-medium);
+    overflow-wrap: break-word;
+  }
+
+  .bang-row[data-active='true'] .bang-row__title,
+  .bang-row.is-selected .bang-row__title {
+    color: #000000;
+    font-weight: var(--weight-semibold);
+  }
+
+  .bang-row[data-active='false'] .bang-row__title {
+    color: #595959;
+  }
+
+  .bang-row:hover .bang-row__title,
+  .bang-row:focus-visible .bang-row__title {
+    color: #000000;
+  }
+
+  .bang-row__meta {
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+    white-space: nowrap;
+  }
+
+  .bang-preview,
+  .bang-archive__preview {
+    position: sticky;
+    top: calc(var(--navbar-block) + 1rem);
+    aspect-ratio: 4 / 5;
+    max-inline-size: 19rem;
+    inline-size: 100%;
+    overflow: hidden;
+    border: 1px solid var(--ink);
+  }
+
+  .bang-preview__empty,
+  .bang-archive__preview-empty {
+    aspect-ratio: 4 / 5;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .bang-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 48rem) {
+    .bang-cards--grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .bang-cards--grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .bang-card {
+    min-inline-size: 0;
+  }
+
+  .bang-card__link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+  }
+
+  .bang-card__frame,
+  .bang-card__media {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--ink);
+  }
+
+  .bang-card__caption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-3);
+    row-gap: 0.25rem;
+    align-items: baseline;
+    padding-block: 0.75rem;
+    min-inline-size: 0;
+  }
+
+  .bang-card__num {
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bang-card__title {
+    display: block;
+    min-inline-size: 0;
+    font-size: 1.15rem;
+    font-weight: 650;
+    overflow-wrap: break-word;
+  }
+
+  .bang-card__meta {
+    grid-column: 1 / -1;
+    display: block;
+    font-size: 0.9rem;
+    color: var(--ink-secondary);
+    overflow-wrap: break-word;
+  }
+
+  /* --- Contact & Careers compact central panel ---------------------------- */
+  .bang-contact {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-block-size: calc(100svh - var(--navbar-block) - 4rem);
+    padding-block: clamp(2rem, 5vh, 4.5rem);
+    padding-inline: max(var(--bang-edge), env(safe-area-inset-left))
+      max(var(--bang-edge), env(safe-area-inset-right));
+  }
+
+  .bang-contact__panel {
+    inline-size: 100%;
+    max-inline-size: 38rem;
+  }
+
+  .bang-contact__head {
+    margin-block-end: var(--space-6);
+  }
+
+  .bang-contact__title {
+    margin: 0;
+    font-size: var(--text-title);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .bang-contact__form {
+    padding-block-start: var(--space-4);
+  }
+
+  /* --- Case study detail & oversized moving marquee ----------------------- */
+  .bang-case__head {
+    margin-block-end: var(--space-7);
+  }
+
+  .bang-case__bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-4);
+    margin-block-end: var(--space-5);
+  }
+
+  .bang-case__action,
+  .bang-case__inquiry {
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink);
+    background: none;
+    border: 0;
+    border-block-end: 1px solid var(--ink);
+    padding-block: 0.25rem;
+    padding-inline: 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .bang-case__marquee {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-3);
+    border-block: 1px solid var(--line-structural-color);
+  }
+
+  .bang-case__title {
+    margin: 0;
+    font-size: clamp(2.2rem, 7vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+  }
+
+  .bang-case__repeat {
+    margin: var(--space-2) 0 0;
+    font-size: clamp(1.5rem, 4.5vw, 3.25rem);
+    font-weight: 800;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .bang-case__marquee-track {
+    display: inline-flex;
+    gap: 1.5rem;
+    will-change: transform;
+    animation: bang-marquee 26s linear infinite;
+  }
+
+  .bang-case__marquee:hover .bang-case__marquee-track,
+  .bang-case__marquee:focus-within .bang-case__marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes bang-marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  .bang-case__hero {
+    margin-block-end: var(--space-8);
+  }
+
+  .bang-case__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  @media (min-width: 64rem) {
+    .bang-case__grid {
+      grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
+    }
+  }
+
+  .bang-facts {
+    display: grid;
+    border-top: 1px solid var(--ink);
+    margin-block: 0;
+  }
+
+  .bang-facts__row {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--line-structural-color);
+  }
+
+  .bang-facts__row dt,
+  .bang-facts__label {
+    font-weight: 650;
+    font-size: var(--text-caption);
+    color: var(--ink-secondary);
+  }
+
+  .bang-facts__value {
+    margin: 0;
+    font-size: var(--text-ui);
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+
+  .bang-bio__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.6);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    z-index: 60;
+  }
+
+  .bang-bio {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    max-inline-size: 34rem;
+    inline-size: 100%;
+    max-block-size: 90svh;
+    overflow: auto;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .bang-bio {
+      min-block-size: 100svh;
+      max-block-size: 100svh;
+    }
+  }
+
+  .bang-bio__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bang-bio__socials {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    padding: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bang-canvas__image { transition: none; }
+    .bang-canvas__image,
+    .bang-canvas__img { transition: none; }
     .bang-overlay { animation: none; }
+    .bang-case__marquee-track { animation: none; }
   }
 }

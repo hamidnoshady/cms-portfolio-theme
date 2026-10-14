@@ -1,38 +1,82 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 
 import { Blocks } from '@/components/blocks/Blocks'
 import { RichText } from '@/components/blocks/RichText'
 import { ContentContainer } from '@/components/design/Container'
-import { DecorativeMark } from '@/components/design/DecorativeMark'
 import { Rule } from '@/components/design/Rule'
 import { FramedMedia } from '@/components/media/CmsImage'
-import { ProjectCard } from '@/components/projects/ProjectCard'
+import { TeamBiography } from '@/components/portfolio/TeamBiography'
 import { EmptyState } from '@/components/states/States'
-import { getArchive, getSectionPage, localizedPostHref } from '@/lib/cms/content'
+import { toTeamMember, type TeamMember } from '@/domain/portfolio'
+import { getSectionPage } from '@/lib/cms/content'
 import { loadPageContext } from '@/lib/cms/pageContext'
+import type { BlockRow, Locale, Media } from '@/lib/cms/types'
 import { breadcrumbsFor } from '@/lib/routing/breadcrumbs'
 import { href } from '@/lib/routing/locale'
 import { THEME_ROUTES } from '@/lib/routing/paths'
 import { resolveLocaleRoute } from '@/lib/routing/resolve'
+import { pagePath } from '@/lib/runtime'
 import { metadataFor } from '@/lib/seo/metadata'
+import { documentLanguages } from '@/lib/seo/translations'
+import { brandName } from '@/lib/theme/brand'
 import { labels as dictionary } from '@/lib/theme/labels'
-import { formatNumber } from '@/lib/runtime'
 import { collectMedia } from '@/lib/utils/lexical'
 import { isMedia } from '@/lib/utils/media'
 import { InteriorPage } from '@/views/InteriorPage'
 import { StateView } from '@/views/StateView'
-import type { Locale } from '@/lib/cms/types'
-import type { Media } from '@/lib/cms/types'
-import { documentLanguages } from '@/lib/seo/translations'
 
-/**
- * About — sparse by design: breadcrumbs, a modest title, one short introduction, one
- * small studio image (~42% of desktop content width) with its inset frame, one discreet
- * contact link, and a lot of white space.
- *
- * CMS blocks are still rendered *after* that composition when the page really has them —
- * the sparse default never deletes a customer's content to look like a sample.
- */
+const extractTeamFromLayout = (
+  blocks: BlockRow[] | null | undefined,
+): { otherBlocks: BlockRow[]; teamHeading: null | string; teamMembers: TeamMember[] } => {
+  if (!blocks || blocks.length === 0) {
+    return { otherBlocks: [], teamHeading: null, teamMembers: [] }
+  }
+  const teamMembers: TeamMember[] = []
+  const otherBlocks: BlockRow[] = []
+  let teamHeading: null | string = null
+
+  for (const block of blocks) {
+    if (block.blockType === 'team' || block.blockType === 'people') {
+      const rawMembers = ((block as { members?: unknown[]; items?: unknown[] }).members ??
+        (block as { items?: unknown[] }).items ??
+        []) as Record<string, unknown>[]
+      if (!teamHeading && typeof block.heading === 'string' && block.heading.trim()) {
+        teamHeading = block.heading.trim()
+      }
+      for (const [idx, m] of rawMembers.entries()) {
+        teamMembers.push(toTeamMember(m, idx))
+      }
+    } else {
+      otherBlocks.push(block)
+    }
+  }
+
+  return { otherBlocks, teamHeading, teamMembers }
+}
+
+const pickPrimaryAboutMedia = (
+  heroMedia: unknown,
+  heroRichText: unknown,
+  blocks: BlockRow[] | null | undefined,
+): null | Media => {
+  if (isMedia(heroMedia as never)) return heroMedia as Media
+  const fromHeroLexical = collectMedia(heroRichText as never).find(isMedia)
+  if (fromHeroLexical) return fromHeroLexical
+  for (const block of blocks ?? []) {
+    if (block.blockType === 'mediaBlock' && isMedia(block.media as never)) {
+      return block.media as Media
+    }
+    if (block.blockType === 'content' && Array.isArray(block.columns)) {
+      for (const col of block.columns as { richText?: unknown }[]) {
+        const found = collectMedia(col.richText as never).find(isMedia)
+        if (found) return found
+      }
+    }
+  }
+  return null
+}
+
 export const aboutMetadata = async (locale: Locale): Promise<Metadata> => {
   const outcome = await loadPageContext(locale, THEME_ROUTES.about)
   if (!outcome.ok) return { robots: { follow: false, index: false } }
@@ -42,10 +86,10 @@ export const aboutMetadata = async (locale: Locale): Promise<Metadata> => {
     description: page?.meta?.description ?? null,
     image: page && isMedia(page.meta?.image) ? page.meta.image : null,
     languages: page
-      ? await documentLanguages(outcome.ctx, { id: page.id, kind: 'page', pathFor: () => THEME_ROUTES.about })
+      ? await documentLanguages(outcome.ctx, { id: page.id, kind: 'page', pathFor: pagePath })
       : undefined,
     path: THEME_ROUTES.about,
-    title: page?.title ?? dictionary(locale).about,
+    title: page?.meta?.title ?? page?.title ?? dictionary(locale).about,
   })
 }
 
@@ -56,27 +100,29 @@ export const AboutView = async ({ locale }: { locale: Locale }) => {
   const t = dictionary(locale)
   const { page } = await getSectionPage('about', ctx)
   const route = resolveLocaleRoute(['about'], locale, ctx.site)
-  const crumbs = breadcrumbsFor(route, ctx.site)
+  const crumbs = breadcrumbsFor(route, ctx.site, page?.title)
 
   if (!page) {
     return (
       <InteriorPage context={ctx} crumbs={crumbs} currentPath={THEME_ROUTES.about} label={t.breadcrumb}>
-        <ContentContainer>
+        <ContentContainer className="py-16">
+          <h1 className="type-title mb-6">{t.about}</h1>
           <EmptyState locale={locale} />
         </ContentContainer>
       </InteriorPage>
     )
   }
 
-  // Selected work: the three newest projects, from the same archive the Projects page
-  // reads. Nothing is invented — no projects, no section.
-  const work = await getArchive(ctx, { limit: 3, section: 'projects' })
-  const projectsHref = href(THEME_ROUTES.projects, locale, ctx.site)
-  const contactHref = href(THEME_ROUTES.contact, locale, ctx.site)
+  const brand = brandName(ctx.site)
+  const primaryMedia = pickPrimaryAboutMedia(page.hero?.media, page.hero?.richText, page.layout)
+  const { otherBlocks, teamHeading, teamMembers } = extractTeamFromLayout(page.layout)
 
-  const heroMedia = isMedia(page.hero?.media) ? page.hero.media : null
-  const inlineMedia = (collectMedia(page.hero?.richText as never)[0] ?? null) as Media | null
-  const image = heroMedia ?? inlineMedia
+  const filteredBlocks = primaryMedia
+    ? otherBlocks.filter(
+        (b, idx) =>
+          !(idx === 0 && b.blockType === 'mediaBlock' && isMedia(b.media as never) && (b.media as Media).id === primaryMedia.id),
+      )
+    : otherBlocks
 
   return (
     <InteriorPage
@@ -84,88 +130,70 @@ export const AboutView = async ({ locale }: { locale: Locale }) => {
       crumbs={crumbs}
       currentPath={THEME_ROUTES.about}
       label={t.breadcrumb}
-     
-      switchDoc={{ id: page.id, kind: 'page', pathFor: () => THEME_ROUTES.about }}
+      switchDoc={{ id: page.id, kind: 'page', pathFor: pagePath }}
     >
-      <ContentContainer>
-        <div className="relative">
-          <DecorativeMark className="top-2 -start-1 hidden md:block" variant="offset-l" />
-          <h1 className="type-title max-w-[24ch] ps-4 md:ps-6">{page.title}</h1>
-        </div>
-        <Rule className="my-10" />
+      <section className="bang-about">
+        <div className="bang-about__stage">
+          <div className="bang-about__rail">
+            <header className="bang-about__header">
+              <h1 className="bang-about__title" dir="auto">{page.title}</h1>
+              <Rule className="mt-4 max-w-[6rem]" />
+            </header>
 
-        <div className="about-composition">
-          <div className="min-w-0">
             {page.hero?.richText ? (
-              <RichText anchorScope="hero" content={page.hero.richText} context={ctx} fallbackDir={ctx.dir} />
-            ) : (
-              <p className="type-lede">
-                {page.meta?.description ?? ''}
-              </p>
-            )}
+              <div className="bang-about__intro prose">
+                <RichText anchorScope="hero" content={page.hero.richText} context={ctx} fallbackDir={ctx.dir} />
+              </div>
+            ) : null}
+
+            {teamMembers.length > 0 ? (
+              <div className="bang-about__team">
+                <TeamBiography
+                  closeLabel={t.close}
+                  dir={ctx.dir}
+                  heading={teamHeading ?? t.team}
+                  members={teamMembers}
+                  origin={ctx.site.media.origin}
+                />
+              </div>
+            ) : null}
+
+            <div className="bang-about__cta">
+              <Link
+                className="link-inline type-ui target-standalone"
+                data-cursor="control"
+                href={href(THEME_ROUTES.contact, locale, ctx.site)}
+              >
+                {t.startConversation}
+              </Link>
+            </div>
           </div>
 
-          <div className="relative">
-            {image ? (
+          <div aria-hidden="true" className="bang-about__identity">
+            <span>{brand}</span>
+          </div>
+
+          {primaryMedia ? (
+            <div className="bang-about__media">
               <FramedMedia
-                cap={70}
-                media={image}
+                cap={72}
+                caption={page.title}
+                media={primaryMedia}
                 origin={ctx.site.media.origin}
+                priority
                 size="wide"
-                sizes="(min-width: 1024px) 42vw, 100vw"
+                sizes="(min-width: 1024px) 44vw, 94vw"
               />
-            ) : (
-              <span aria-hidden="true" className="skeleton block" style={{ aspectRatio: '4 / 5' }} />
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
+      </section>
 
-        {work.docs.length > 0 ? (
-          <section aria-labelledby="about-work" className="mt-20">
-            <Rule className="mb-8" />
-            <div className="mb-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-              <h2 className="type-heading" id="about-work">
-                {t.selectedWork}
-                {/* The count describes the cards below: “3 of 12” when the grid is a
-                    selection from a larger archive, the plain number when it is all of it. */}
-                <span className="type-meta ms-3">
-                  {work.totalDocs > work.docs.length
-                    ? t.selectedWorkShown(work.docs.length, work.totalDocs)
-                    : formatNumber(work.docs.length, locale)}
-                </span>
-              </h2>
-              <a className="link-inline type-ui target-standalone" href={projectsHref}>
-                {t.allProjects}
-              </a>
-            </div>
-            <div className="about-work">
-              {await Promise.all(
-                work.docs.map(async (post) => (
-                  <ProjectCard
-                    context={ctx}
-                    href={await localizedPostHref(post, ctx)}
-                    key={post.id}
-                    post={post}
-                  />
-                )),
-              )}
-            </div>
-          </section>
-        ) : null}
-
-        {/* The page ends on one large line rather than a small link: the next step is
-            the point of the page. The arrow follows the reading direction. */}
-        <p className="mt-20">
-          <a className="about-talk target-standalone" href={contactHref}>
-            {t.startConversation}
-            <span aria-hidden="true" className="about-talk__arrow">
-              {locale === 'fa' ? '←' : '→'}
-            </span>
-          </a>
-        </p>
-      </ContentContainer>
-
-      {page.layout && page.layout.length > 0 ? <Blocks blocks={page.layout} context={ctx} /> : null}
+      {filteredBlocks.length > 0 ? (
+        <div className="pb-16">
+          <Blocks blocks={filteredBlocks} context={ctx} pageTitle={page.title} />
+        </div>
+      ) : null}
     </InteriorPage>
   )
 }
