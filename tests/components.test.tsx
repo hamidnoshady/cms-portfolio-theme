@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { DecorativeMark } from '@/components/design/DecorativeMark'
 import { Pagination } from '@/components/design/Pagination'
 import { Rule } from '@/components/design/Rule'
-import { LanguageSwitch, oppositeTargets } from '@/components/layout/LanguageSwitch'
+import { LanguageSwitch, switchEntries } from '@/components/layout/LanguageSwitch'
 import { Logo } from '@/components/layout/Logo'
 import { ProjectCard, ProjectFacts, projectFactPairs } from '@/components/projects/ProjectCard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -123,24 +123,30 @@ const siteContext = (locale: Locale, branding?: Record<string, unknown>): SiteCo
 
 describe('LanguageSwitch', () => {
   const targets: SwitchTarget[] = [
-    { href: '/projects/villa', label: 'فارسی', locale: 'fa' },
-    { href: '/en/projects/villa', label: 'English', locale: 'en' },
+    { href: '/projects/villa', label: 'FA', locale: 'fa', name: 'فارسی' },
+    { href: '/en/projects/villa', label: 'EN', locale: 'en', name: 'English' },
   ]
 
-  it('offers only the other language on a Persian page', () => {
+  it('prints the set of languages with the one being read marked, as the reference does', () => {
     const { container } = render(<LanguageSwitch current="fa" hrefs={targets} label="زبان" />)
     const links = [...container.querySelectorAll('a')]
-    expect(links.map((link) => link.textContent)).toEqual(['English'])
+    // Every language is present; only the *other* one is a link, so the control cannot
+    // navigate to the page the visitor is already on.
+    expect(links.map((link) => link.textContent)).toEqual(['EN'])
     expect(links[0]?.getAttribute('href')).toBe('/en/projects/villa')
     expect(links[0]?.getAttribute('hreflang')).toBe('en')
-    expect(container.textContent).not.toContain('فارسی')
+    // The code is compact, the accessible name is the language's own name.
+    expect(links[0]?.getAttribute('aria-label')).toBe('English')
+    const current = container.querySelector('[data-current="true"]')
+    expect(current?.textContent).toBe('FA')
+    expect(current?.getAttribute('aria-current')).toBe('true')
     expect(container.querySelector('nav')?.getAttribute('aria-label')).toBe('زبان')
   })
 
-  it('offers only Persian on an English page', () => {
+  it('marks Persian on an English page, and never links to itself', () => {
     const { container } = render(<LanguageSwitch current="en" hrefs={targets} label="Language" />)
-    expect([...container.querySelectorAll('a')].map((link) => link.textContent)).toEqual(['فارسی'])
-    expect(container.textContent).not.toContain('English')
+    expect([...container.querySelectorAll('a')].map((link) => link.textContent)).toEqual(['FA'])
+    expect(container.querySelector('[data-current="true"]')?.textContent).toBe('EN')
   })
 
   it('shows a missing translation as quiet text, never as a link or a redirect home', () => {
@@ -148,15 +154,15 @@ describe('LanguageSwitch', () => {
       <LanguageSwitch
         current="fa"
         hrefs={[
-          { href: '/projects/villa', label: 'فارسی', locale: 'fa' },
-          { href: null, label: 'English', locale: 'en' },
+          { href: '/projects/villa', label: 'FA', locale: 'fa', name: 'فارسی' },
+          { href: null, label: 'EN', locale: 'en', name: 'English' },
         ]}
         label="زبان"
       />,
     )
     expect(container.querySelector('a')).toBeNull()
     const unavailable = container.querySelector('[data-translation="missing"]')
-    expect(unavailable?.textContent).toBe('English')
+    expect(unavailable?.textContent).toBe('EN')
     expect(unavailable?.getAttribute('aria-disabled')).toBe('true')
     expect(unavailable?.getAttribute('lang')).toBe('en')
     expect(container.textContent).not.toContain('/en')
@@ -167,10 +173,9 @@ describe('LanguageSwitch', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('filters by locale, not by label', () => {
+  it('keeps the CMS order, so the chrome does not reshuffle when the language changes', () => {
     // The old implementation compared `entry.label === current`, which never matched.
-    expect(oppositeTargets(targets, 'fa').map((entry) => entry.locale)).toEqual(['en'])
-    expect(oppositeTargets(targets, 'en').map((entry) => entry.locale)).toEqual(['fa'])
+    expect(switchEntries(targets).map((entry) => entry.locale)).toEqual(['fa', 'en'])
   })
 })
 

@@ -471,6 +471,7 @@ export const CanvasField = ({
                 data-cursor="work"
                 data-cursor-label={work.title}
                 data-tile={tile.key}
+                data-zone={tile.zone ? '' : undefined}
                 href={work.href}
                 key={tile.key}
                 // A canvas click is a *client* navigation: it is what lets the case
@@ -486,6 +487,7 @@ export const CanvasField = ({
                 style={
                   {
                     '--tile-ratio': String(tile.ratio),
+                    '--tile-rotate': String(tile.rotate),
                     '--tile-w': String(tile.width),
                     '--tile-x': String(tile.x),
                     '--tile-y': String(tile.y),

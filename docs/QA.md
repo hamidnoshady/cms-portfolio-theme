@@ -186,19 +186,20 @@ Both scripts run against the production standalone build in a real browser.
 
 | Check | Result |
 | --- | --- |
-| Tile count is constant while panning (a bounded DOM, not an accumulating one) | 12 tiles, 31 samples |
-| A tile is on screen in every sampled frame (no end, no seam, no reset) | minimum 2 |
+| Tile count is constant while panning (a bounded DOM, not an accumulating one) | 20 tiles, 31 samples |
+| A tile is on screen in every sampled frame (no end, no seam, no reset) | minimum 5 |
+| A whole work is clickable at every offset the visitor stops at | 12 offsets sampled |
 | No tile is corrected while any part of it is on screen (a wrap is never visible) | 31 samples |
 | The plane follows the wheel, never runs ahead of it, never reverses | travelled 7650px for 7800px of wheel |
-| The wrapping period holds the viewport plus two of the largest tile | plane 2850×1800, viewport 1440×900, largest 541×414 |
+| The wrapping period holds the viewport plus two of the largest tile | plane 2850×1800, viewport 1440×900, largest 459×333 |
 | The cursor is the studio's own over a work, names it, and sits *at* the pointer | mode `work`, label matches, < 1.5px off after it converges, 26px mark |
 | The cursor never intercepts the pointer and changes state away from a work | `pointer-events: none`; mode `default` |
 | A drag pans without opening a work; a click opens *that* work in a real modal | `/` stays `/`, then `/projects/khaneye-noor` with `aria-modal="true"` |
 | The canvas holds still behind the open work and closing restores the position exactly | world transform unchanged, then identical |
 | A direct visit to the same URL renders the server page, not an overlay | 200, `h1` = the work |
-| The phone gets the same bounded field with no sideways overflow | 12 tiles, −15px overflow |
+| The phone gets the same bounded field with no sideways overflow | 20 tiles, −15px overflow |
 | Reduced motion: static field, scrollable page, open work list, system cursor | all four |
-| Without scripting: the composition and the work list are served | 12 tiles, 5 links |
+| Without scripting: the composition and the work list are served | 20 tiles, 5 links |
 
 `home-canvas-motion.mjs` writes the *sequences* — `docs/screenshots/bang-home/motion/`
 holds 12 wheel frames, 5 drag frames, 3 cursor frames and the open/close pair, plus
@@ -508,6 +509,36 @@ Each was reproduced in a browser or by a failing test before being fixed (37 ite
     when), and the second asserts what actually matters: the plane never travels further
     than the wheel asked for and never reverses direction. The cursor checks likewise wait
     for the mark to reach the pointer rather than sleeping a fixed 400ms.
+
+58. **The field could settle where nothing was fully clickable.** The first scattered
+    composition was a set of loose groups, and a window that landed between two of them
+    had every photograph sliced by an edge: `home-canvas-audit.mjs` failed on "a work is
+    reachable inside the viewport" after a sustained pan. The composition now has a
+    *covering* layer — one frame per zone of a lattice that tiles the plane, kept inside
+    its zone and above the group frames — so a whole work is always on screen, clear of
+    the chrome and unburied. `tests/home-canvas.test.ts` sweeps 2304 offsets per viewport
+    for the same promise, and the audit samples 12 more after real wheel input.
+59. **A clamp at the plane edge broke that guarantee.** Zone frames were clamped into
+    `[0, 1]` like the group frames, which folded the last row of a column onto the plane's
+    edge and moved it a fifth of the plane — a hole a window could sit in. Placement is
+    now *wrapped* (`wrap01`), not clamped: the canvas is a torus and the frame's copy is
+    on the other side of the seam. Found by the same sweep, which is why the sweep exists.
+60. **Bricking alternate rows coupled the two axes.** Offsetting every other row by half a
+    cell made a column's x position depend on the row's parity, so the rows of the
+    *fitting* column could sit two cells apart vertically — and a window landed between
+    them. Measured with a diagnostic sweep rather than guessed at: the offset is gone, and
+    the scatter now comes from a per-column vertical stagger and a third-of-a-cell jitter.
+61. **The jitter budget was computed in the wrong axis.** The zone band was derived from a
+    *width* fraction converted through a ratio, but the plane is not square (it is `PLANE`
+    viewports wide *and* tall), so a 191px-wide frame came out 255px tall instead of the
+    budgeted 189px. Zone frames now carry a stylesheet height cap
+    (`.bang-canvas__tile[data-zone]`, 21% of the viewport) and the composition budgets
+    *that* number. Pinned by the sweep, which mirrors the cap.
+62. **The language switch hid the current language.** It printed only the other locale
+    (`English` on a Persian page), while the reference's chrome prints the *set* — `ENG
+    ESP`. It now prints every served language with the current one marked and inert, in
+    the CMS's order, with the compact code visible and the language's own name as the
+    accessible name. `docs/BANG-REFERENCE.md` §3 records the observation.
 
 ## 7. What is *not* verified
 

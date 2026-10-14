@@ -80,11 +80,20 @@ export const translatedInLocales = async (
 /**
  * One entry per available locale, the current one included: the data layer answers
  * "where does this document live in each language", and `LanguageSwitch` decides
- * what to show (only the *other* language, never the one being read).
+ * what to show (every served language, the one being read marked).
+ *
+ * `label` is the compact code the chrome prints — the reference's `ENG`/`ESP` on the
+ * edge opposite the logo — while `name` is the language's own name, which is what the
+ * link's accessible name uses. A visitor who is switching language is exactly the
+ * person who cannot rely on inferring a two-letter code.
  */
-export type SwitchTarget = { href: null | string; label: string; locale: Locale }
+export type SwitchTarget = { href: null | string; label: string; locale: Locale; name: string }
 
-const localeLabel = (locale: Locale): string => (locale === 'fa' ? 'فارسی' : 'English')
+const LOCALE_CODES: Record<Locale, string> = { en: 'EN', fa: 'FA' }
+const LOCALE_NAMES: Record<Locale, string> = { en: 'English', fa: 'فارسی' }
+
+const localeLabel = (locale: Locale): string => LOCALE_CODES[locale] ?? locale.toUpperCase()
+const localeName = (locale: Locale): string => LOCALE_NAMES[locale] ?? locale
 
 /**
  * Language-switch targets for a document. A locale where the document does not exist
@@ -95,7 +104,7 @@ export const switchTargets = async (ctx: SiteContext, doc: TranslatedDoc): Promi
   Promise.all(
     ctx.site.availableLocales.map(async (locale) => {
       const path = await translatedDocumentPath(ctx, doc, locale)
-      return { href: path ? href(path, locale, ctx.site) : null, label: localeLabel(locale), locale }
+      return { href: path ? href(path, locale, ctx.site) : null, label: localeLabel(locale), locale, name: localeName(locale) }
     }),
   )
 
@@ -126,4 +135,5 @@ export const switchTargetsForPath = (
     href: href(`${pathForLocale(locale)}${query}`, locale, ctx.site),
     label: localeLabel(locale),
     locale,
+    name: localeName(locale),
   }))

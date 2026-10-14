@@ -255,6 +255,27 @@ const main = async () => {
     `minimum ${Math.min(...samples.map((sample) => sample.visible))} tiles on screen`,
   )
 
+  /**
+   * The clickability guarantee, at offsets no screenshot can reach: whatever offset the
+   * visitor stops at, at least one work is *entirely* on screen, clear of the fixed
+   * chrome and on top of the tiles under it — so "clicking a project image opens that
+   * project" is always available, not only on the frame the page loaded with. The
+   * composition's covering argument is `ZONES` in `canvasPlan.ts`; this is the same
+   * promise measured after real wheel input.
+   */
+  const unreachable = []
+  for (let step = 0; step < 12; step += 1) {
+    await page.mouse.move(720, 450)
+    await page.mouse.wheel({ deltaY: 240 })
+    await sleep(220)
+    if (!(await actionableTile(page))) unreachable.push(step)
+  }
+  record(
+    'a whole work is clickable at every offset the visitor stops at',
+    unreachable.length === 0,
+    unreachable.length === 0 ? '12 offsets sampled' : `no reachable work at samples ${unreachable.join(', ')}`,
+  )
+
   const worldMoved = samples.at(-1).world !== start.world
   record('the plane actually moves', worldMoved, `${start.world || 'none'} → ${samples.at(-1).world || 'none'}`)
 

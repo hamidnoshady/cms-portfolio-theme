@@ -195,3 +195,143 @@ disabled or re-baselined, and no budget was raised.
    case studies, about, contact, careers, legal, the mobile drawer and the language switch
    are green in the a11y/interaction/screenshot suites, but that is their *own* contract —
    comparing them scene by scene with `bybang.co` needs a browser that can reach it.
+
+---
+
+# Round 2 — reference observation, the clickable-anywhere composition, and the language switch
+
+> Continuation of the report above, on branch `arena/7bad917d-cms-portfolio-theme`, based on
+> `13eb754` (the merge of the round-1 work). Every number is from a command run in this
+> working copy; the commands are named so they can be re-run. The round-1 record above is
+> left untouched so the history stays readable.
+
+## 10. Implemented
+
+**The reference was finally read.** The round-1 report's first remaining issue was that
+pixel fidelity to `bybang.co` was unverified because the sandbox had no egress. The site's
+routes, chrome, and the server-rendered `/legal` and `/about` copy were retrieved on
+13 October 2026 and are recorded in **`docs/BANG-REFERENCE.md`** — including what still
+*cannot* be observed from here (the client-rendered canvas, cursor and transitions) and
+where this theme's rules for each of them live. The reference's pages carry a compact
+`ENG ESP` pair on the edge opposite the logo, two clocks (`BCN20:31BUE15:31`), a
+`Copyright … ® <year>` footer with a legal link and a maker credit, a `/about` with an
+intro plus name/role portraits, and a `/legal` that names Cloudflare + Brevo as its
+delivery infrastructure and a localStorage language preference.
+
+**The language switch now prints the set of languages**, as the reference does: every
+served locale in the CMS's order, the current one marked (`aria-current`) and inert, the
+others as links. The visible label is the compact code (`EN`, `FA`), the accessible name
+is the language's own name (`English`, `فارسی`), and a locale the document has no
+translation in stays quiet text. `SwitchTarget` gained `name`; both producers
+(`switchTargets`, `switchTargetsForPath`) and both consumers were updated together.
+
+**The field's composition was rebuilt around a guarantee.** The round-1 lattice filled the
+plane but read as a grid; the first scatter version read like the reference but could
+settle where *nothing was fully clickable* — a real regression, caught by the browser
+audit. The composition is now two layers (`canvasPlan.ts`):
+
+- **zone frames** — one per zone of a `3 × 4` lattice that tiles the plane, each kept
+  inside its zone's band (columns staggered, jitter bounded by an explicit budget), height
+  capped in the stylesheet (`.bang-canvas__tile[data-zone]`, 21% of the viewport) and drawn
+  *above* everything else. Whatever offset the field rests at, the window contains a whole
+  zone, so it contains a whole, unburied work;
+- **group frames** — eight larger frames around four anchors pulled out of the lattice,
+  turned up to 4°, layered *behind* the zone frames. This is where the reference's stacked
+  character lives: a big photograph with smaller ones riding on top of it.
+
+Placement is wrapped into the plane (`wrap01`) rather than clamped to it, because clamping
+folded the last row of a column onto the plane edge and broke the covering argument.
+
+## 11. Bugs fixed
+
+Each was found by a test or the browser audits, and each is written up with its cause in
+`docs/QA.md` §6 (items 58–62):
+
+1. A window could settle with no work fully on screen (audit: "a work is reachable inside
+   the viewport"), so a visitor could not always click a project.
+2. Clamping placements to `[0, 1]` moved the last row of every column by a fifth of the
+   plane — a hole in the covering lattice.
+3. A brick offset on alternate rows coupled a column's x position to the row's parity,
+   which put the fitting column's rows two cells apart vertically.
+4. The zone band's height budget was computed from a width fraction through a ratio, but the
+   plane is not square: a 191px-wide frame rendered 255px tall instead of the budgeted 189px.
+5. The language switch hid the language the visitor was reading, while the reference prints
+   the whole set.
+
+## 12. Architecture changes
+
+- `canvasPlan.ts` gained the zone/group split, `wrap01`, `zoneFor`, `isZoneFrame`,
+  `GROUP_RINGS` and `ZONE_MAX_HEIGHT`; `CanvasTile` gained `rotate` and `zone`. The
+  stylesheet gained one rule keyed on `[data-zone]`; the field passes the flag through as
+  `data-zone`. No new dependency, no new state, no new fetch: the plan is still pure and
+  the field still only *moves* what the server rendered.
+- The frame's angle uses the independent `rotate` property in the composition, keeping
+  `transform` exclusively for the pan engine's whole-period wrap correction.
+- `docs/BANG-REFERENCE.md` is new: observed facts, the method's limits, and a table of what
+  is measured vs reconstructed, so no future claim of fidelity has to be guessed at.
+
+## 13. UX/UI changes
+
+- Home reads as the reference's scattered composition: strongly varied frame sizes
+  (5.8%–17% of the plane), deliberate overlap with the large frames behind, angles up to 4°,
+  and a cluster of frames in the load window rather than a single hero.
+- The language control shows both languages (`EN FA`) with the current one inert.
+- Everything else from the round-1 UX summary is unchanged.
+
+## 14. Security changes
+
+None. The composition change touches geometry only; the field still links exclusively to
+URLs the theme builds for published, non-draft posts, and the new language switch still
+renders `href: null` as non-interactive text rather than fabricating a URL.
+
+## 15. Dead/legacy code removed
+
+Nothing this round beyond the superseded composition constants (`CLUSTERS`, `clusterFor`,
+`ZONE_JITTER`, `gridFor`, `HOP_CANDIDATES`, `PLAN_ASPECT_GUARD`), which were replaced in
+place; the round-1 removals (the carousel, the orphaned entrance, the dead `.home-*`
+styles) still stand and their tests still pass.
+
+## 16. Tests added/updated
+
+| File | Change |
+| --- | --- |
+| `tests/home-canvas.test.ts` | 18 tests (was 16). Replaced the lattice assertions with the zone/group model: zone frames stay inside their zone's band, the zone layer is complete and above every group frame, group frames are larger and spread, angles are bounded. **New:** a 2304-offset sweep per viewport × archive size asserting a *whole* work is on screen clear of the chrome, and the placement-overhang contract for wrapped frames. |
+| `tests/components.test.tsx` | The language-switch contract: the set is printed, the current locale is `aria-current` and never a link, the code is compact while the accessible name is the language's own name, and the CMS order is preserved. `oppositeTargets` → `switchEntries`. |
+| `scripts/home-canvas-audit.mjs` | **New check:** after 12 wheel steps, a whole work is clickable at every offset (the browser-side twin of the sweep). 32 checks total (was 31). |
+
+## 17. Exact verification and CI results
+
+| Command | Result |
+| --- | --- |
+| `npm run lint` | 0 errors, 0 warnings |
+| `npm run typecheck` | clean |
+| `npm test` | 25 files, **294 tests passed** (was 291) |
+| `npm run build` | Next 16.3.8, 33 routes, no warnings |
+| `node scripts/screenshots.mjs --base http://127.0.0.1:3200` | **46/46 shots**, status 200, `overflowOk`, no expect failures, no console errors |
+| `node scripts/a11y-audit.mjs --base http://127.0.0.1:3200` | **17/17 pages clean** |
+| `node scripts/interaction-audit.mjs --base … --slow-base http://127.0.0.1:3300` | **20/20 checks pass** (none skipped) |
+| `node scripts/home-canvas-audit.mjs --base http://127.0.0.1:3200` | **32/32 checks pass** |
+| `node scripts/home-canvas-motion.mjs --base http://127.0.0.1:3200` | **13/13 checks pass**, 166 DOM nodes in every frame |
+
+The canvas now reports 20 tiles and a minimum of 5 on screen across the pan samples (was 12
+and 2); the largest tile is 459×333 against a 2850×1800 plane, still inside the wrapping
+budget. All runs are against the production standalone build with the mock CMS, the same
+topology CI uses (`.github/workflows/ci.yml`, job `audits`).
+
+## 18. Genuine remaining issues
+
+1. **Pixel fidelity to `bybang.co` is still not claimed.** The reference's routes, chrome
+   and server-rendered copy are now recorded (`docs/BANG-REFERENCE.md`), but its canvas,
+   cursor and transitions are client-rendered and this sandbox cannot reach the site with a
+   browser, so no capture exists. The composition's *behaviour* is pinned by tests and
+   audits; its *geometry* remains this theme's reconstruction.
+2. **No deployed revision was verified** — this branch is not deployed, and the preview URL
+   in the issue is not reachable from here.
+3. **Touch behaviour is inferred, not recorded** (unchanged from round 1): headless
+   Chromium has no touch device here, so the phone path is exercised through pointer events
+   and geometry, not a recorded touch sequence.
+4. **The other public sections were not re-photographed against the reference** (unchanged
+   from round 1): their own contract is green, but a scene-by-scene comparison needs a
+   browser that can reach `bybang.co`.
+5. **Without JavaScript every route still shows the loading state** (unchanged, an
+   architectural boundary documented in `docs/LIMITATIONS.md` §10).
